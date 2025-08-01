@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { ArrowLeft, Github, Mail } from "lucide-react";
+import { ArrowLeft, Github, Eye, EyeOff } from "lucide-react";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeInput, setActiveInput] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -18,58 +21,136 @@ export function LoginPage() {
     navigate("/dashboard");
   };
 
+  // Floating spark particles
+  const Sparks = () => (
+    <>
+      {Array.from({ length: 18 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-[#34e0a1] rounded-full opacity-50"
+          style={{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: ["0%", "-40%"],
+            opacity: [0.5, 0, 0.5],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 2,
+            repeat: Infinity,
+            delay: Math.random() * 2,
+          }}
+        />
+      ))}
+    </>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden animate-fade-up">
-      {/* Background effect */}
-      <div className="absolute inset-0 bg-gradient-radial from-[#34e0a1]/5 via-transparent to-transparent"></div>
+    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden bg-[#141d38]">
+      {/* Glowing Animated Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[#34e0a1]/5 blur-3xl" />
+
+        {/* Floating neon blobs */}
+        <motion.div
+          className="absolute top-[10%] left-[15%] w-72 h-72 rounded-full bg-[#34e0a1]/20 blur-3xl"
+          animate={{ x: [0, 40, 0], y: [0, -40, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-[10%] right-[15%] w-80 h-80 rounded-full bg-[#34e0a1]/15 blur-3xl"
+          animate={{ x: [0, -30, 0], y: [0, 30, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-[50%] right-[5%] w-40 h-40 rounded-full bg-[#34e0a1]/25 blur-2xl"
+          animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <Sparks />
+      </div>
 
       {/* Back button */}
       <button
         onClick={() => navigate("/")}
-        className="absolute top-6 left-6 glass rounded-full p-3 hover:glass-strong transition-all duration-300"
+        className="absolute top-6 left-6 glass rounded-full p-3 hover:glass-strong transition-all duration-300 z-20"
       >
         <ArrowLeft className="w-5 h-5 text-[#34e0a1]" />
       </button>
 
-      {/* Login form */}
-      <div className="w-full max-w-md">
-        <div className="glass rounded-2xl p-8 neon-glow">
-          <div className="text-center mb-8">
-            <h1 className="font-zasline text-3xl text-[#34e0a1] mb-2">
+      {/* Login Form */}
+      <motion.div
+        className="relative w-full max-w-md z-10"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <div className="glass rounded-2xl p-8 neon-glow border border-[#34e0a1]/20 relative overflow-hidden">
+          <div className="text-center mb-8 relative z-10">
+            <h1 className="font-zasline text-4xl text-[#34e0a1] mb-2 animate-pulse">
               Welcome Back
             </h1>
-            <p className="text-slate-400">Enter the graveyard</p>
+            <p className="text-slate-400 text-sm">Enter the graveyard</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            {/* Email Field */}
+            <div className="relative">
               <Label htmlFor="email" className="text-slate-300">
                 Email
               </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500"
-                placeholder="your@email.com"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onFocus={() => setActiveInput("email")}
+                  onBlur={() => setActiveInput(null)}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500 transition-all ${
+                    activeInput === "email" ? "shadow-[0_0_15px_#34e0a1]" : ""
+                  }`}
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
             </div>
 
-            <div>
+            {/* Password Field */}
+            <div className="relative">
               <Label htmlFor="password" className="text-slate-300">
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500"
-                placeholder="••••••••"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onFocus={() => setActiveInput("password")}
+                  onBlur={() => setActiveInput(null)}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500 transition-all pr-12 ${
+                    activeInput === "password"
+                      ? "shadow-[0_0_15px_#34e0a1]"
+                      : ""
+                  }`}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#34e0a1] hover:text-[#34e0a1]/80 transition-all"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button
@@ -80,13 +161,15 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6">
+          {/* Divider */}
+          <div className="mt-6 relative z-10">
             <div className="flex items-center justify-center space-x-4 mb-4">
               <div className="h-px bg-slate-600 flex-1"></div>
               <span className="text-slate-500 text-sm">or</span>
               <div className="h-px bg-slate-600 flex-1"></div>
             </div>
 
+            {/* OAuth Buttons */}
             <div className="flex gap-3">
               <button className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300">
                 <Github className="w-5 h-5 text-[#34e0a1] mr-2" />
@@ -105,7 +188,8 @@ export function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-6 text-center">
+          {/* Sign up link */}
+          <div className="mt-6 text-center relative z-10">
             <p className="text-slate-400">
               New to the graveyard?{" "}
               <button
@@ -117,7 +201,7 @@ export function LoginPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
