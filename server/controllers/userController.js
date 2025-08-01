@@ -12,7 +12,9 @@ exports.getuserProfile = async (req,res) => {
         //get ghost cards the user has submitted
         const postedProjects = await GhostCard.find({creatorId: userId}).sort({createdAt: -1});
 
+
         //get ghostscards the user has revived 
+
         const revivedProjects = await GhostCard.find({revivedBy: userId}).sort({updatedAt: -1});
 
         res.status(200).json({
@@ -36,6 +38,7 @@ exports.getLeaderboard = async (req,res) => {
     } catch (error) {
         res.status(500).json({message: "🔴 Failed to get Leaderboard"})
     }
+
 };
 
 exports.getAllUsersWithProjects = async (req, res) => {
@@ -68,3 +71,4 @@ exports.getAllUsersWithProjects = async (req, res) => {
     });
   }
 };
+

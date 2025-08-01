@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+
 const axios = require("axios");
 
 
 //signup
+
 exports.signup = async (req,res) => {
     try{
         const {username,email,password} = req.body;
@@ -59,6 +61,7 @@ exports.login  = async (req,res) => {
     } catch (error) {
         res.status(500).json({message: "🔴 Login Failed",error: error.message})
     }
+
 };
 
 //login with GitHub logic
@@ -130,3 +133,4 @@ exports.githubRedirect = (req, res) => {
   const redirect = `https://github.com/login/oauth/authorize?client_id=${clientID}&scope=user:email`;
   res.redirect(redirect);
 };
+
