@@ -12,7 +12,9 @@ exports.getuserProfile = async (req,res) => {
         //get ghost cards the user has submitted
         const postedProjects = await GhostCard.find({creatorId: userId}).sort({createdAt: -1});
 
-        //get ghosts the user has revived 
+
+        //get ghostscards the user has revived 
+
         const revivedProjects = await GhostCard.find({revivedBy: userId}).sort({updatedAt: -1});
 
         res.status(200).json({
@@ -36,4 +38,37 @@ exports.getLeaderboard = async (req,res) => {
     } catch (error) {
         res.status(500).json({message: "🔴 Failed to get Leaderboard"})
     }
+
 };
+
+exports.getAllUsersWithProjects = async (req, res) => {
+  try {
+    // Fetch all users
+    const users = await User.find().select("username email revivalCount createdAt");
+
+    // For each user, fetch posted and revived projects
+    const result = await Promise.all(
+      users.map(async (user) => {
+        const postedProjects = await GhostCard.find({ creatorId: user._id })
+          .select("title status type createdAt updatedAt");
+
+        const revivedProjects = await GhostCard.find({ revivedBy: user._id })
+          .select("title status type createdAt updatedAt");
+
+        return {
+          user,
+          postedProjects,
+          revivedProjects
+        };
+      })
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: "🔴 Failed to fetch users and their projects",
+      error: error.message
+    });
+  }
+};
+

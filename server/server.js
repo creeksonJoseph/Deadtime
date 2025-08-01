@@ -25,7 +25,15 @@ app.use(cors());
 
 
 //root routes 
-
+app.use("/api/auth",require("./routes/authroutes"));
+app.use("/api/ghostcards",require("./routes/GhostCardroutes"));
+app.use("/api/ghostnotes",require("./routes/Ghostnotesroutes"));
+app.use("/api/revive",require("./routes/revivalcardroutes"));
+app.use("/api/users",require("./routes/userroutes"));
+app.use("/api/leaderboard",require("./routes/leaderboardroute"));
+app.get("/",(req,res) => {
+  res.send("💀 Welcome to DeadTime API");
+})
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);

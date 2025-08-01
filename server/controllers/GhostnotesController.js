@@ -24,7 +24,9 @@ exports.createGhostnotes = async (req,res) => {
 };
 
 //get all notes for the project(ghostcard)
-exports.getNotesFotProject = async (req,res) => {
+
+exports.getNotesForProject = async (req,res) => {
+
     try{
         const {projectId} = req.params;
         const notes = await Ghostnotes.find({projectId}).sort({createdAt: -1});
