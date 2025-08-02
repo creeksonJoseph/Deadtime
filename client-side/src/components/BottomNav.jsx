@@ -1,22 +1,15 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus, Search, User, FolderOpen } from "lucide-react";
+import { Plus, Search, User, Home } from "lucide-react";
 
 export function BottomNav({ onOpenForm }) {
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = [
-    {
-      id: "dashboard",
-      path: "/dashboard",
-      icon: FolderOpen,
-      label: "My Projects",
-    },
+    { id: "dashboard", path: "/dashboard", icon: Home, label: "Home" },
     { id: "browse", path: "/browse", icon: Search, label: "Browse Projects" },
     { id: "account", path: "/account", icon: User, label: "Account" },
   ];
-
-  console.log("✅ BottomNav rendered on:", location.pathname);
 
   return (
     <div
@@ -45,10 +38,10 @@ export function BottomNav({ onOpenForm }) {
           );
         })}
 
-        {/* Floating Add Button */}
+        {/* Floating Add Button - Bottom Right with Bounce */}
         <button
           onClick={onOpenForm}
-          className="absolute left-1/2 transform -translate-x-1/2 -translate-y-8
+          className="fixed bottom-20 right-6
           w-14 h-14 bg-[#34e0a1] text-[#141d38] rounded-full
           flex items-center justify-center
           shadow-[0_0_25px_#34e0a1] 

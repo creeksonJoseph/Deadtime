@@ -5,6 +5,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "BankGothic";
+  src: url("/fonts/bankgothic-md-bt.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --font-size: 14px;
   --background: #ffffff;
@@ -145,7 +152,9 @@
   }
 
   .font-zasline {
-    font-family: "Orbitron", monospace;
+    font-family: "BankGothic", monospace;
+    letter-spacing: 0.05em; /* Optional for that sci-fi look */
+    text-transform: uppercase; /* Optional if you want Figma vibe */
   }
 }
 
