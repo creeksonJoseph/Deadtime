@@ -17,40 +17,43 @@ import { BrowseProjects } from "./components/BrowseProjects";
 import { AccountPage } from "./components/AccountPage";
 import { BottomNav } from "./components/BottomNav.jsx";
 import { ProjectModal } from "./components/ProjectModal";
-import { ProjectFormModal } from "./components/ProjectFormModal";
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
+import { useIsBigScreen } from "./components/UseIsBigScreen";
+import { PortalNav } from "./components/PortalNav";
+import { EditProjectModal } from "./components/EditProjectModal.jsx";
+import { AddProjectModal } from "./components/AddProjectModal.jsx";
 
 function AppContent() {
   const [selectedProject, setSelectedProject] = useState(null);
-  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [modalMode, setModalMode] = useState(null); // 'add' or 'edit'
   const [editingProject, setEditingProject] = useState(null);
   const location = useLocation();
+  const isBigScreen = useIsBigScreen();
 
-  const openProjectModal = (project) => {
-    setSelectedProject(project);
+  // Project Details Modal
+  const openProjectModal = (project) => setSelectedProject(project);
+  const closeProjectModal = () => setSelectedProject(null);
+
+  // Add / Edit Project Modals
+  const openAddModal = () => {
+    setModalMode("add");
+    setEditingProject(null);
   };
-
-  const closeProjectModal = () => {
-    setSelectedProject(null);
-  };
-
-  const openProjectForm = (project = null) => {
+  const openEditModal = (project) => {
+    setModalMode("edit");
     setEditingProject(project);
-    setShowProjectForm(true);
   };
-
-  const closeProjectForm = () => {
-    setShowProjectForm(false);
+  const closeFormModal = () => {
+    setModalMode(null);
     setEditingProject(null);
   };
 
-  // Determine if we should show bottom nav based on current route
   const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
     location.pathname
   );
 
   return (
-    <div className="min-h-screen bg-[#141d38] text-slate-200 dark">
+    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden">
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -61,7 +64,7 @@ function AppContent() {
             <ProtectedRoute>
               <Dashboard
                 onOpenProject={openProjectModal}
-                onOpenForm={openProjectForm}
+                onOpenForm={openAddModal}
               />
             </ProtectedRoute>
           }
@@ -82,26 +85,33 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        {/* Catch-all route - redirects any unmatched routes to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {showBottomNav && <BottomNav onOpenForm={openProjectForm} />}
+      {showBottomNav &&
+        (isBigScreen ? (
+          <PortalNav onOpenForm={openAddModal} />
+        ) : (
+          <BottomNav onOpenForm={openAddModal} />
+        ))}
 
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
           onClose={closeProjectModal}
-          onEdit={openProjectForm}
+          onEdit={openEditModal}
           isOwner={selectedProject.isOwner}
         />
       )}
 
-      {showProjectForm && (
-        <ProjectFormModal
+      {modalMode === "add" && (
+        <AddProjectModal onClose={closeFormModal} onSave={closeFormModal} />
+      )}
+      {modalMode === "edit" && editingProject && (
+        <EditProjectModal
           project={editingProject}
-          onClose={closeProjectForm}
-          onSave={closeProjectForm}
+          onClose={closeFormModal}
+          onSave={closeFormModal}
         />
       )}
     </div>
