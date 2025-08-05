@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ArrowLeft, Github, Eye, EyeOff } from "lucide-react";
+import { signup } from "../api/auth";
 
 export function SignupPage() {
   const [email, setEmail] = useState("");
@@ -20,11 +21,27 @@ export function SignupPage() {
   const passwordsMatch =
     confirmPassword.length > 0 && password === confirmPassword;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!passwordsMatch) return; // block submit if mismatch
-    login();
-    navigate("/dashboard");
+
+    try {
+      // Auto-generate username from email
+      const username = email.split("@")[0];
+
+      // call backend signup with username included
+      const data = await signup({ username, email, password });
+
+      // mark user as logged in in AuthContext
+      login();
+
+      // move to dashboard
+      navigate("/dashboard");
+    } catch (err) {
+      alert("Signup failed. Try again.");
+      console.error(err.response?.data || err.message);
+    }
   };
 
   const Sparks = () => (

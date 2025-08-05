@@ -22,6 +22,7 @@ import { useIsBigScreen } from "./components/UseIsBigScreen";
 import { PortalNav } from "./components/PortalNav";
 import { EditProjectModal } from "./components/EditProjectModal.jsx";
 import { AddProjectModal } from "./components/AddProjectModal.jsx";
+import GithubCallback from "./components/GithubCallback";
 
 function AppContent() {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -58,6 +59,7 @@ function AppContent() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/auth/github/callback" element={<GithubCallback />} />
         <Route
           path="/dashboard"
           element={
