@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Upload, Trash2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Upload, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -24,74 +24,98 @@ export function AddProjectModal({ onClose, onSave }) {
     dateStarted: "",
     dateAbandoned: "",
     pitchDeckUrl: "",
-    images: [],
-    videos: [],
   });
 
-  const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [logoProgress, setLogoProgress] = useState(0);
+  const [pdfProgress, setPdfProgress] = useState(0);
+
+  const logoInputRef = useRef(null);
+  const pdfInputRef = useRef(null);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Cloudinary upload helper
-  const uploadToCloudinary = async (files, resourceType = "image") => {
-    setUploading(true);
-    const urls = [];
-
-    for (const file of files) {
+  // Cloudinary uploader
+  const uploadToCloudinary = (
+    file,
+    resourceType,
+    setProgress,
+    setUploading
+  ) => {
+    return new Promise((resolve, reject) => {
+      setUploading(true);
       const data = new FormData();
       data.append("file", file);
-      data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET); // set in .env
-      data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_NAME);
+      data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);
 
-      const res = await fetch(
+      const xhr = new XMLHttpRequest();
+      xhr.open(
+        "POST",
         `https://api.cloudinary.com/v1_1/${
           import.meta.env.VITE_CLOUDINARY_NAME
-        }/${resourceType}/upload`,
-        {
-          method: "POST",
-          body: data,
-        }
+        }/${resourceType}/upload`
       );
-      const uploaded = await res.json();
-      urls.push(uploaded.secure_url);
-    }
 
-    setUploading(false);
-    return urls;
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded * 100) / event.total);
+          setProgress(percent);
+        }
+      });
+
+      xhr.onload = () => {
+        setUploading(false);
+        if (xhr.status === 200) {
+          const res = JSON.parse(xhr.responseText);
+          setTimeout(() => setProgress(0), 1000); // Fade out after 1s
+          resolve(res.secure_url);
+        } else {
+          setTimeout(() => setProgress(0), 1000);
+          reject("Upload failed");
+        }
+      };
+
+      xhr.onerror = () => {
+        setUploading(false);
+        setTimeout(() => setProgress(0), 1000);
+        reject("Upload failed");
+      };
+      xhr.send(data);
+    });
   };
 
-  // Handle image upload
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    const uploadedUrls = await uploadToCloudinary(files, "image");
-    setFormData((prev) => ({
-      ...prev,
-      images: [...prev.images, ...uploadedUrls],
-    }));
+  // Handlers
+  const handleLogoUpload = async (file) => {
+    if (!file) return;
+    const url = await uploadToCloudinary(
+      file,
+      "image",
+      setLogoProgress,
+      setUploadingLogo
+    );
+    setFormData((prev) => ({ ...prev, logoUrl: url }));
   };
 
-  // Handle video upload
-  const handleVideoUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    const uploadedUrls = await uploadToCloudinary(files, "video");
-    setFormData((prev) => ({
-      ...prev,
-      videos: [...prev.videos, ...uploadedUrls],
-    }));
+  const handlePdfUpload = async (file) => {
+    if (!file) return;
+    const url = await uploadToCloudinary(
+      file,
+      "raw",
+      setPdfProgress,
+      setUploadingPdf
+    );
+    setFormData((prev) => ({ ...prev, pitchDeckUrl: url }));
   };
 
-  const removeMedia = (type, index) => {
-    setFormData((prev) => ({
-      ...prev,
-      [type]: prev[type].filter((_, i) => i !== index),
-    }));
-  };
+  const removeLogo = () => setFormData((prev) => ({ ...prev, logoUrl: "" }));
+  const removePdf = () =>
+    setFormData((prev) => ({ ...prev, pitchDeckUrl: "" }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitting to backend:", formData);
     onSave(formData);
     onClose();
   };
@@ -102,9 +126,8 @@ export function AddProjectModal({ onClose, onSave }) {
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-
-      <div className="relative w-full max-w-3xl glass-strong rounded-2xl neon-glow animate-fade-up max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Close Button */}
+      <div className="relative w-full max-w-2xl glass-strong rounded-2xl neon-glow animate-fade-up max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-50 glass rounded-full p-2 hover:glass-strong transition-all"
@@ -117,11 +140,9 @@ export function AddProjectModal({ onClose, onSave }) {
           className="overflow-y-auto px-6 sm:px-8 pt-10 pb-24 space-y-6"
         >
           <h1 className="font-zasline text-2xl text-[#34e0a1] mb-2">
-            Add Project
+            Add GhostCard
           </h1>
-          <p className="text-slate-400">
-            Fill out details to bury or revive a project
-          </p>
+          <p className="text-slate-400">Fill in the project details</p>
 
           {/* Title */}
           <div>
@@ -130,7 +151,7 @@ export function AddProjectModal({ onClose, onSave }) {
               value={formData.title}
               onChange={(e) => handleChange("title", e.target.value)}
               className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
-              placeholder="My Amazing Project"
+              placeholder="My Project"
               required
             />
           </div>
@@ -142,73 +163,61 @@ export function AddProjectModal({ onClose, onSave }) {
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
               className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 min-h-[120px]"
-              placeholder="Tell the story of your project..."
+              placeholder="Describe your project..."
               required
             />
           </div>
 
-          {/* Status */}
-          <div>
-            <Label className="text-slate-300">Project Status</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(val) => handleChange("status", val)}
-            >
-              <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 text-slate-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="glass border-[#34e0a1]/30">
-                <SelectItem value="abandoned" className="text-slate-200">
-                  Abandoned
-                </SelectItem>
-                <SelectItem value="on-hold" className="text-slate-200">
-                  On Hold
-                </SelectItem>
-                <SelectItem value="revived" className="text-slate-200">
-                  Revived
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Status & Type */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-slate-300">Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(v) => handleChange("status", v)}
+              >
+                <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 text-slate-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="abandoned">Abandoned</SelectItem>
+                  <SelectItem value="on-hold">On Hold</SelectItem>
+                  <SelectItem value="revived">Revived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-slate-300">Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(v) => handleChange("type", v)}
+              >
+                <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 text-slate-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="code">Code</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
+                  <SelectItem value="content">Content</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Type */}
+          {/* External Link */}
           <div>
-            <Label className="text-slate-300">Project Type</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(val) => handleChange("type", val)}
-            >
-              <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 text-slate-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="glass border-[#34e0a1]/30">
-                <SelectItem value="code" className="text-slate-200">
-                  Code
-                </SelectItem>
-                <SelectItem value="business" className="text-slate-200">
-                  Business
-                </SelectItem>
-                <SelectItem value="content" className="text-slate-200">
-                  Content
-                </SelectItem>
-                <SelectItem value="other" className="text-slate-200">
-                  Other
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Optional fields */}
-          <div>
-            <Label className="text-slate-300">External Link (optional)</Label>
+            <Label className="text-slate-300">External Link</Label>
             <Input
+              type="url"
               value={formData.externalLink}
               onChange={(e) => handleChange("externalLink", e.target.value)}
               className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
-              placeholder="GitHub or live link"
+              placeholder="GitHub / YouTube / Demo"
             />
           </div>
 
+          {/* Abandonment Reason */}
           <div>
             <Label className="text-slate-300">
               Abandonment Reason (optional)
@@ -218,14 +227,15 @@ export function AddProjectModal({ onClose, onSave }) {
               onChange={(e) =>
                 handleChange("abandonmentReason", e.target.value)
               }
-              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 min-h-[80px]"
-              placeholder="Why did you abandon this project?"
+              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
+              placeholder="Why did this project get abandoned?"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-slate-300">Date Started (required)</Label>
+              <Label className="text-slate-300">Date Started</Label>
               <Input
                 type="date"
                 value={formData.dateStarted}
@@ -235,9 +245,7 @@ export function AddProjectModal({ onClose, onSave }) {
               />
             </div>
             <div>
-              <Label className="text-slate-300">
-                Date Abandoned (optional)
-              </Label>
+              <Label className="text-slate-300">Date Abandoned</Label>
               <Input
                 type="date"
                 value={formData.dateAbandoned}
@@ -247,107 +255,146 @@ export function AddProjectModal({ onClose, onSave }) {
             </div>
           </div>
 
-          <div>
-            <Label className="text-slate-300">Pitch Deck (optional PDF)</Label>
-            <Input
-              type="url"
-              value={formData.pitchDeckUrl}
-              onChange={(e) => handleChange("pitchDeckUrl", e.target.value)}
-              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
-              placeholder="Cloud link to your pitch deck"
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <Label className="text-slate-300">Project Images (optional)</Label>
-            <div className="mt-2 space-y-4">
-              <div className="relative">
+          {/* Upload Buttons / Dropzones */}
+          <div className="space-y-4">
+            {/* Logo Upload */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Mobile Button */}
+              <div className="sm:hidden flex-1">
                 <input
+                  ref={logoInputRef}
                   type="file"
                   accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="hidden"
+                  onChange={(e) => handleLogoUpload(e.target.files[0])}
                 />
-                <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-                  <Upload className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
-                  <p className="text-slate-300 mb-1">Upload Images</p>
-                  <p className="text-slate-500 text-sm">
-                    Drag and drop or click to browse
-                  </p>
-                </div>
+                <Button
+                  type="button"
+                  className="w-full bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow"
+                  onClick={() =>
+                    logoInputRef.current && logoInputRef.current.click()
+                  }
+                >
+                  Attach image
+                </Button>
               </div>
 
-              {formData.images.length > 0 && (
-                <div className="flex flex-wrap gap-3">
-                  {formData.images.map((img, index) => (
-                    <div
-                      key={index}
-                      className="relative w-24 h-24 glass rounded-lg overflow-hidden"
-                    >
-                      <img
-                        src={img}
-                        className="object-cover w-full h-full"
-                        alt={`Image ${index + 1}`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeMedia("images", index)}
-                        className="absolute top-1 right-1 text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Video Upload */}
-          <div>
-            <Label className="text-slate-300">Project Videos (optional)</Label>
-            <div className="mt-2 space-y-4">
-              <div className="relative">
+              {/* Desktop Dropzone */}
+              <div className="hidden sm:block relative w-full">
                 <input
+                  ref={logoInputRef}
                   type="file"
-                  accept="video/*"
-                  multiple
-                  onChange={handleVideoUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  accept="image/*"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  onChange={(e) => handleLogoUpload(e.target.files[0])}
+                  tabIndex={0}
+                  aria-label="Upload logo"
                 />
-                <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-                  <Upload className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
-                  <p className="text-slate-300 mb-1">Upload Videos</p>
-                  <p className="text-slate-500 text-sm">
-                    Drag and drop or click to browse
-                  </p>
+                <div
+                  className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300"
+                  onClick={() =>
+                    logoInputRef.current && logoInputRef.current.click()
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  <ImageIcon className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
+                  <p className="text-slate-300 mb-1">Attach image</p>
+                  <p className="text-slate-500 text-sm">Click or Drag & Drop</p>
                 </div>
               </div>
-
-              {formData.videos.length > 0 && (
-                <div className="space-y-2">
-                  {formData.videos.map((vid, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between glass rounded-lg p-3"
-                    >
-                      <span className="text-slate-300 text-sm">
-                        Video {index + 1}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeMedia("videos", index)}
-                        className="text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
+            {logoProgress > 0 && (
+              <div className="glass rounded-lg overflow-hidden">
+                <div
+                  className="h-1 bg-[#34e0a1]"
+                  style={{ width: `${logoProgress}%` }}
+                />
+              </div>
+            )}
+            {formData.logoUrl && (
+              <div className="relative w-24 h-24 glass rounded-lg overflow-hidden">
+                <img
+                  src={formData.logoUrl}
+                  className="object-cover w-full h-full"
+                />
+                <button
+                  type="button"
+                  onClick={removeLogo}
+                  className="absolute top-1 right-1 text-red-400 hover:text-red-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* PDF Upload */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Mobile Button */}
+              <div className="sm:hidden flex-1">
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(e) => handlePdfUpload(e.target.files[0])}
+                />
+                <Button
+                  type="button"
+                  className="w-full bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow"
+                  onClick={() =>
+                    pdfInputRef.current && pdfInputRef.current.click()
+                  }
+                >
+                  Attach PDF
+                </Button>
+              </div>
+
+              {/* Desktop Dropzone */}
+              <div className="hidden sm:block relative w-full">
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  onChange={(e) => handlePdfUpload(e.target.files[0])}
+                  tabIndex={0}
+                  aria-label="Upload PDF"
+                />
+                <div
+                  className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300"
+                  onClick={() =>
+                    pdfInputRef.current && pdfInputRef.current.click()
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  <FileText className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
+                  <p className="text-slate-300 mb-1">Attach PDF</p>
+                  <p className="text-slate-500 text-sm">Click or Drag & Drop</p>
+                </div>
+              </div>
+            </div>
+            {pdfProgress > 0 && (
+              <div className="glass rounded-lg overflow-hidden">
+                <div
+                  className="h-1 bg-[#34e0a1]"
+                  style={{ width: `${pdfProgress}%` }}
+                />
+              </div>
+            )}
+            {formData.pitchDeckUrl && (
+              <div className="flex items-center justify-between glass rounded-lg p-3">
+                <span className="text-slate-300 text-sm truncate">
+                  Pitch Deck Uploaded
+                </span>
+                <button
+                  type="button"
+                  onClick={removePdf}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Submit */}
@@ -362,10 +409,10 @@ export function AddProjectModal({ onClose, onSave }) {
             </Button>
             <Button
               type="submit"
-              disabled={uploading}
+              disabled={uploadingLogo || uploadingPdf}
               className="bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow flex-1"
             >
-              {uploading ? "Uploading..." : "Add Project"}
+              {uploadingLogo || uploadingPdf ? "Uploading..." : "Add Project"}
             </Button>
           </div>
         </form>
