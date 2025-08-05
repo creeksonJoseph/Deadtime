@@ -8,10 +8,15 @@ export async function signup(userData) {
   return res.data;
 }
 
-export async function loginUser(userData) {
-  const res = await axios.post(`${API_URL}/login`, userData);
-  localStorage.setItem("token", res.data.token);
-  return res.data;
+export async function loginUser(credentials) {
+  const res = await fetch("https://deadtime.onrender.com/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!res.ok) throw new Error("Login failed");
+  return res.json();
 }
 
 // Example: fetch protected route

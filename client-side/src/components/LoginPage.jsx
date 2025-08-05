@@ -17,25 +17,27 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const handleGithubLogin = () => {
+    window.location.href = "https://deadtime.onrender.com/api/auth/github";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Inside your GitHub button onClick
-    const handleGithubLogin = () => {
-      window.location.href = "https://deadtime.onrender.com/api/auth/github";
-    };
 
     try {
       const data = await loginUser({ email, password });
       console.log("Login success:", data);
 
-      // Optional: store user in context if needed
-      login(data.user);
-
-      navigate("/dashboard");
+      // save the token to AuthContext + localStorage
+      if (data.token) {
+        login(data.token); // from AuthContext
+        navigate("/dashboard");
+      } else {
+        console.log("No token received from server");
+      }
     } catch (err) {
       console.log("Login error:", err);
-      // No alert for incorrect password anymore
     } finally {
       setLoading(false);
     }

@@ -15,6 +15,7 @@ export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
+  const [loading, setLoading] = useState(false); // 🔹 loading state
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -23,27 +24,29 @@ export function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!passwordsMatch) return;
 
-    if (!passwordsMatch) return; // block submit if mismatch
-
+    setLoading(true);
     try {
-      // Auto-generate username from email
       const username = email.split("@")[0];
-
-      // call backend signup with username included
       const data = await signup({ username, email, password });
+      console.log("Signup success:", data);
 
-      // mark user as logged in in AuthContext
-      login();
-
-      // move to dashboard
-      navigate("/dashboard");
+      if (data.token) {
+        login(data.token);
+        navigate("/dashboard");
+      } else {
+        console.warn("No token received from signup");
+      }
     } catch (err) {
       alert("Signup failed. Try again.");
       console.error(err.response?.data || err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Sparks component unchanged
   const Sparks = () => (
     <>
       {Array.from({ length: 18 }).map((_, i) => (
@@ -66,6 +69,23 @@ export function SignupPage() {
         />
       ))}
     </>
+  );
+
+  // 🔹 Skull loader animation
+  const SkullLoader = () => (
+    <motion.div
+      className="flex justify-center mb-6"
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 640 512"
+        className="w-12 h-12 text-[#34e0a1] fill-current drop-shadow-[0_0_12px_#34e0a1]"
+      >
+        <path d="M480 96C480 43 437 0 384 0H256C203 0 160 43 160 96v112c0 38.6-17.3 73.4-44.8 96.4C79.8 322.3 64 360.2 64 400v48c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64v-48c0-39.8-15.8-77.7-51.2-95.6C497.3 281.4 480 246.6 480 208V96zm-96 112a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm-128 0a32 32 0 1 1 0-64 32 32 0 1 1 0 64z" />
+      </svg>
+    </motion.div>
   );
 
   return (
@@ -107,11 +127,14 @@ export function SignupPage() {
       >
         <div className="glass rounded-2xl p-8 neon-glow border border-[#34e0a1]/20 relative overflow-hidden">
           <div className="text-center mb-8 relative z-10">
+            {loading && <SkullLoader />}
             <h1 className="font-zasline text-4xl text-[#34e0a1] mb-2 animate-pulse">
-              Join the Graveyard
+              {loading ? "Creating Account..." : "Join the Graveyard"}
             </h1>
             <p className="text-slate-400 text-sm">
-              Become a digital archaeologist
+              {loading
+                ? "Summoning your account..."
+                : "Become a digital archaeologist"}
             </p>
           </div>
 
@@ -211,7 +234,6 @@ export function SignupPage() {
                 </button>
               </div>
 
-              {/* Password mismatch message */}
               {!passwordsMatch && confirmPassword.length > 0 && (
                 <p className="mt-2 text-sm text-red-400 animate-pulse">
                   ⚠ Passwords do not match
@@ -221,9 +243,14 @@ export function SignupPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 py-3 neon-glow transition-all duration-300 hover:scale-[1.02]"
+              disabled={loading}
+              className={`w-full bg-[#34e0a1] text-[#141d38] py-3 neon-glow transition-all duration-300 hover:scale-[1.02] ${
+                loading
+                  ? "animate-pulse cursor-not-allowed"
+                  : "hover:bg-[#34e0a1]/90"
+              }`}
             >
-              Enter the Graveyard
+              {loading ? "Creating Account..." : "Enter the Graveyard"}
             </Button>
           </form>
 
@@ -235,7 +262,7 @@ export function SignupPage() {
               <div className="h-px bg-slate-600 flex-1"></div>
             </div>
 
-            {/* OAuth */}
+            {/* OAuth Buttons */}
             <div className="flex gap-3">
               <button className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300">
                 <Github className="w-5 h-5 text-[#34e0a1] mr-2" />

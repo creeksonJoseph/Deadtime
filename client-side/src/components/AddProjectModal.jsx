@@ -15,48 +15,95 @@ import {
 export function AddProjectModal({ onClose, onSave }) {
   const [formData, setFormData] = useState({
     title: "",
-    status: "Still Hopeful",
     description: "",
-    link: "",
+    logoUrl: "",
+    status: "abandoned",
+    type: "code",
+    externalLink: "",
+    abandonmentReason: "",
+    dateStarted: "",
+    dateAbandoned: "",
+    pitchDeckUrl: "",
+    images: [],
     videos: [],
   });
 
+  const [uploading, setUploading] = useState(false);
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Cloudinary upload helper
+  const uploadToCloudinary = async (files, resourceType = "image") => {
+    setUploading(true);
+    const urls = [];
+
+    for (const file of files) {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET); // set in .env
+      data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_NAME);
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${
+          import.meta.env.VITE_CLOUDINARY_NAME
+        }/${resourceType}/upload`,
+        {
+          method: "POST",
+          body: data,
+        }
+      );
+      const uploaded = await res.json();
+      urls.push(uploaded.secure_url);
+    }
+
+    setUploading(false);
+    return urls;
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const uploadedUrls = await uploadToCloudinary(files, "image");
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...uploadedUrls],
+    }));
+  };
+
+  // Handle video upload
+  const handleVideoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const uploadedUrls = await uploadToCloudinary(files, "video");
+    setFormData((prev) => ({
+      ...prev,
+      videos: [...prev.videos, ...uploadedUrls],
+    }));
+  };
+
+  const removeMedia = (type, index) => {
+    setFormData((prev) => ({
+      ...prev,
+      [type]: prev[type].filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Adding project:", formData);
+    console.log("Submitting to backend:", formData);
     onSave(formData);
-    onClose(); // Close modal after save
-  };
-
-  const handleVideoUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const videoUrls = files.map((file) => URL.createObjectURL(file));
-    setFormData((prev) => ({
-      ...prev,
-      videos: [...prev.videos, ...videoUrls],
-    }));
-  };
-
-  const removeVideo = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      videos: prev.videos.filter((_, i) => i !== index),
-    }));
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div
-        className="relative w-full max-w-2xl glass-strong rounded-2xl neon-glow animate-fade-up
-                      max-h-[90vh] flex flex-col overflow-hidden"
-      >
+      <div className="relative w-full max-w-3xl glass-strong rounded-2xl neon-glow animate-fade-up max-h-[90vh] flex flex-col overflow-hidden">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -73,23 +120,29 @@ export function AddProjectModal({ onClose, onSave }) {
             Add Project
           </h1>
           <p className="text-slate-400">
-            Add a project to the digital graveyard
+            Fill out details to bury or revive a project
           </p>
 
-          {/* --- Form Fields (same as before) --- */}
           {/* Title */}
           <div>
-            <Label htmlFor="title" className="text-slate-300">
-              Project Title
-            </Label>
+            <Label className="text-slate-300">Project Title</Label>
             <Input
-              id="title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500"
+              onChange={(e) => handleChange("title", e.target.value)}
+              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
               placeholder="My Amazing Project"
+              required
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <Label className="text-slate-300">Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => handleChange("description", e.target.value)}
+              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 min-h-[120px]"
+              placeholder="Tell the story of your project..."
               required
             />
           </div>
@@ -99,59 +152,157 @@ export function AddProjectModal({ onClose, onSave }) {
             <Label className="text-slate-300">Project Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(value) =>
-                setFormData({ ...formData, status: value })
-              }
+              onValueChange={(val) => handleChange("status", val)}
             >
-              <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200">
+              <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 text-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="glass border-[#34e0a1]/30">
-                <SelectItem value="Still Hopeful" className="text-slate-200">
-                  Still Hopeful
+                <SelectItem value="abandoned" className="text-slate-200">
+                  Abandoned
                 </SelectItem>
-                <SelectItem value="Reviving" className="text-slate-200">
-                  Reviving
+                <SelectItem value="on-hold" className="text-slate-200">
+                  On Hold
                 </SelectItem>
-                <SelectItem value="RIP" className="text-slate-200">
-                  RIP
+                <SelectItem value="revived" className="text-slate-200">
+                  Revived
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Description */}
+          {/* Type */}
           <div>
-            <Label htmlFor="description" className="text-slate-300">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500 min-h-[120px]"
-              placeholder="Tell the story of your project..."
-              required
+            <Label className="text-slate-300">Project Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(val) => handleChange("type", val)}
+            >
+              <SelectTrigger className="mt-2 glass border-[#34e0a1]/30 text-slate-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="glass border-[#34e0a1]/30">
+                <SelectItem value="code" className="text-slate-200">
+                  Code
+                </SelectItem>
+                <SelectItem value="business" className="text-slate-200">
+                  Business
+                </SelectItem>
+                <SelectItem value="content" className="text-slate-200">
+                  Content
+                </SelectItem>
+                <SelectItem value="other" className="text-slate-200">
+                  Other
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Optional fields */}
+          <div>
+            <Label className="text-slate-300">External Link (optional)</Label>
+            <Input
+              value={formData.externalLink}
+              onChange={(e) => handleChange("externalLink", e.target.value)}
+              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
+              placeholder="GitHub or live link"
             />
           </div>
 
-          {/* Project Link */}
           <div>
-            <Label htmlFor="link" className="text-slate-300">
-              Project Link (optional)
+            <Label className="text-slate-300">
+              Abandonment Reason (optional)
             </Label>
-            <Input
-              id="link"
-              type="url"
-              value={formData.link}
+            <Textarea
+              value={formData.abandonmentReason}
               onChange={(e) =>
-                setFormData({ ...formData, link: e.target.value })
+                handleChange("abandonmentReason", e.target.value)
               }
-              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500"
-              placeholder="https://github.com/username/project"
+              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 min-h-[80px]"
+              placeholder="Why did you abandon this project?"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-slate-300">Date Started (required)</Label>
+              <Input
+                type="date"
+                value={formData.dateStarted}
+                onChange={(e) => handleChange("dateStarted", e.target.value)}
+                className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-slate-300">
+                Date Abandoned (optional)
+              </Label>
+              <Input
+                type="date"
+                value={formData.dateAbandoned}
+                onChange={(e) => handleChange("dateAbandoned", e.target.value)}
+                className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-slate-300">Pitch Deck (optional PDF)</Label>
+            <Input
+              type="url"
+              value={formData.pitchDeckUrl}
+              onChange={(e) => handleChange("pitchDeckUrl", e.target.value)}
+              className="mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
+              placeholder="Cloud link to your pitch deck"
+            />
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <Label className="text-slate-300">Project Images (optional)</Label>
+            <div className="mt-2 space-y-4">
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
+                  <Upload className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
+                  <p className="text-slate-300 mb-1">Upload Images</p>
+                  <p className="text-slate-500 text-sm">
+                    Drag and drop or click to browse
+                  </p>
+                </div>
+              </div>
+
+              {formData.images.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {formData.images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative w-24 h-24 glass rounded-lg overflow-hidden"
+                    >
+                      <img
+                        src={img}
+                        className="object-cover w-full h-full"
+                        alt={`Image ${index + 1}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeMedia("images", index)}
+                        className="absolute top-1 right-1 text-red-400 hover:text-red-300"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Video Upload */}
@@ -177,8 +328,7 @@ export function AddProjectModal({ onClose, onSave }) {
 
               {formData.videos.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-slate-400 text-sm">Uploaded Videos:</p>
-                  {formData.videos.map((video, index) => (
+                  {formData.videos.map((vid, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between glass rounded-lg p-3"
@@ -188,7 +338,7 @@ export function AddProjectModal({ onClose, onSave }) {
                       </span>
                       <button
                         type="button"
-                        onClick={() => removeVideo(index)}
+                        onClick={() => removeMedia("videos", index)}
                         className="text-red-400 hover:text-red-300 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -200,7 +350,7 @@ export function AddProjectModal({ onClose, onSave }) {
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Submit */}
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
@@ -212,9 +362,10 @@ export function AddProjectModal({ onClose, onSave }) {
             </Button>
             <Button
               type="submit"
+              disabled={uploading}
               className="bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow flex-1"
             >
-              Add Project
+              {uploading ? "Uploading..." : "Add Project"}
             </Button>
           </div>
         </form>

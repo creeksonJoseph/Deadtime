@@ -1,24 +1,24 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Initialize token from localStorage immediately
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const isLoggedIn = !!token;
 
-  //  check localStorage for token on app load
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) setIsLoggedIn(true);
-  }, []);
+  const login = (newToken) => {
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
+  };
 
-  const login = () => setIsLoggedIn(true);
   const logout = () => {
-    localStorage.removeItem("token"); // clear token on logout
-    setIsLoggedIn(false);
+    setToken(null);
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ token, isLoggedIn, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
