@@ -11,8 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { updateGhostCard } from "../api/ghostcards";
+import { useAuth } from "../contexts/AuthContext";
 
 export function EditProjectModal({ project, onClose, onSave }) {
+  const { token } = useAuth();
+
   // Pre-fill with existing project data
   const [formData, setFormData] = useState({
     title: project?.title || "",
@@ -22,10 +26,11 @@ export function EditProjectModal({ project, onClose, onSave }) {
     videos: project?.videos || [],
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Updating project:", formData);
-    onSave({ ...project, ...formData }); // Pass back updated project
+    await updateGhostCard(project._id, formData, token);
+    onSave && onSave();
     onClose();
   };
 

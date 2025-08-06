@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { createGhostCard } from "../api/ghostcards";
+import { useAuth } from "../contexts/AuthContext";
 
 export function AddProjectModal({ onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -30,6 +32,9 @@ export function AddProjectModal({ onClose, onSave }) {
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [logoProgress, setLogoProgress] = useState(0);
   const [pdfProgress, setPdfProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { token } = useAuth();
 
   const logoInputRef = useRef(null);
   const pdfInputRef = useRef(null);
@@ -114,10 +119,34 @@ export function AddProjectModal({ onClose, onSave }) {
   const removePdf = () =>
     setFormData((prev) => ({ ...prev, pitchDeckUrl: "" }));
 
-  const handleSubmit = (e) => {
+  // Add validation
+  const validate = () => {
+    if (!formData.title.trim()) return "Title is required";
+    if (!formData.description.trim()) return "Description is required";
+    if (!formData.status) return "Status is required";
+    if (!formData.type) return "Type is required";
+    if (!formData.dateStarted) return "Date Started is required";
+    return "";
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    setError("");
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setLoading(true);
+    try {
+      await createGhostCard(formData, token);
+      setLoading(false);
+      onSave && onSave();
+      onClose();
+    } catch (err) {
+      setLoading(false);
+      setError("Failed to save project. Please try again.");
+    }
   };
 
   return (
@@ -397,6 +426,9 @@ export function AddProjectModal({ onClose, onSave }) {
             )}
           </div>
 
+          {/* Error Message */}
+          {error && <div className="text-red-400 neon-glow mb-2">{error}</div>}
+
           {/* Submit */}
           <div className="flex gap-3 pt-4">
             <Button
@@ -409,10 +441,12 @@ export function AddProjectModal({ onClose, onSave }) {
             </Button>
             <Button
               type="submit"
-              disabled={uploadingLogo || uploadingPdf}
+              disabled={uploadingLogo || uploadingPdf || loading}
               className="bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow flex-1"
             >
-              {uploadingLogo || uploadingPdf ? "Uploading..." : "Add Project"}
+              {loading || uploadingLogo || uploadingPdf
+                ? "Uploading..."
+                : "Add Project"}
             </Button>
           </div>
         </form>

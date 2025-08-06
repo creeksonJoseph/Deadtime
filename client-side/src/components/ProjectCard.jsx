@@ -1,79 +1,100 @@
-import { Badge } from './ui/badge'
-import { ExternalLink } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { Badge } from "./ui/badge";
+import { ExternalLink } from "lucide-react";
 
-export function ProjectCard({ project, onClick, variant = 'default' }) {
+export function ProjectCard({ project, onClick }) {
+  const [username, setUsername] = useState("Loading...");
+
+  // Map backend statuses to UI labels & colors
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "abandoned":
+        return "RIP";
+      case "on-hold":
+        return "Reviving";
+      case "revived":
+        return "Still Hopeful";
+      default:
+        return status;
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'RIP':
-        return 'bg-red-500/20 text-red-400 border-red-500/30'
-      case 'Reviving':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-      case 'Still Hopeful':
-        return 'bg-green-500/20 text-green-400 border-green-500/30'
+      case "abandoned":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "on-hold":
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      case "revived":
+        return "bg-green-500/20 text-green-400 border-green-500/30";
       default:
-        return 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
     }
-  }
+  };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
-  if (variant === 'tombstone') {
-    return (
-      <div 
-        onClick={onClick}
-        className="min-w-[240px] glass rounded-t-3xl rounded-b-lg p-6 hover:glass-strong hover:scale-105 transition-all duration-300 cursor-pointer neon-glow group relative"
-      >
-        {/* Tombstone decoration */}
-        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-[#34e0a1]/30 rounded-full"></div>
-        
-        <div className="text-center">
-          <div className="text-2xl mb-3">⚰️</div>
-          <h3 className="font-semibold text-slate-200 mb-2 group-hover:text-[#34e0a1] transition-colors">
-            {project.title}
-          </h3>
-          <Badge className={getStatusColor(project.status)}>
-            {project.status}
-          </Badge>
-          <p className="text-xs text-slate-400 mt-3">
-            Buried {formatDate(project.createdAt)}
-          </p>
-        </div>
-      </div>
-    )
-  }
+  const truncatedDescription =
+    project.description?.length > 60
+      ? project.description.slice(0, 60) + "..."
+      : project.description;
+
+  // Fetch creator username
+  useEffect(() => {
+    if (!project.creatorId) return;
+    fetch(`https://your-api/users/${project.creatorId}`)
+      .then((res) => res.json())
+      .then((user) => setUsername(user.name || "Unknown"))
+      .catch(() => setUsername("Unknown"));
+  }, [project.creatorId]);
 
   return (
-    <div 
-      onClick={onClick}
-      className="glass rounded-lg p-6 hover:glass-strong hover:scale-105 transition-all duration-300 cursor-pointer neon-glow group"
-    >
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="font-semibold text-slate-200 group-hover:text-[#34e0a1] transition-colors">
-          {project.title}
-        </h3>
-        {project.link && (
-          <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-[#34e0a1] transition-colors" />
-        )}
-      </div>
-      
-      <p className="text-sm text-slate-400 mb-4 line-clamp-2">
-        {project.description}
-      </p>
-      
-      <div className="flex justify-between items-center">
-        <Badge className={getStatusColor(project.status)}>
-          {project.status}
-        </Badge>
-        <span className="text-xs text-slate-500">
-          {formatDate(project.createdAt)}
-        </span>
+    <div className="glass rounded-lg overflow-hidden hover:glass-strong hover:scale-105 transition-all duration-300 cursor-pointer neon-glow w-full max-w-sm">
+      {/* Image Section */}
+      {project.logoUrl && (
+        <div className="h-40 w-full overflow-hidden">
+          <img
+            src={project.logoUrl}
+            alt={project.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      )}
+
+      {/* Content Section */}
+      <div className="p-4 flex flex-col justify-between min-h-[180px]">
+        <div>
+          <h3 className="font-semibold text-slate-200 mb-1 line-clamp-1">
+            {project.title}
+          </h3>
+          <p className="text-xs text-slate-500 mb-1">
+            {formatDate(project.createdAt)}
+          </p>
+
+          <p className="text-xs text-slate-400 mb-2">Posted by: {username}</p>
+
+          <Badge className={getStatusColor(project.status)}>
+            {getStatusLabel(project.status)}
+          </Badge>
+
+          <p className="text-sm text-slate-400 mt-3 line-clamp-2">
+            {truncatedDescription}
+          </p>
+        </div>
+
+        <button
+          onClick={onClick}
+          className="mt-4 text-[#34e0a1] hover:underline text-sm self-start"
+        >
+          View More
+        </button>
       </div>
     </div>
-  )
+  );
 }

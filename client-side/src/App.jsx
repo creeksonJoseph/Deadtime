@@ -23,6 +23,7 @@ import { PortalNav } from "./components/PortalNav";
 import { EditProjectModal } from "./components/EditProjectModal.jsx";
 import { AddProjectModal } from "./components/AddProjectModal.jsx";
 import GithubCallback from "./components/GithubCallback";
+import { Leaderboard } from "./components/Leaderboard";
 
 function AppContent() {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -80,10 +81,26 @@ function AppContent() {
           }
         />
         <Route
+          path="/graveyard"
+          element={
+            <ProtectedRoute>
+              <BrowseProjects onOpenProject={openProjectModal} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/account"
           element={
             <ProtectedRoute>
               <AccountPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
             </ProtectedRoute>
           }
         />
@@ -122,10 +139,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <AppContent />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }

@@ -31,8 +31,7 @@ export function LoginPage() {
 
       // save the token to AuthContext + localStorage
       if (data.token) {
-        login(data.token); // from AuthContext
-        navigate("/dashboard");
+        login(data.token, data.user); // This will handle navigation
       } else {
         console.log("No token received from server");
       }

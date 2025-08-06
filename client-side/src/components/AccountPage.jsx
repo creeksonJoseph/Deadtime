@@ -1,64 +1,120 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { Button } from './ui/button'
-import { Input } from './ui/input'
-import { Label } from './ui/label'
-import { Badge } from './ui/badge'
-import { Camera, LogOut, Star } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { getUserProfile } from "../api/users";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Badge } from "./ui/badge";
+import { Camera, LogOut, Star } from "lucide-react";
 
 export function AccountPage() {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
-  
-  const [userInfo, setUserInfo] = useState({
-    username: 'DigitalArchaeologist',
-    email: 'user@example.com',
-    avatar: null
-  })
+  const navigate = useNavigate();
+  const { user, logout, token, loading } = useAuth();
 
-  const [isEditing, setIsEditing] = useState(false)
+  const [userInfo, setUserInfo] = useState(null);
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    revivedProjects: 0,
+    joinDate: "",
+  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!user || !token) return;
+    async function fetchProfile() {
+      const data = await getUserProfile(user.id, token);
+      setUserInfo(data.user);
+      setStats({
+        totalProjects: data.postedProjects.length,
+        revivedProjects: data.revivedProjects.length,
+        joinDate: data.user.createdAt,
+      });
+    }
+    fetchProfile();
+  }, [user, token]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#34e0a1] border-b-4 border-[#141d38]" />
+      </div>
+    );
+  }
+
+  if (!userInfo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-slate-400">Loading profile...</p>
+      </div>
+    );
+  }
 
   const achievements = [
-    { name: 'Gravekeeper', description: '5 posted projects', icon: '⚰️', earned: true },
-    { name: 'Necromancer', description: '3 revived projects', icon: '🪄', earned: true },
-    { name: 'Digital Ghost', description: '10 posted projects', icon: '👻', earned: false },
-    { name: 'Project Phoenix', description: '5 revived projects', icon: '🔥', earned: false },
-    { name: 'Master Curator', description: '25 posted projects', icon: '🏛️', earned: false },
-    { name: 'Soul Shepherd', description: '10 revived projects', icon: '🌟', earned: false }
-  ]
-
-  const stats = {
-    totalProjects: 12,
-    revivedProjects: 5,
-    projectsRevived: 3,
-    joinDate: '2024-01-15'
-  }
+    {
+      name: "Gravekeeper",
+      description: "5 posted projects",
+      icon: "⚰️",
+      earned: true,
+    },
+    {
+      name: "Necromancer",
+      description: "3 revived projects",
+      icon: "🪄",
+      earned: true,
+    },
+    {
+      name: "Digital Ghost",
+      description: "10 posted projects",
+      icon: "👻",
+      earned: false,
+    },
+    {
+      name: "Project Phoenix",
+      description: "5 revived projects",
+      icon: "🔥",
+      earned: false,
+    },
+    {
+      name: "Master Curator",
+      description: "25 posted projects",
+      icon: "🏛️",
+      earned: false,
+    },
+    {
+      name: "Soul Shepherd",
+      description: "10 revived projects",
+      icon: "🌟",
+      earned: false,
+    },
+  ];
 
   const handleSave = () => {
-    setIsEditing(false)
+    setIsEditing(false);
     // Here you would save to backend
-  }
+  };
 
   const handleAvatarUpload = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      const avatarUrl = URL.createObjectURL(file)
-      setUserInfo(prev => ({ ...prev, avatar: avatarUrl }))
+      const avatarUrl = URL.createObjectURL(file);
+      setUserInfo((prev) => ({ ...prev, avatar: avatarUrl }));
     }
-  }
+  };
 
   const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen pb-20 px-6 pt-8 animate-fade-up">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-zasline text-3xl text-[#34e0a1] mb-2">My Account</h1>
+          <h1 className="font-zasline text-3xl text-[#34e0a1] mb-2">
+            My Account
+          </h1>
           <p className="text-slate-400">Manage your graveyard profile</p>
         </div>
         <Button
@@ -78,7 +134,11 @@ export function AccountPage() {
           <div className="relative">
             <div className="w-24 h-24 rounded-full glass flex items-center justify-center overflow-hidden">
               {userInfo.avatar ? (
-                <img src={userInfo.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                <img
+                  src={userInfo.avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <div className="text-3xl">👤</div>
               )}
@@ -103,21 +163,35 @@ export function AccountPage() {
             {isEditing ? (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="username" className="text-slate-300">Username</Label>
+                  <Label htmlFor="username" className="text-slate-300">
+                    Username
+                  </Label>
                   <Input
                     id="username"
                     value={userInfo.username}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, username: e.target.value }))}
+                    onChange={(e) =>
+                      setUserInfo((prev) => ({
+                        ...prev,
+                        username: e.target.value,
+                      }))
+                    }
                     className="mt-1 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email" className="text-slate-300">Email</Label>
+                  <Label htmlFor="email" className="text-slate-300">
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={userInfo.email}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setUserInfo((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     className="mt-1 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
                   />
                 </div>
@@ -139,12 +213,15 @@ export function AccountPage() {
               </div>
             ) : (
               <div>
-                <h2 className="font-zasline text-2xl text-slate-200 mb-2">{userInfo.username}</h2>
+                <h2 className="font-zasline text-2xl text-slate-200 mb-2">
+                  {userInfo.username}
+                </h2>
                 <p className="text-slate-400 mb-4">{userInfo.email}</p>
                 <p className="text-slate-500 text-sm mb-4">
-                  Joined {new Date(stats.joinDate).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric'
+                  Joined{" "}
+                  {new Date(stats.joinDate).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
                   })}
                 </p>
                 <Button
@@ -164,23 +241,29 @@ export function AccountPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">⚰️</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">{stats.totalProjects}</div>
+          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+            {stats.totalProjects}
+          </div>
           <div className="text-slate-400 text-sm">Projects Buried</div>
         </div>
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">🪄</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">{stats.projectsRevived}</div>
+          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+            {stats.projectsRevived}
+          </div>
           <div className="text-slate-400 text-sm">Projects Revived</div>
         </div>
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">❤️</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">{stats.revivedProjects}</div>
+          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+            {stats.revivedProjects}
+          </div>
           <div className="text-slate-400 text-sm">Got Revived</div>
         </div>
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">🏆</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
-            {achievements.filter(a => a.earned).length}
+            {achievements.filter((a) => a.earned).length}
           </div>
           <div className="text-slate-400 text-sm">Achievements</div>
         </div>
@@ -188,27 +271,33 @@ export function AccountPage() {
 
       {/* Achievements */}
       <div className="glass rounded-2xl p-8 neon-glow">
-        <h3 className="font-zasline text-xl text-[#34e0a1] mb-6">Achievements</h3>
+        <h3 className="font-zasline text-xl text-[#34e0a1] mb-6">
+          Achievements
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {achievements.map((achievement, index) => (
             <div
               key={index}
               className={`glass rounded-lg p-4 transition-all duration-300 ${
                 achievement.earned
-                  ? 'hover:glass-strong neon-glow'
-                  : 'opacity-50 hover:opacity-75'
+                  ? "hover:glass-strong neon-glow"
+                  : "opacity-50 hover:opacity-75"
               }`}
             >
               <div className="flex items-center gap-4">
                 <div className="text-3xl">{achievement.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-slate-200">{achievement.name}</h4>
+                    <h4 className="font-semibold text-slate-200">
+                      {achievement.name}
+                    </h4>
                     {achievement.earned && (
                       <Star className="w-4 h-4 text-[#34e0a1] fill-current" />
                     )}
                   </div>
-                  <p className="text-slate-400 text-sm">{achievement.description}</p>
+                  <p className="text-slate-400 text-sm">
+                    {achievement.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -216,5 +305,5 @@ export function AccountPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
