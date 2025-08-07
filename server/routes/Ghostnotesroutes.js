@@ -4,9 +4,9 @@ const {createGhostnotes,
        getNotesForProject,
        deleteNote,
 } = require("../controllers/GhostnotesController");
-const {protect,requireAdmin} = require("../middleware/authmiddleware");
+const {protect} = require("../middleware/authmiddleware");
 
-router.get("/project/:projectId",protect,requireAdmin,getNotesForProject);
+router.get("/project/:projectId",getNotesForProject);
 router.post("/",protect,createGhostnotes);
 router.delete("/:id",protect,deleteNote);
 
