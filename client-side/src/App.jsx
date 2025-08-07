@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "./contexts/AuthContext";
 
 import "./styles/globals.css";
 import {
@@ -26,6 +27,7 @@ import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./components/Leaderboard";
 
 function AppContent() {
+  const { token } = useAuth();
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalMode, setModalMode] = useState(null); // 'add' or 'edit'
   const [editingProject, setEditingProject] = useState(null);
@@ -117,6 +119,7 @@ function AppContent() {
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
+          token={token} // <-- Pass token here
           onClose={closeProjectModal}
           onEdit={openEditModal}
           isOwner={selectedProject.isOwner}

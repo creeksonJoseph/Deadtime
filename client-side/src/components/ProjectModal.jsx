@@ -4,13 +4,13 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { getGhostCardById } from "../api/ghostcards";
 import { getNotesForProject, createGhostNote } from "../api/ghostnotes";
-import { useAuth } from "../contexts/AuthContext";
 import { ReviveProjectModal } from "./ReviveProjectModal";
 import { Textarea } from "./ui/textarea";
 
 export function ProjectModal({
   project,
   projectId,
+  token,
   onClose,
   onEdit,
   isOwner = false,
@@ -24,7 +24,6 @@ export function ProjectModal({
   const [error, setError] = useState("");
   const [showRevive, setShowRevive] = useState(false);
 
-  const { token } = useAuth();
   const projectToUse = loadedProject || project;
 
   // Animate in
@@ -40,13 +39,18 @@ export function ProjectModal({
   // Fetch notes
   useEffect(() => {
     if (projectToUse?._id) {
-      console.log("📥 Fetching notes for project:", projectToUse._id);
       getNotesForProject(projectToUse._id, token)
         .then((fetchedNotes) => {
-          console.log("✅ Notes fetched:", fetchedNotes);
           setNotes(fetchedNotes);
         })
         .catch((err) => {
+          if (err.message === "Failed to fetch notes") {
+            setError(
+              "You do not have permission to view comments for this project."
+            );
+          } else {
+            setError("Failed to fetch comments.");
+          }
           console.error("❌ Failed to fetch notes:", err);
         });
     }
@@ -74,6 +78,19 @@ export function ProjectModal({
     }
   };
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "abandoned":
+        return "RIP";
+      case "on-hold":
+        return "Reviving";
+      case "revived":
+        return "Still Hopeful";
+      default:
+        return status;
+    }
+  };
+
   const handlePostNote = async () => {
     if (!newNote.trim()) return;
     setLoadingNote(true);
@@ -92,148 +109,203 @@ export function ProjectModal({
     }
   };
 
-  if (!projectToUse) return <div className="p-8">Loading...</div>;
+  if (!projectToUse)
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="bg-[#141d38] rounded-2xl p-8 border border-slate-600/30">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#fcdb32] mx-auto"></div>
+          <p className="text-slate-400 mt-4 text-center">Loading...</p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           visible ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
-      ></div>
+      />
 
       {/* Modal Container */}
       <div
-        className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-[#141d38] rounded-2xl overflow-hidden shadow-xl neon-glow transition-all duration-200 transform ${
+        className={`relative w-full max-w-4xl max-h-[95vh] flex flex-col bg-[#141d38] rounded-3xl overflow-hidden shadow-2xl border border-slate-600/20 transition-all duration-300 transform ${
           visible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close */}
+        {/* Close Button - Fixed */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 glass rounded-full p-2 hover:glass-strong transition-all duration-300"
+          className="absolute top-6 right-6 z-50 w-10 h-10 bg-slate-800/80 hover:bg-slate-700/80 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40"
         >
-          <X className="w-5 h-5 text-slate-400" />
+          <X className="w-5 h-5 text-slate-300" />
         </button>
 
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-slate-700">
-          <div className="flex items-center gap-3">
-            {projectToUse.logoUrl && (
+        {/* Scrollable Content - Everything scrolls together */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Hero Images - At the very top but scrollable */}
+          {projectToUse.images && projectToUse.images.length > 0 ? (
+            <div className="w-full">
+              {projectToUse.images.length === 1 ? (
+                // Single image - full width
+                <div className="w-full h-80 overflow-hidden">
+                  <img
+                    src={projectToUse.images[0]}
+                    alt="Project showcase"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ) : (
+                // Multiple images - grid layout
+                <div className="w-full h-80 flex gap-1">
+                  {projectToUse.images.slice(0, 3).map((img, idx) => (
+                    <div
+                      key={idx}
+                      className={`overflow-hidden ${
+                        projectToUse.images.length === 2 ? "w-1/2" : "w-1/3"
+                      }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Project image ${idx + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : projectToUse.logoUrl ? (
+            // Fallback to logo if no images
+            <div className="w-full h-80 overflow-hidden">
               <img
                 src={projectToUse.logoUrl}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 alt={projectToUse.title}
-                className="w-12 h-12 rounded-lg object-cover"
               />
-            )}
-            <div>
-              <h2 className="text-xl font-bold text-white">
-                {projectToUse.title}
-              </h2>
-              <p className="text-slate-400 text-sm">
-                Started: {formatDate(projectToUse.dateStarted)}
-              </p>
+            </div>
+          ) : null}
+
+          {/* Header Section */}
+          <div className="p-8 pb-6">
+            <div className="flex items-start justify-between gap-6 mb-6">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-3">
+                  {projectToUse.logoUrl &&
+                    projectToUse.images &&
+                    projectToUse.images.length > 0 && (
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-600/30 flex-shrink-0">
+                        <img
+                          src={projectToUse.logoUrl}
+                          alt={projectToUse.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-3xl font-bold text-white mb-2 leading-tight">
+                      {projectToUse.title}
+                    </h2>
+                    <p className="text-slate-400 text-base">
+                      Started: {formatDate(projectToUse.dateStarted)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <Badge
+                className={`${getStatusColor(projectToUse.status)} px-4 py-2 rounded-xl border text-base font-medium`}
+              >
+                {getStatusLabel(projectToUse.status)}
+              </Badge>
             </div>
           </div>
-          <Badge className={getStatusColor(projectToUse.status)}>
-            {projectToUse.status}
-          </Badge>
-        </div>
 
-        {/* Cover Image */}
-        {projectToUse.images && projectToUse.images.length > 0 ? (
-          <div className="w-full overflow-x-auto flex gap-2 py-2 px-2">
-            {projectToUse.images.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                alt={`Project image ${idx + 1}`}
-                className="h-40 w-auto rounded-lg object-cover shadow-md border-2 border-[#34e0a1]/20"
-                style={{ minWidth: 160 }}
-              />
-            ))}
-          </div>
-        ) : projectToUse.logoUrl ? (
-          <div className="w-full h-52 sm:h-64 overflow-hidden">
-            <img
-              src={projectToUse.logoUrl}
-              className="w-full h-full object-cover"
-              alt={projectToUse.title}
-            />
-          </div>
-        ) : null}
+          {/* Project Details */}
+          <div className="px-8 pb-8 space-y-8">
+            {/* Description */}
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-4">
+                About this project
+              </h3>
+              <p className="text-slate-300 leading-relaxed text-lg">
+                {projectToUse.description}
+              </p>
+            </div>
 
-        {/* Scrollable Project Info & Comments */}
-        <div className="flex-1 overflow-y-auto">
-          {/* Project Info */}
-          <div className="p-6 space-y-4">
-            <p className="text-slate-300 leading-relaxed">
-              {projectToUse.description}
-            </p>
-
+            {/* Abandonment Reason */}
             {projectToUse.abandonmentReason && (
-              <div className="glass rounded-lg p-4 text-slate-300 text-sm">
-                <strong>Abandonment Reason:</strong>{" "}
-                {projectToUse.abandonmentReason}
+              <div className="bg-slate-800/40 rounded-2xl p-8 border border-slate-700/30">
+                <h4 className="text-base font-semibold text-[#fcdb32] mb-3 uppercase tracking-wide">
+                  Why it was abandoned
+                </h4>
+                <p className="text-slate-300 leading-relaxed text-lg">
+                  {projectToUse.abandonmentReason}
+                </p>
               </div>
             )}
 
             {/* Links */}
-            <div className="flex flex-wrap gap-3 pt-2">
-              {projectToUse.externalLink && (
-                <a
-                  href={projectToUse.externalLink}
-                  target="_blank"
-                  className="text-[#34e0a1] hover:underline text-sm"
-                >
-                  <ExternalLink className="w-4 h-4 inline-block mr-1" />
-                  View External Link
-                </a>
-              )}
-              {projectToUse.pitchDeckUrl && (
-                <a
-                  href={projectToUse.pitchDeckUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#34e0a1] hover:underline text-sm flex items-center gap-1"
-                  title="Opens in new tab / Downloads"
-                  download
-                >
-                  <FileText className="w-4 h-4 inline-block mr-1" />
-                  View Pitch Deck
-                  <span className="ml-1 text-xs">
-                    {projectToUse.pitchDeckUrl.endsWith(".pdf")
-                      ? "PDF"
-                      : "Download"}
-                  </span>
-                </a>
-              )}
-            </div>
+            {(projectToUse.externalLink || projectToUse.pitchDeckUrl) && (
+              <div className="space-y-4">
+                <h4 className="text-base font-semibold text-slate-400 uppercase tracking-wide">
+                  Resources
+                </h4>
+                <div className="flex flex-wrap gap-4">
+                  {projectToUse.externalLink && (
+                    <a
+                      href={projectToUse.externalLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 px-6 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/30 font-medium"
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                      View External Link
+                    </a>
+                  )}
+                  {projectToUse.pitchDeckUrl && (
+                    <a
+                      href={projectToUse.pitchDeckUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 px-6 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/30 font-medium"
+                      download
+                    >
+                      <FileText className="w-5 h-5" />
+                      Download Pitch Deck
+                      <span className="text-sm bg-slate-700/60 px-3 py-1 rounded-lg">
+                        {projectToUse.pitchDeckUrl.endsWith(".pdf")
+                          ? "PDF"
+                          : "File"}
+                      </span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
-            {/* Owner Actions */}
-            <div className="flex gap-3 pt-2">
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-4 pt-4">
               {isOwner && (
                 <Button
                   onClick={() => {
                     onClose();
                     onEdit(projectToUse);
                   }}
-                  variant="outline"
-                  className="border-[#34e0a1] text-[#34e0a1] hover:bg-[#34e0a1]/10"
+                  className="bg-transparent border-2 border-[#fcdb32] text-[#fcdb32] hover:bg-[#fcdb32] hover:text-[#141d38] px-8 py-3 rounded-xl transition-all duration-200 font-semibold text-base"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="w-5 h-5 mr-2" />
                   Edit Project
                 </Button>
               )}
               {!isOwner && projectToUse.status === "abandoned" && (
                 <Button
-                  className="bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow"
+                  className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-[#fcdb32]/20 text-base"
                   onClick={() => setShowRevive(true)}
                 >
-                  <Heart className="w-4 h-4 mr-2" />
+                  <Heart className="w-5 h-5 mr-2" />
                   Revive Project
                 </Button>
               )}
@@ -241,57 +313,100 @@ export function ProjectModal({
           </div>
 
           {/* Comments Section */}
-          <div className="border-t border-slate-700 bg-[#0e1529] p-6 space-y-4">
-            <h3 className="text-lg text-slate-200 font-semibold">Comments</h3>
+          <div className="border-t border-slate-700/50 bg-slate-900/30 p-8">
+            <h3 className="text-2xl font-semibold text-white mb-8 flex items-center gap-3">
+              <div className="w-1.5 h-8 bg-[#fcdb32] rounded-full"></div>
+              Comments
+            </h3>
 
-            {/* New Comment */}
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-slate-600 rounded-full"></div>
-              <Textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Leave a comment..."
-                className="flex-1"
-              />
-              <Button
-                onClick={handlePostNote}
-                disabled={loadingNote}
-                className="bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow"
-              >
-                {loadingNote ? "Posting..." : "Post"}
-              </Button>
+            {/* New Comment Form */}
+            <div className="bg-slate-800/40 rounded-2xl p-8 mb-8 border border-slate-700/30">
+              <div className="space-y-6">
+                <Textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Share your thoughts about this project..."
+                  className="min-h-[120px] bg-slate-900/60 border-slate-600/40 text-slate-200 placeholder:text-slate-500 rounded-xl resize-none focus:border-[#fcdb32]/50 focus:ring-[#fcdb32]/20 text-base p-4"
+                />
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-3 text-base text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="rounded border-slate-600 bg-slate-800 text-[#fcdb32] focus:ring-[#fcdb32]/20 w-4 h-4"
+                    />
+                    Post anonymously
+                  </label>
+                  <Button
+                    onClick={handlePostNote}
+                    disabled={loadingNote || !newNote.trim()}
+                    className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 text-base"
+                  >
+                    {loadingNote ? "Posting..." : "Post Comment"}
+                  </Button>
+                </div>
+              </div>
             </div>
+
             {error && (
-              <div className="text-red-400 neon-glow mt-2">{error}</div>
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-6 rounded-xl mb-8 text-base">
+                {error}
+              </div>
             )}
 
-            {/* Notes list */}
+            {/* Comments List */}
             {notes.length === 0 ? (
-              <p className="text-slate-500 text-sm text-center py-4">
-                💬 No comments yet. Be the first to share your thoughts!
-              </p>
+              <div className="text-center py-16">
+                <div className="w-20 h-20 bg-slate-800/60 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FileText className="w-10 h-10 text-slate-500" />
+                </div>
+                <p className="text-slate-500 text-xl">No comments yet</p>
+                <p className="text-slate-600 text-base mt-2">
+                  Be the first to share your thoughts!
+                </p>
+              </div>
             ) : (
-              <div className="space-y-3">
-                {notes.map((n) => (
+              <div className="space-y-6">
+                {notes.map((note) => (
                   <div
-                    key={n._id}
-                    className={`glass rounded-lg p-3 text-slate-300 text-sm ${
-                      n.system ? "border-l-4 border-[#34e0a1]" : ""
+                    key={note._id}
+                    className={`bg-slate-800/40 rounded-2xl p-6 border transition-all duration-200 hover:bg-slate-800/60 ${
+                      note.system
+                        ? "border-[#fcdb32]/30 bg-[#fcdb32]/5"
+                        : "border-slate-700/30"
                     }`}
                   >
-                    <div className="flex justify-between mb-1">
-                      <span className="font-semibold">
-                        {n.system
-                          ? "System"
-                          : n.isAnonymous
-                            ? "Anonymous"
-                            : n.user?.name || "Unknown"}
-                      </span>
-                      <span className="text-slate-500 text-xs">
-                        {formatDate(n.createdAt)}
-                      </span>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-[#fcdb32] to-[#fcdb32]/70 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-[#141d38] text-base font-semibold">
+                            {note.system
+                              ? "S"
+                              : note.isAnonymous
+                                ? "A"
+                                : (note.user?.name || "U")
+                                    .charAt(0)
+                                    .toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-white text-base">
+                            {note.system
+                              ? "System"
+                              : note.isAnonymous
+                                ? "Anonymous User"
+                                : note.user?.name || "Unknown User"}
+                          </p>
+                          <p className="text-slate-500 text-sm">
+                            {formatDate(note.createdAt)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <p>{n.note}</p>
+                    <p className="text-slate-300 leading-relaxed pl-14 text-base">
+                      {note.note}
+                    </p>
                   </div>
                 ))}
               </div>

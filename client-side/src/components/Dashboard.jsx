@@ -66,6 +66,7 @@ export function Dashboard({ onOpenProject, onOpenForm }) {
               key={project._id}
               project={project}
               onClick={() => onOpenProject(project)}
+              showPostedBy={false}
             />
           ))}
         </div>

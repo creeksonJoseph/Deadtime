@@ -1,11 +1,24 @@
 import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, User } from "lucide-react";
 
-export function ProjectCard({ project, token, onClick }) {
+function PostedBy({ username }) {
+  return (
+    <div className="flex items-center gap-3 pt-2 border-t border-slate-700/50">
+      <div className="w-8 h-8 bg-gradient-to-br from-[#fcdb32] to-[#fcdb32]/70 rounded-full flex items-center justify-center flex-shrink-0">
+        <User className="w-4 h-4 text-[#141d38]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-slate-400 text-xs">Posted by</p>
+        <p className="text-white text-sm font-medium truncate">{username}</p>
+      </div>
+    </div>
+  );
+}
+
+export function ProjectCard({ project, token, onClick, showPostedBy = true }) {
   const [username, setUsername] = useState("Loading...");
 
-  // Map backend statuses to UI labels & colors
   const getStatusLabel = (status) => {
     switch (status) {
       case "abandoned":
@@ -40,37 +53,32 @@ export function ProjectCard({ project, token, onClick }) {
     });
   };
 
-  const truncatedDescription =
-    project.description?.length > 60
-      ? project.description.slice(0, 60) + "..."
-      : project.description;
+  const truncateDescription = (text, maxLength = 120) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + "...";
+  };
 
-  // Fetch creator username
   useEffect(() => {
     if (!project.creatorId) {
       console.warn("No creatorId found for project:", project);
       return;
     }
 
-    console.log("Attempting to fetch user with ID:", project.creatorId);
-    console.log("Using token:", token);
-
     fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((res) => {
-        console.log("Fetch response status:", res.status);
         if (!res.ok) {
-          console.error("User fetch failed with status:", res.status);
           throw new Error("Failed to fetch user");
         }
         return res.json();
       })
       .then((user) => {
-        console.log("Fetched user object:", user);
         setUsername(user.user?.username || "Unknown");
       })
-
       .catch((err) => {
         console.error("Error fetching user:", err);
         setUsername("Unknown");
@@ -78,10 +86,9 @@ export function ProjectCard({ project, token, onClick }) {
   }, [project.creatorId, token]);
 
   return (
-    <div className="glass rounded-lg overflow-hidden hover:glass-strong hover:scale-105 transition-all duration-300 cursor-pointer neon-glow w-full max-w-sm">
-      {/* Image Section */}
+    <div className="w-[300px] h-[380px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden">
       {project.logoUrl && (
-        <div className="h-40 w-full overflow-hidden">
+        <div className="h-32 w-full overflow-hidden">
           <img
             src={project.logoUrl}
             alt={project.title}
@@ -90,33 +97,39 @@ export function ProjectCard({ project, token, onClick }) {
         </div>
       )}
 
-      {/* Content Section */}
-      <div className="p-4 flex flex-col justify-between min-h-[180px]">
-        <div>
-          <h3 className="font-semibold text-slate-200 mb-1 line-clamp-1">
-            {project.title}
-          </h3>
-          <p className="text-xs text-slate-500 mb-1">
-            {formatDate(project.createdAt)}
-          </p>
+      <div className="p-6 flex flex-col flex-1">
+        <div className="mb-3">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-white font-bold text-lg leading-tight line-clamp-2 flex-1 mr-2">
+              {project.title}
+            </h3>
+            <Badge
+              className={`${getStatusColor(project.status)} text-xs px-2 py-1 rounded-md border`}
+            >
+              {getStatusLabel(project.status)}
+            </Badge>
+          </div>
 
-          <p className="text-xs text-slate-400 mb-2">Posted by: {username}</p>
-
-          <Badge className={getStatusColor(project.status)}>
-            {getStatusLabel(project.status)}
-          </Badge>
-
-          <p className="text-sm text-slate-400 mt-3 line-clamp-2">
-            {truncatedDescription}
+          <p className="text-slate-400 text-xs mb-1">
+            Posted on {formatDate(project.createdAt)}
           </p>
         </div>
 
-        <button
-          onClick={onClick}
-          className="mt-4 text-[#34e0a1] hover:underline text-sm self-start"
-        >
-          View More
-        </button>
+        <p className="text-slate-300 text-sm leading-relaxed mb-4 flex-1">
+          {truncateDescription(project.description)}
+        </p>
+
+        <div className="space-y-4 mt-auto">
+          <button
+            onClick={onClick}
+            className="w-full bg-transparent border border-[#fcdb32] text-[#fcdb32] py-2.5 px-4 rounded-lg hover:bg-[#fcdb32] hover:text-[#141d38] transition-all duration-200 flex items-center justify-center gap-2 group"
+          >
+            <span>View More</span>
+            <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          {showPostedBy && <PostedBy username={username} />}
+        </div>
       </div>
     </div>
   );
