@@ -3,13 +3,13 @@ import { Skull, User } from "lucide-react";
 
 export function Header() {
   return (
-    <nav className="border-b border-slate-600/30 bg-[#141d38]/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
+    <nav className="border-b border-slate-600/30 bg-gray-900/95 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
+      <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2 group">
             <Skull className="w-8 h-8 text-[#34e0a1] group-hover:animate-pulse" />
-            <span className="text-2xl font-gothic text-[#34e0a1]">
+            <span className="text-[40px] font-gothic text-[#34e0a1]">
               DEADTIME
             </span>
           </Link>

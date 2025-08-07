@@ -40,7 +40,7 @@ export function PortalNav({ onOpenForm }) {
 
       {/* Lit Add Button */}
       <motion.button
-        onClick={onOpenForm}
+        onClick={() => navigate('/add-project')}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 10 }}

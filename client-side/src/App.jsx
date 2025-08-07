@@ -23,7 +23,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import { useIsBigScreen } from "./components/UseIsBigScreen";
 import { PortalNav } from "./components/PortalNav";
 import { EditProjectModal } from "./components/EditProjectModal.jsx";
-import { AddProjectModal } from "./components/AddProjectModal.jsx";
+
+import { AddProjectPage } from "./components/AddProjectPage.jsx";
 import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./components/Leaderboard";
 import { Header } from "./components/Header";
@@ -32,7 +33,6 @@ function AppContent() {
   const { user, token } = useAuth();
   const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [modalMode, setModalMode] = useState(null); // 'add' or 'edit'
   const [editingProject, setEditingProject] = useState(null);
   const location = useLocation();
   const isBigScreen = useIsBigScreen();
@@ -45,7 +45,6 @@ function AppContent() {
 
   const handleAddProject = (newProject) => {
     setAllProjects((prev) => [newProject, ...prev]);
-    setModalMode(null);
     setEditingProject(null);
   };
 
@@ -53,7 +52,6 @@ function AppContent() {
     setAllProjects((prev) =>
       prev.map((p) => (p._id === updatedProject._id ? updatedProject : p))
     );
-    setModalMode(null);
     setEditingProject(null);
   };
 
@@ -92,27 +90,22 @@ function AppContent() {
     setSelectedProject(project);
   };
 
-  const openAddModal = () => {
-    setModalMode("add");
-    setEditingProject(null);
-  };
+
 
   const closeProjectModal = () => {
     setSelectedProject(null);
   };
 
   const closeFormModal = () => {
-    setModalMode(null);
     setEditingProject(null);
   };
 
   const openEditModal = (project) => {
-    setModalMode("edit");
     setEditingProject(project);
   };
 
   return (
-    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24">
+    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
       {showHeader && <Header />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -120,24 +113,10 @@ function AppContent() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/auth/github/callback" element={<GithubCallback />} />
         <Route
-          path="/submit"
+          path="/add-project"
           element={
             <ProtectedRoute>
-              <div className="min-h-screen py-8 px-4">
-                <div className="container mx-auto max-w-2xl">
-                  <h1 className="text-3xl font-bold text-[#34e0a1] mb-8 text-center">
-                    Submit Dead Project
-                  </h1>
-                  <AddProjectModal 
-                    onClose={() => window.history.back()} 
-                    onSave={(project) => {
-                      handleAddProject(project);
-                      window.location.href = '/dashboard';
-                    }}
-                    standalone={true}
-                  />
-                </div>
-              </div>
+              <AddProjectPage />
             </ProtectedRoute>
           }
         />
@@ -148,7 +127,7 @@ function AppContent() {
               <Dashboard
                 projects={myProjects}
                 onOpenProject={openProjectModal}
-                onOpenForm={openAddModal}
+
                 onDelete={handleDeleteProject}
               />
             </ProtectedRoute>
@@ -203,9 +182,9 @@ function AppContent() {
 
       {showBottomNav &&
         (isBigScreen ? (
-          <PortalNav onOpenForm={openAddModal} />
+          <PortalNav />
         ) : (
-          <BottomNav onOpenForm={openAddModal} />
+          <BottomNav />
         ))}
 
       {selectedProject && (
@@ -219,11 +198,8 @@ function AppContent() {
         />
       )}
 
-      {/* Modals */}
-      {modalMode === "add" && (
-        <AddProjectModal onClose={closeFormModal} onSave={handleAddProject} />
-      )}
-      {modalMode === "edit" && editingProject && (
+      {/* Edit Modal */}
+      {editingProject && (
         <EditProjectModal
           project={editingProject}
           onClose={closeFormModal}

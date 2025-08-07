@@ -14,7 +14,7 @@ import {
   Calendar,
 } from "lucide-react";
 
-export function Dashboard({ projects, onOpenProject, onOpenForm, onDelete }) {
+export function Dashboard({ projects, onOpenProject, onDelete }) {
   const [revivedProjects, setRevivedProjects] = useState([]);
   const [userStats, setUserStats] = useState({
     buried: 0,
@@ -132,7 +132,7 @@ export function Dashboard({ projects, onOpenProject, onOpenForm, onDelete }) {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-4xl font-bold text-white flex items-center gap-2">
               <Heart className="w-6 h-6 text-[#34e0a1]" />
-              Revived by Me
+              Revived projects
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -40,7 +40,7 @@ export function BottomNav({ onOpenForm }) {
 
         {/* Floating Add Button - Bottom Right with Bounce */}
         <button
-          onClick={onOpenForm}
+          onClick={() => navigate('/add-project')}
           className="fixed bottom-20 right-6
           w-14 h-14 bg-[#34e0a1] text-[#141d38] rounded-full
           flex items-center justify-center
