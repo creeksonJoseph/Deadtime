@@ -1,0 +1,22 @@
+{
+  "name": "DEADTIME - Digital Project Graveyard",
+  "short_name": "DEADTIME",
+  "description": "A digital graveyard for abandoned projects where developers can bury their dead code and others can revive them.",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#34e0a1",
+  "background_color": "#141d38",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
+}
