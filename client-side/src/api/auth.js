@@ -15,7 +15,10 @@ export async function loginUser(credentials) {
     body: JSON.stringify(credentials),
   });
 
-  if (!res.ok) throw new Error("Login failed");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Invalid email or password");
+  }
   return res.json();
 }
 

@@ -54,16 +54,20 @@ export function AuthProvider({ children }) {
     fetchProfile();
   }, [token]);
 
-  function login(newToken, userObj) {
+  async function login(newToken, userObj) {
     const finalUser = {
       ...userObj,
       id: userObj.id, // always use id from backend
     };
     setToken(newToken);
-    setUser(finalUser);
     localStorage.setItem("token", newToken);
-    localStorage.setItem("user", JSON.stringify(finalUser));
-    localStorage.setItem("userId", finalUser.id);
+    localStorage.setItem("userId", userObj.id);
+
+    // Fetch full profile here
+    const profileData = await getUserProfile(userObj.id, newToken);
+    setUser(profileData.user); // or setUser(profileData) if you want everything
+
+    setLoading(false);
     navigate("/dashboard");
   }
 

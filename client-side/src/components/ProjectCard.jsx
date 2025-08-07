@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
-import { ExternalLink, User } from "lucide-react";
+import { ExternalLink, User, MoreVertical, Star, Trash2 } from "lucide-react";
 
 function PostedBy({ username }) {
   return (
@@ -16,8 +16,17 @@ function PostedBy({ username }) {
   );
 }
 
-export function ProjectCard({ project, token, onClick, showPostedBy = true }) {
+export function ProjectCard({
+  project,
+  token,
+  onClick,
+  showPostedBy = true,
+  onDelete,
+  currentUserId,
+}) {
   const [username, setUsername] = useState("Loading...");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isOwner = currentUserId === project.creatorId;
 
   const getStatusLabel = (status) => {
     switch (status) {
@@ -86,7 +95,36 @@ export function ProjectCard({ project, token, onClick, showPostedBy = true }) {
   }, [project.creatorId, token]);
 
   return (
-    <div className="w-[300px] h-[380px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden">
+    <div className="w-[300px] h-[380px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative">
+      {/* 3-dots menu - only show for project owner */}
+      {isOwner && (
+        <>
+          <button
+            className="absolute top-4 right-4 z-10 bg-slate-800/80 hover:bg-slate-700/80 rounded-full p-2 transition-all border border-slate-600/40"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((open) => !open);
+            }}
+          >
+            <MoreVertical className="w-5 h-5 text-slate-300" />
+          </button>
+          {menuOpen && (
+            <div className="absolute top-12 right-4 z-20 bg-[#141d38] border border-slate-700/40 rounded-xl shadow-lg py-2 w-40">
+              <button
+                className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 transition-all"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete && onDelete(project);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Project
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
       {project.logoUrl && (
         <div className="h-32 w-full overflow-hidden">
           <img
@@ -100,7 +138,7 @@ export function ProjectCard({ project, token, onClick, showPostedBy = true }) {
       <div className="p-6 flex flex-col flex-1">
         <div className="mb-3">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="text-white font-bold text-lg leading-tight line-clamp-2 flex-1 mr-2">
+            <h3 className="text-white font-bold text-xl leading-tight line-clamp-2 flex-1 mr-2">
               {project.title}
             </h3>
             <Badge
@@ -120,13 +158,15 @@ export function ProjectCard({ project, token, onClick, showPostedBy = true }) {
         </p>
 
         <div className="space-y-4 mt-auto">
-          <button
-            onClick={onClick}
-            className="w-full bg-transparent border border-[#fcdb32] text-[#fcdb32] py-2.5 px-4 rounded-lg hover:bg-[#fcdb32] hover:text-[#141d38] transition-all duration-200 flex items-center justify-center gap-2 group"
-          >
-            <span>View More</span>
-            <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={onClick}
+              className="absolute top-0 right-0 bg-[#34e0a1] border border-[#34e0a1] text-[black] py-1 px-2 rounded text-xs hover:transparent hover:text-[#141d38] transition-all duration-200 flex items-center gap-1 group"
+            >
+              <span>View Details</span>
+              <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
 
           {showPostedBy && <PostedBy username={username} />}
         </div>

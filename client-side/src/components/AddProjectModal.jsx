@@ -139,13 +139,13 @@ export function AddProjectModal({ onClose, onSave }) {
     }
     setLoading(true);
     try {
-      await createGhostCard(formData, token);
+      const newProject = await createGhostCard(formData, token);
       setLoading(false);
-      onSave && onSave();
+      onSave(newProject); // <-- Pass new project up
       onClose();
     } catch (err) {
       setLoading(false);
-      setError("Failed to save project. Please try again.");
+      setError("Failed to add project");
     }
   };
 
@@ -164,7 +164,7 @@ export function AddProjectModal({ onClose, onSave }) {
           <X className="w-5 h-5 text-slate-400" />
         </button>
 
-        <form
+        <formz
           onSubmit={handleSubmit}
           className="overflow-y-auto px-6 sm:px-8 pt-10 pb-24 space-y-6"
         >
@@ -449,7 +449,7 @@ export function AddProjectModal({ onClose, onSave }) {
                 : "Add Project"}
             </Button>
           </div>
-        </form>
+        </formz>
       </div>
     </div>
   );

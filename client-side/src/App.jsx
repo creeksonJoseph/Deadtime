@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getGhostCards, deleteGhostCard } from "./api/ghostcards";
 import { useAuth } from "./contexts/AuthContext";
 
 import "./styles/globals.css";
@@ -25,51 +26,130 @@ import { EditProjectModal } from "./components/EditProjectModal.jsx";
 import { AddProjectModal } from "./components/AddProjectModal.jsx";
 import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./components/Leaderboard";
+import { Header } from "./components/Header";
 
 function AppContent() {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
+  const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [modalMode, setModalMode] = useState(null); // 'add' or 'edit'
   const [editingProject, setEditingProject] = useState(null);
   const location = useLocation();
   const isBigScreen = useIsBigScreen();
 
-  // Project Details Modal
-  const openProjectModal = (project) => setSelectedProject(project);
-  const closeProjectModal = () => setSelectedProject(null);
+  useEffect(() => {
+    if (token) {
+      getGhostCards(token).then(setAllProjects);
+    }
+  }, [token]);
 
-  // Add / Edit Project Modals
+  const handleAddProject = (newProject) => {
+    setAllProjects((prev) => [newProject, ...prev]);
+    setModalMode(null);
+    setEditingProject(null);
+  };
+
+  const handleEditProject = (updatedProject) => {
+    setAllProjects((prev) =>
+      prev.map((p) => (p._id === updatedProject._id ? updatedProject : p))
+    );
+    setModalMode(null);
+    setEditingProject(null);
+  };
+
+  // DELETE ONLY
+  const handleDeleteProject = async (project) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this project? This cannot be undone."
+      )
+    )
+      return;
+    try {
+      await deleteGhostCard(project._id, token);
+      setAllProjects((prev) => prev.filter((p) => p._id !== project._id));
+      setSelectedProject(null);
+    } catch (err) {
+      console.error("Failed to delete project", err);
+    }
+  };
+
+  const myProjects = user
+    ? allProjects.filter((p) => p.creatorId === user.id)
+    : [];
+  const otherProjects = user
+    ? allProjects.filter((p) => p.creatorId !== user.id)
+    : [];
+
+  const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
+    location.pathname
+  );
+  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard"].includes(
+    location.pathname
+  );
+
+  const openProjectModal = (project) => {
+    setSelectedProject(project);
+  };
+
   const openAddModal = () => {
     setModalMode("add");
     setEditingProject(null);
   };
-  const openEditModal = (project) => {
-    setModalMode("edit");
-    setEditingProject(project);
+
+  const closeProjectModal = () => {
+    setSelectedProject(null);
   };
+
   const closeFormModal = () => {
     setModalMode(null);
     setEditingProject(null);
   };
 
-  const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
-    location.pathname
-  );
+  const openEditModal = (project) => {
+    setModalMode("edit");
+    setEditingProject(project);
+  };
 
   return (
-    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden">
+    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24">
+      {showHeader && <Header />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/auth/github/callback" element={<GithubCallback />} />
         <Route
+          path="/submit"
+          element={
+            <ProtectedRoute>
+              <div className="min-h-screen py-8 px-4">
+                <div className="container mx-auto max-w-2xl">
+                  <h1 className="text-3xl font-bold text-[#34e0a1] mb-8 text-center">
+                    Submit Dead Project
+                  </h1>
+                  <AddProjectModal 
+                    onClose={() => window.history.back()} 
+                    onSave={(project) => {
+                      handleAddProject(project);
+                      window.location.href = '/dashboard';
+                    }}
+                    standalone={true}
+                  />
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard
+                projects={myProjects}
                 onOpenProject={openProjectModal}
                 onOpenForm={openAddModal}
+                onDelete={handleDeleteProject}
               />
             </ProtectedRoute>
           }
@@ -78,7 +158,13 @@ function AppContent() {
           path="/browse"
           element={
             <ProtectedRoute>
-              <BrowseProjects onOpenProject={openProjectModal} />
+              <BrowseProjects
+                projects={otherProjects}
+                token={token}
+                onOpenProject={openProjectModal}
+                onDelete={handleDeleteProject}
+                currentUserId={user?.id}
+              />
             </ProtectedRoute>
           }
         />
@@ -86,7 +172,13 @@ function AppContent() {
           path="/graveyard"
           element={
             <ProtectedRoute>
-              <BrowseProjects onOpenProject={openProjectModal} />
+              <BrowseProjects
+                projects={allProjects}
+                token={token}
+                onOpenProject={openProjectModal}
+                onDelete={handleDeleteProject}
+                currentUserId={user?.id}
+              />
             </ProtectedRoute>
           }
         />
@@ -119,21 +211,23 @@ function AppContent() {
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
-          token={token} // <-- Pass token here
+          token={token}
           onClose={closeProjectModal}
           onEdit={openEditModal}
           isOwner={selectedProject.isOwner}
+          onDelete={handleDeleteProject}
         />
       )}
 
+      {/* Modals */}
       {modalMode === "add" && (
-        <AddProjectModal onClose={closeFormModal} onSave={closeFormModal} />
+        <AddProjectModal onClose={closeFormModal} onSave={handleAddProject} />
       )}
       {modalMode === "edit" && editingProject && (
         <EditProjectModal
           project={editingProject}
           onClose={closeFormModal}
-          onSave={closeFormModal}
+          onSave={handleEditProject}
         />
       )}
     </div>

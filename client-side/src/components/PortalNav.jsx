@@ -13,7 +13,7 @@ export function PortalNav({ onOpenForm }) {
   ];
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-8">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-8">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         return (

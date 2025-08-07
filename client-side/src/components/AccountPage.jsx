@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { getUserProfile } from "../api/users";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+
 import { Badge } from "./ui/badge";
-import { Camera, LogOut, Star } from "lucide-react";
+import { LogOut, Star } from "lucide-react";
 
 export function AccountPage() {
   const navigate = useNavigate();
-  const { user, logout, token, loading } = useAuth();
+  const { user, logout } = useAuth();
 
   const [userInfo, setUserInfo] = useState(null);
   const [stats, setStats] = useState({
@@ -18,29 +16,17 @@ export function AccountPage() {
     revivedProjects: 0,
     joinDate: "",
   });
-  const [isEditing, setIsEditing] = useState(false);
+
 
   useEffect(() => {
-    if (!user || !token) return;
-    async function fetchProfile() {
-      const data = await getUserProfile(user.id, token);
-      setUserInfo(data.user);
-      setStats({
-        totalProjects: data.postedProjects.length,
-        revivedProjects: data.revivedProjects.length,
-        joinDate: data.user.createdAt,
-      });
-    }
-    fetchProfile();
-  }, [user, token]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#34e0a1] border-b-4 border-[#141d38]" />
-      </div>
-    );
-  }
+    if (!user) return;
+    setUserInfo(user);
+    setStats({
+      totalProjects: user.postedProjects?.length || 0,
+      revivedProjects: user.revivedProjects?.length || 0,
+      joinDate: user.createdAt,
+    });
+  }, [user]);
 
   if (!userInfo) {
     return (
@@ -89,30 +75,10 @@ export function AccountPage() {
     },
   ];
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would save to backend
-  };
-
-  const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const avatarUrl = URL.createObjectURL(file);
-      setUserInfo((prev) => ({ ...prev, avatar: avatarUrl }));
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate("/");
   };
-
-  const handleChangeUsername = () => {
-    // Logic for changing username
-    setIsEditing(false);
-  };
-
-  const canChangeUsername = true; // Replace with actual condition
 
   return (
     <div className="min-h-screen pb-20 px-6 pt-8 animate-fade-up">
@@ -138,113 +104,23 @@ export function AccountPage() {
       <div className="glass rounded-2xl p-8 mb-8 neon-glow">
         <div className="flex flex-col md:flex-row items-start gap-6">
           {/* Avatar */}
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full glass flex items-center justify-center overflow-hidden">
-              {userInfo.avatar ? (
-                <img
-                  src={userInfo.avatar}
-                  alt="Avatar"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-3xl">👤</div>
-              )}
-            </div>
-            {isEditing && (
-              <div className="absolute -bottom-2 -right-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div className="w-8 h-8 bg-[#34e0a1] text-[#141d38] rounded-full flex items-center justify-center hover:scale-110 transition-transform">
-                  <Camera className="w-4 h-4" />
-                </div>
-              </div>
-            )}
+          <div className="w-24 h-24 rounded-full glass flex items-center justify-center overflow-hidden">
+            <div className="text-3xl">👤</div>
           </div>
 
           {/* User Info */}
           <div className="flex-1">
-            {isEditing ? (
-              <div className="space-y-4">
-                {canChangeUsername && (
-                  <div>
-                    <Label htmlFor="username" className="text-slate-300">
-                      Username
-                    </Label>
-                    <Input
-                      id="username"
-                      value={userInfo.username}
-                      onChange={(e) =>
-                        setUserInfo((prev) => ({
-                          ...prev,
-                          username: e.target.value,
-                        }))
-                      }
-                      className="mt-1 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
-                    />
-                    <Button onClick={handleChangeUsername}>
-                      Change Username
-                    </Button>
-                  </div>
-                )}
-                <div>
-                  <Label htmlFor="email" className="text-slate-300">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={userInfo.email}
-                    onChange={(e) =>
-                      setUserInfo((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    className="mt-1 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleSave}
-                    className="bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 neon-glow"
-                  >
-                    Save Changes
-                  </Button>
-                  <Button
-                    onClick={() => setIsEditing(false)}
-                    variant="outline"
-                    className="border-slate-600 text-slate-400 hover:bg-slate-800"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h2 className="font-zasline text-2xl text-slate-200 mb-2">
-                  {userInfo.username}
-                </h2>
-                <p className="text-slate-400 mb-4">{userInfo.email}</p>
-                <p className="text-slate-500 text-sm mb-4">
-                  Joined{" "}
-                  {new Date(stats.joinDate).toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
-                <Button
-                  onClick={() => setIsEditing(true)}
-                  variant="outline"
-                  className="border-[#34e0a1] text-[#34e0a1] hover:bg-[#34e0a1]/10"
-                >
-                  Edit Profile
-                </Button>
-              </div>
-            )}
+            <h2 className="font-zasline text-4xl text-slate-200 mb-2">
+              {userInfo.username}
+            </h2>
+            <p className="text-slate-400 mb-4">{userInfo.email}</p>
+            <p className="text-slate-500 text-sm">
+              Joined{" "}
+              {new Date(stats.joinDate).toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
           </div>
         </div>
       </div>

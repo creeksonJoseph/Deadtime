@@ -14,6 +14,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -24,19 +25,17 @@ export function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
       const data = await loginUser({ email, password });
-      console.log("Login success:", data);
-
-      // save the token to AuthContext + localStorage
       if (data.token) {
-        login(data.token, data.user); // This will handle navigation
+        login(data.token, data.user);
       } else {
-        console.log("No token received from server");
+        setError("Login failed. Please try again.");
       }
     } catch (err) {
-      console.log("Login error:", err);
+      setError(err.message || "Invalid email or password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -166,6 +165,12 @@ export function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
 
             <Button
               type="submit"

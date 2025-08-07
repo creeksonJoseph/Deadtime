@@ -3,11 +3,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap");
 
+
 @custom-variant dark (&:is(.dark *));
 
 @font-face {
   font-family: "BankGothic";
-  src: url("/fonts/bankgothic-md-bt.otf") format("opentype");
+  src: url("/fonts/bankgothic-md-bt/BankGothic Md BT.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
@@ -152,9 +153,14 @@
   }
 
   .font-zasline {
-    font-family: "BankGothic", monospace;
-    letter-spacing: 0.05em; /* Optional for that sci-fi look */
-    text-transform: uppercase; /* Optional if you want Figma vibe */
+    font-family: "Creepster", cursive;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  
+  .font-gothic {
+    font-family: "Creepster", cursive;
+    letter-spacing: 0.05em;
   }
 }
 
@@ -305,4 +311,18 @@ html {
 
 .bg-status-hopeful {
   background-color: var(--deadtime-status-hopeful);
+}
+
+/* Tombstone card styling */
+.tombstone-card {
+  background: rgba(52, 224, 161, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(52, 224, 161, 0.2);
+  transition: all 0.3s ease;
+}
+
+.tombstone-card:hover {
+  background: rgba(52, 224, 161, 0.1);
+  border-color: rgba(52, 224, 161, 0.3);
+  transform: translateY(-2px);
 }

@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
+    "html2canvas": "^1.4.1",
     "json-server": "^1.0.0-beta.3",
     "lucide-react": "^0.535.0",
     "react": "^19.0.0",
