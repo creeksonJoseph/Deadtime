@@ -29,3 +29,20 @@ export async function deleteGhostNote(id, token) {
   if (!res.ok) throw new Error("Failed to delete note");
   return res.json();
 }
+
+export async function fetchProjectNotesWithAuth(projectId, token) {
+  const res = await fetch(
+    `https://deadtime.onrender.com/api/ghostnotes/project/${projectId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  if (res.status === 403) {
+    console.log(
+      "Access forbidden: You do not have permission to view these notes."
+    );
+    return [];
+  }
+  if (!res.ok) throw new Error("Failed to fetch notes");
+  return res.json();
+}

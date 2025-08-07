@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
 import { ExternalLink } from "lucide-react";
 
-export function ProjectCard({ project, onClick }) {
+export function ProjectCard({ project, token, onClick }) {
   const [username, setUsername] = useState("Loading...");
 
   // Map backend statuses to UI labels & colors
@@ -47,12 +47,35 @@ export function ProjectCard({ project, onClick }) {
 
   // Fetch creator username
   useEffect(() => {
-    if (!project.creatorId) return;
-    fetch(`https://your-api/users/${project.creatorId}`)
-      .then((res) => res.json())
-      .then((user) => setUsername(user.name || "Unknown"))
-      .catch(() => setUsername("Unknown"));
-  }, [project.creatorId]);
+    if (!project.creatorId) {
+      console.warn("No creatorId found for project:", project);
+      return;
+    }
+
+    console.log("Attempting to fetch user with ID:", project.creatorId);
+    console.log("Using token:", token);
+
+    fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        console.log("Fetch response status:", res.status);
+        if (!res.ok) {
+          console.error("User fetch failed with status:", res.status);
+          throw new Error("Failed to fetch user");
+        }
+        return res.json();
+      })
+      .then((user) => {
+        console.log("Fetched user object:", user);
+        setUsername(user.user?.username || "Unknown");
+      })
+
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+        setUsername("Unknown");
+      });
+  }, [project.creatorId, token]);
 
   return (
     <div className="glass rounded-lg overflow-hidden hover:glass-strong hover:scale-105 transition-all duration-300 cursor-pointer neon-glow w-full max-w-sm">

@@ -50,42 +50,42 @@ export function AccountPage() {
     );
   }
 
-  const achievements = [
+  const badges = [
     {
       name: "Gravekeeper",
-      description: "5 posted projects",
       icon: "⚰️",
-      earned: true,
+      unlocked: stats.totalProjects >= 5,
+      desc: "5 posted projects",
     },
     {
       name: "Necromancer",
-      description: "3 revived projects",
       icon: "🪄",
-      earned: true,
+      unlocked: stats.revivedProjects >= 3,
+      desc: "3 revived projects",
     },
     {
       name: "Digital Ghost",
-      description: "10 posted projects",
       icon: "👻",
-      earned: false,
+      unlocked: stats.totalProjects >= 10,
+      desc: "10 posted projects",
     },
     {
       name: "Project Phoenix",
-      description: "5 revived projects",
       icon: "🔥",
-      earned: false,
+      unlocked: stats.revivedProjects >= 5,
+      desc: "5 revived projects",
     },
     {
       name: "Master Curator",
-      description: "25 posted projects",
       icon: "🏛️",
-      earned: false,
+      unlocked: stats.totalProjects >= 25,
+      desc: "25 posted projects",
     },
     {
       name: "Soul Shepherd",
-      description: "10 revived projects",
       icon: "🌟",
-      earned: false,
+      unlocked: stats.revivedProjects >= 10,
+      desc: "10 revived projects",
     },
   ];
 
@@ -106,6 +106,13 @@ export function AccountPage() {
     logout();
     navigate("/");
   };
+
+  const handleChangeUsername = () => {
+    // Logic for changing username
+    setIsEditing(false);
+  };
+
+  const canChangeUsername = true; // Replace with actual condition
 
   return (
     <div className="min-h-screen pb-20 px-6 pt-8 animate-fade-up">
@@ -162,22 +169,27 @@ export function AccountPage() {
           <div className="flex-1">
             {isEditing ? (
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="username" className="text-slate-300">
-                    Username
-                  </Label>
-                  <Input
-                    id="username"
-                    value={userInfo.username}
-                    onChange={(e) =>
-                      setUserInfo((prev) => ({
-                        ...prev,
-                        username: e.target.value,
-                      }))
-                    }
-                    className="mt-1 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
-                  />
-                </div>
+                {canChangeUsername && (
+                  <div>
+                    <Label htmlFor="username" className="text-slate-300">
+                      Username
+                    </Label>
+                    <Input
+                      id="username"
+                      value={userInfo.username}
+                      onChange={(e) =>
+                        setUserInfo((prev) => ({
+                          ...prev,
+                          username: e.target.value,
+                        }))
+                      }
+                      className="mt-1 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200"
+                    />
+                    <Button onClick={handleChangeUsername}>
+                      Change Username
+                    </Button>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="email" className="text-slate-300">
                     Email
@@ -263,46 +275,35 @@ export function AccountPage() {
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">🏆</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
-            {achievements.filter((a) => a.earned).length}
+            {badges.filter((a) => a.unlocked).length}
           </div>
           <div className="text-slate-400 text-sm">Achievements</div>
         </div>
       </div>
 
       {/* Achievements */}
-      <div className="glass rounded-2xl p-8 neon-glow">
-        <h3 className="font-zasline text-xl text-[#34e0a1] mb-6">
-          Achievements
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {achievements.map((achievement, index) => (
-            <div
-              key={index}
-              className={`glass rounded-lg p-4 transition-all duration-300 ${
-                achievement.earned
-                  ? "hover:glass-strong neon-glow"
-                  : "opacity-50 hover:opacity-75"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-3xl">{achievement.icon}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-slate-200">
-                      {achievement.name}
-                    </h4>
-                    {achievement.earned && (
-                      <Star className="w-4 h-4 text-[#34e0a1] fill-current" />
-                    )}
-                  </div>
-                  <p className="text-slate-400 text-sm">
-                    {achievement.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="glass rounded-2xl p-8 neon-glow grid grid-cols-2 md:grid-cols-3 gap-4">
+        {badges.map((b) => (
+          <div
+            key={b.name}
+            className={`flex flex-col items-center p-4 rounded-lg glass ${
+              b.unlocked ? "neon-glow" : "opacity-50"
+            }`}
+          >
+            <span className="text-3xl mb-2">{b.icon}</span>
+            <span className="font-bold text-slate-200">{b.name}</span>
+            <span className="text-xs text-slate-400">{b.desc}</span>
+            {!b.unlocked && (
+              <span className="text-xs text-yellow-400 mt-1">
+                {b.name === "Gravekeeper"
+                  ? `${5 - stats.totalProjects} to go`
+                  : b.name === "Necromancer"
+                    ? `${3 - stats.revivedProjects} to go`
+                    : ""}
+              </span>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

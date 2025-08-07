@@ -40,7 +40,15 @@ export function ProjectModal({
   // Fetch notes
   useEffect(() => {
     if (projectToUse?._id) {
-      getNotesForProject(projectToUse._id, token).then(setNotes);
+      console.log("📥 Fetching notes for project:", projectToUse._id);
+      getNotesForProject(projectToUse._id, token)
+        .then((fetchedNotes) => {
+          console.log("✅ Notes fetched:", fetchedNotes);
+          setNotes(fetchedNotes);
+        })
+        .catch((err) => {
+          console.error("❌ Failed to fetch notes:", err);
+        });
     }
   }, [projectToUse, token]);
 
@@ -136,14 +144,27 @@ export function ProjectModal({
         </div>
 
         {/* Cover Image */}
-        {projectToUse.logoUrl && (
+        {projectToUse.images && projectToUse.images.length > 0 ? (
+          <div className="w-full overflow-x-auto flex gap-2 py-2 px-2">
+            {projectToUse.images.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={`Project image ${idx + 1}`}
+                className="h-40 w-auto rounded-lg object-cover shadow-md border-2 border-[#34e0a1]/20"
+                style={{ minWidth: 160 }}
+              />
+            ))}
+          </div>
+        ) : projectToUse.logoUrl ? (
           <div className="w-full h-52 sm:h-64 overflow-hidden">
             <img
               src={projectToUse.logoUrl}
               className="w-full h-full object-cover"
+              alt={projectToUse.title}
             />
           </div>
-        )}
+        ) : null}
 
         {/* Scrollable Project Info & Comments */}
         <div className="flex-1 overflow-y-auto">
@@ -176,10 +197,18 @@ export function ProjectModal({
                 <a
                   href={projectToUse.pitchDeckUrl}
                   target="_blank"
-                  className="text-[#34e0a1] hover:underline text-sm"
+                  rel="noopener noreferrer"
+                  className="text-[#34e0a1] hover:underline text-sm flex items-center gap-1"
+                  title="Opens in new tab / Downloads"
+                  download
                 >
                   <FileText className="w-4 h-4 inline-block mr-1" />
                   View Pitch Deck
+                  <span className="ml-1 text-xs">
+                    {projectToUse.pitchDeckUrl.endsWith(".pdf")
+                      ? "PDF"
+                      : "Download"}
+                  </span>
                 </a>
               )}
             </div>
@@ -246,13 +275,17 @@ export function ProjectModal({
                 {notes.map((n) => (
                   <div
                     key={n._id}
-                    className="glass rounded-lg p-3 text-slate-300 text-sm"
+                    className={`glass rounded-lg p-3 text-slate-300 text-sm ${
+                      n.system ? "border-l-4 border-[#34e0a1]" : ""
+                    }`}
                   >
                     <div className="flex justify-between mb-1">
                       <span className="font-semibold">
-                        {n.isAnonymous
-                          ? "Anonymous"
-                          : n.user?.name || "Unknown"}
+                        {n.system
+                          ? "System"
+                          : n.isAnonymous
+                            ? "Anonymous"
+                            : n.user?.name || "Unknown"}
                       </span>
                       <span className="text-slate-500 text-xs">
                         {formatDate(n.createdAt)}
