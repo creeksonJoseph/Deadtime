@@ -1,12 +1,21 @@
+import { useAuth } from "../contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // make sure this file exists
 
 export function ProtectedRoute({ children }) {
-  const { isLoggedIn } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (!isLoggedIn) {
-    return <Navigate to="/" replace />;
+  if (loading) {
+    // Show a spinner or skeleton while loading
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#34e0a1] border-b-4 border-[#141d38]" />
+      </div>
+    );
   }
 
-  return <>{children}</>;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }

@@ -158,7 +158,7 @@ export function LandingPage() {
         </FloatingSVG>
       </motion.div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 pt-16 sm:pt-0">
         <motion.div
           className="text-center mb-12 relative inline-block"
           variants={fadeSlide("up", 0.3)}

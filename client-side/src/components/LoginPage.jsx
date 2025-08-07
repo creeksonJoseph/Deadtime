@@ -6,22 +6,41 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ArrowLeft, Github, Eye, EyeOff } from "lucide-react";
+import { loginUser } from "../api/auth";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    login();
-    navigate("/dashboard");
+  const handleGithubLogin = () => {
+    window.location.href = "https://deadtime.onrender.com/api/auth/github";
   };
 
-  // Floating spark particles
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await loginUser({ email, password });
+      if (data.token) {
+        login(data.token, data.user);
+      } else {
+        setError("Login failed. Please try again.");
+      }
+    } catch (err) {
+      setError(err.message || "Invalid email or password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const Sparks = () => (
     <>
       {Array.from({ length: 18 }).map((_, i) => (
@@ -48,11 +67,9 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden bg-[#141d38]">
-      {/* Glowing Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-[#34e0a1]/5 blur-3xl" />
 
-        {/* Floating neon blobs */}
         <motion.div
           className="absolute top-[10%] left-[15%] w-72 h-72 rounded-full bg-[#34e0a1]/20 blur-3xl"
           animate={{ x: [0, 40, 0], y: [0, -40, 0] }}
@@ -72,7 +89,6 @@ export function LoginPage() {
         <Sparks />
       </div>
 
-      {/* Back button */}
       <button
         onClick={() => navigate("/")}
         className="absolute top-6 left-6 glass rounded-full p-3 hover:glass-strong transition-all duration-300 z-20"
@@ -80,7 +96,6 @@ export function LoginPage() {
         <ArrowLeft className="w-5 h-5 text-[#34e0a1]" />
       </button>
 
-      {/* Login Form */}
       <motion.div
         className="relative w-full max-w-md z-10"
         initial={{ opacity: 0, y: 50 }}
@@ -92,33 +107,31 @@ export function LoginPage() {
             <h1 className="font-zasline text-4xl text-[#34e0a1] mb-2 animate-pulse">
               Welcome Back
             </h1>
-            <p className="text-slate-400 text-sm">Enter the graveyard</p>
+            <p className="text-slate-400 text-sm">
+              {loading ? "Logging in..." : "Enter the graveyard"}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-            {/* Email Field */}
             <div className="relative">
               <Label htmlFor="email" className="text-slate-300">
                 Email
               </Label>
-              <div className="relative">
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onFocus={() => setActiveInput("email")}
-                  onBlur={() => setActiveInput(null)}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500 transition-all ${
-                    activeInput === "email" ? "shadow-[0_0_15px_#34e0a1]" : ""
-                  }`}
-                  placeholder="your@email.com"
-                  required
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onFocus={() => setActiveInput("email")}
+                onBlur={() => setActiveInput(null)}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`mt-2 glass border-[#34e0a1]/30 focus:border-[#34e0a1] text-slate-200 placeholder:text-slate-500 transition-all ${
+                  activeInput === "email" ? "shadow-[0_0_15px_#34e0a1]" : ""
+                }`}
+                placeholder="your@email.com"
+                required
+              />
             </div>
 
-            {/* Password Field */}
             <div className="relative">
               <Label htmlFor="password" className="text-slate-300">
                 Password
@@ -153,15 +166,21 @@ export function LoginPage() {
               </div>
             </div>
 
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-[#34e0a1] text-[#141d38] hover:bg-[#34e0a1]/90 py-3 neon-glow transition-all duration-300 hover:scale-[1.02]"
             >
-              Enter the Graveyard
+              {loading ? "Logging In..." : "Enter the Graveyard"}
             </Button>
           </form>
 
-          {/* Divider */}
           <div className="mt-6 relative z-10">
             <div className="flex items-center justify-center space-x-4 mb-4">
               <div className="h-px bg-slate-600 flex-1"></div>
@@ -169,9 +188,12 @@ export function LoginPage() {
               <div className="h-px bg-slate-600 flex-1"></div>
             </div>
 
-            {/* OAuth Buttons */}
             <div className="flex gap-3">
-              <button className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300">
+              <button
+                type="button"
+                onClick={handleGithubLogin}
+                className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300"
+              >
                 <Github className="w-5 h-5 text-[#34e0a1] mr-2" />
                 <span className="text-slate-300">GitHub</span>
               </button>
@@ -188,7 +210,6 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Sign up link */}
           <div className="mt-6 text-center relative z-10">
             <p className="text-slate-400">
               New to the graveyard?{" "}

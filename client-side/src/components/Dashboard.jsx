@@ -1,190 +1,162 @@
+import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { ProjectCard } from "./ProjectCard";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import {
+  Skull,
+  Heart,
+  Award,
+  Plus,
+  Map,
+  TrendingUp,
+  Calendar,
+} from "lucide-react";
 
-// Mock data
-const userStats = {
-  buried: 12,
-  revived: 5,
-  badges: ["Gravekeeper", "Necromancer"],
-};
+export function Dashboard({ projects, onOpenProject, onDelete }) {
+  const [revivedProjects, setRevivedProjects] = useState([]);
+  const [userStats, setUserStats] = useState({
+    buried: 0,
+    revived: 0,
+    badges: [],
+  });
+  const { user, token, loading } = useAuth();
 
-const userProjects = [
-  {
-    id: "1",
-    title: "TaskFlow App",
-    status: "RIP",
-    description: "A productivity app that never saw the light of day",
-    createdAt: "2024-01-15",
-    link: "https://github.com/user/taskflow",
-    videos: ["https://example.com/video1.mp4"],
-    isOwner: true,
-  },
-  {
-    id: "2",
-    title: "AI Chat Bot",
-    status: "Reviving",
-    description: "Working on bringing this chatbot back to life",
-    createdAt: "2024-02-10",
-    link: "https://github.com/user/chatbot",
-    videos: [],
-    isOwner: true,
-  },
-  {
-    id: "3",
-    title: "Weather Dashboard",
-    status: "Still Hopeful",
-    description: "A beautiful weather app with animated backgrounds",
-    createdAt: "2024-03-05",
-    link: "https://github.com/user/weather",
-    videos: [],
-    isOwner: true,
-  },
-];
+  useEffect(() => {
+    if (!user || !token) return;
+    async function fetchData() {
+      const revived = projects.filter(
+        (p) => Array.isArray(p.revivedBy) && p.revivedBy.includes(user.id)
+      );
+      setRevivedProjects(revived);
+      setUserStats({
+        buried: projects.length,
+        revived: revived.length,
+        badges: [],
+      });
+    }
+    fetchData();
+  }, [token, user, projects]);
 
-const recentlyRevived = [
-  {
-    id: "4",
-    title: "Music Player",
-    status: "Reviving",
-    description: "Revived from the digital graveyard",
-    createdAt: "2024-01-20",
-    originalAuthor: "DevGhost",
-  },
-];
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#34e0a1] border-b-4 border-[#141d38]" />
+      </div>
+    );
+  }
 
-export function Dashboard({ onOpenProject, onOpenForm }) {
-  const ripProjects = userProjects.filter((p) => p.status === "RIP");
-  const activeProjects = userProjects.filter((p) => p.status !== "RIP");
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-slate-400">Please log in to view your dashboard.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen pb-20 px-6 pt-8 animate-fade-up">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-zasline text-3xl text-[#34e0a1] mb-2">
-          The Graveyard
-        </h1>
-        <p className="text-slate-400">Welcome back, Digital Archaeologist</p>
-      </div>
+    <div className="min-h-screen py-8 px-4 pb-24">
+      <div className="container mx-auto">
+        {/* Welcome Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-zasline text-[#34e0a1] mb-2">
+            Welcome back, {user.username}
+          </h1>
+          <p className="text-lg text-slate-400">
+            Your digital necromancy dashboard
+          </p>
+        </div>
 
-      {/* The Gravekeeper's Watch - Stats Section */}
-      <div className="mb-8">
-        <h2 className="font-zasline text-xl text-[#34e0a1] mb-4">
-          The Gravekeeper's Watch
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-            <div className="text-3xl mb-2">⚰️</div>
-            <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-10 w-full">
+          <Card className="tombstone-card p-3 md:p-6 text-center">
+            <Skull className="w-6 h-6 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 text-[#34e0a1]" />
+            <h3 className="text-lg md:text-2xl font-bold text-white mb-1">
               {userStats.buried}
-            </div>
-            <div className="text-slate-400 text-sm">Buried Projects</div>
-          </div>
-          <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-            <div className="text-3xl mb-2">🪄</div>
-            <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+            </h3>
+            <p className="text-xs md:text-sm text-slate-400">Buried</p>
+          </Card>
+
+          <Card className="tombstone-card p-3 md:p-6 text-center">
+            <Heart className="w-6 h-6 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 text-[#34e0a1]" />
+            <h3 className="text-lg md:text-2xl font-bold text-white mb-1">
               {userStats.revived}
-            </div>
-            <div className="text-slate-400 text-sm">Back from the Dead</div>
-          </div>
-          <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-            <div className="text-3xl mb-2">🌟</div>
-            <div className="text-sm text-slate-400 mb-2">Achievements</div>
-            <div className="flex flex-wrap gap-1 justify-center">
-              {userStats.badges.map((badge, index) => (
-                <Badge
-                  key={index}
-                  className="bg-[#34e0a1]/20 text-[#34e0a1] border-[#34e0a1]/30"
-                >
-                  {badge}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+            </h3>
+            <p className="text-xs md:text-sm text-slate-400">Revived</p>
+          </Card>
 
-      {/* Recently Revived */}
-      {recentlyRevived.length > 0 && (
-        <div className="mb-8">
-          <h2 className="font-zasline text-xl text-[#34e0a1] mb-4">
-            Recently Revived
-          </h2>
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {recentlyRevived.map((project) => (
-              <div key={project.id} className="flex-shrink-0">
-                <div className="glass rounded-lg p-4 min-w-[200px] hover:glass-strong transition-all duration-300 cursor-pointer">
-                  <h3 className="font-semibold text-slate-200 mb-1">
-                    {project.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 mb-2">
-                    by {project.originalAuthor}
-                  </p>
-                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
-                    Reviving
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Card className="tombstone-card p-3 md:p-6 text-center">
+            <Award className="w-6 h-6 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 text-[#34e0a1]" />
+            <h3 className="text-lg md:text-2xl font-bold text-white mb-1">
+              {userStats.badges.length}
+            </h3>
+            <p className="text-xs md:text-sm text-slate-400">Badges</p>
+          </Card>
         </div>
-      )}
 
-      {/* RIP Projects Section */}
-      {ripProjects.length > 0 && (
-        <div className="mb-8">
-          <h2 className="font-zasline text-xl text-[#34e0a1] mb-4">
-            RIP Projects
-          </h2>
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {ripProjects.map((project) => (
-              <div key={project.id} className="flex-shrink-0">
+        {/* User Projects */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-4xl font-bold text-white flex items-center gap-2">
+              <Skull className="w-6 h-6 text-[#34e0a1]" />
+              Your Buried Projects
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects.length > 0 ? (
+              projects.map((project) => (
                 <ProjectCard
+                  key={project._id}
                   project={project}
                   onClick={() => onOpenProject(project)}
-                  variant="tombstone"
+                  showPostedBy={false}
+                  currentUserId={user?.id}
+                  token={token}
+                  onDelete={onDelete}
                 />
-              </div>
-            ))}
+              ))
+            ) : (
+              <Card className="tombstone-card p-8 text-center col-span-full">
+                <Skull className="w-10 h-10 mx-auto mb-3 text-slate-500" />
+                <p className="text-slate-400">
+                  You haven't buried any projects yet.
+                </p>
+              </Card>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Active Projects Section */}
-      {activeProjects.length > 0 && (
-        <div className="mb-8">
-          <h2 className="font-zasline text-xl text-[#34e0a1] mb-4">
-            Active Projects
-          </h2>
+        {/* Revived Projects */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-4xl font-bold text-white flex items-center gap-2">
+              <Heart className="w-6 h-6 text-[#34e0a1]" />
+              Revived projects
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onClick={() => onOpenProject(project)}
-              />
-            ))}
+            {revivedProjects.length > 0 ? (
+              revivedProjects.map((project) => (
+                <ProjectCard
+                  key={project._id}
+                  project={project}
+                  onClick={() => onOpenProject(project)}
+                  currentUserId={user?.id}
+                  token={token}
+                />
+              ))
+            ) : (
+              <Card className="tombstone-card p-8 text-center col-span-full">
+                <Heart className="w-10 h-10 mx-auto mb-3 text-slate-500" />
+                <p className="text-slate-400">
+                  You haven't revived any projects yet.
+                </p>
+              </Card>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Empty state */}
-      {userProjects.length === 0 && (
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">💀</div>
-          <h3 className="font-zasline text-xl text-[#34e0a1] mb-2">
-            Your graveyard is empty
-          </h3>
-          <p className="text-slate-400 mb-6">
-            Start by burying your first project
-          </p>
-          <button
-            onClick={() => onOpenForm()}
-            className="bg-[#34e0a1] text-[#141d38] px-6 py-3 rounded-lg hover:bg-[#34e0a1]/90 transition-all duration-300 hover:scale-105 neon-glow"
-          >
-            Bury Your First Project
-          </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

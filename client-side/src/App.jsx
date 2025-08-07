@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getGhostCards, deleteGhostCard } from "./api/ghostcards";
+import { useAuth } from "./contexts/AuthContext";
 
 import "./styles/globals.css";
 import {
@@ -17,51 +19,116 @@ import { BrowseProjects } from "./components/BrowseProjects";
 import { AccountPage } from "./components/AccountPage";
 import { BottomNav } from "./components/BottomNav.jsx";
 import { ProjectModal } from "./components/ProjectModal";
-import { ProjectFormModal } from "./components/ProjectFormModal";
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
+import { useIsBigScreen } from "./components/UseIsBigScreen";
+import { PortalNav } from "./components/PortalNav";
+import { EditProjectModal } from "./components/EditProjectModal.jsx";
+
+import { AddProjectPage } from "./components/AddProjectPage.jsx";
+import GithubCallback from "./components/GithubCallback";
+import { Leaderboard } from "./components/Leaderboard";
+import { Header } from "./components/Header";
 
 function AppContent() {
+  const { user, token } = useAuth();
+  const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const location = useLocation();
+  const isBigScreen = useIsBigScreen();
+
+  useEffect(() => {
+    if (token) {
+      getGhostCards(token).then(setAllProjects);
+    }
+  }, [token]);
+
+  const handleAddProject = (newProject) => {
+    setAllProjects((prev) => [newProject, ...prev]);
+    setEditingProject(null);
+  };
+
+  const handleEditProject = (updatedProject) => {
+    setAllProjects((prev) =>
+      prev.map((p) => (p._id === updatedProject._id ? updatedProject : p))
+    );
+    setEditingProject(null);
+  };
+
+  // DELETE ONLY
+  const handleDeleteProject = async (project) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this project? This cannot be undone."
+      )
+    )
+      return;
+    try {
+      await deleteGhostCard(project._id, token);
+      setAllProjects((prev) => prev.filter((p) => p._id !== project._id));
+      setSelectedProject(null);
+    } catch (err) {
+      console.error("Failed to delete project", err);
+    }
+  };
+
+  const myProjects = user
+    ? allProjects.filter((p) => p.creatorId === user.id)
+    : [];
+  const otherProjects = user
+    ? allProjects.filter((p) => p.creatorId !== user.id)
+    : [];
+
+  const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
+    location.pathname
+  );
+  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard"].includes(
+    location.pathname
+  );
 
   const openProjectModal = (project) => {
     setSelectedProject(project);
   };
 
+
+
   const closeProjectModal = () => {
     setSelectedProject(null);
   };
 
-  const openProjectForm = (project = null) => {
-    setEditingProject(project);
-    setShowProjectForm(true);
-  };
-
-  const closeProjectForm = () => {
-    setShowProjectForm(false);
+  const closeFormModal = () => {
     setEditingProject(null);
   };
 
-  // Determine if we should show bottom nav based on current route
-  const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
-    location.pathname
-  );
+  const openEditModal = (project) => {
+    setEditingProject(project);
+  };
 
   return (
-    <div className="min-h-screen bg-[#141d38] text-slate-200 dark">
+    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
+      {showHeader && <Header />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/auth/github/callback" element={<GithubCallback />} />
+        <Route
+          path="/add-project"
+          element={
+            <ProtectedRoute>
+              <AddProjectPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard
+                projects={myProjects}
                 onOpenProject={openProjectModal}
-                onOpenForm={openProjectForm}
+
+                onDelete={handleDeleteProject}
               />
             </ProtectedRoute>
           }
@@ -70,7 +137,27 @@ function AppContent() {
           path="/browse"
           element={
             <ProtectedRoute>
-              <BrowseProjects onOpenProject={openProjectModal} />
+              <BrowseProjects
+                projects={otherProjects}
+                token={token}
+                onOpenProject={openProjectModal}
+                onDelete={handleDeleteProject}
+                currentUserId={user?.id}
+              />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/graveyard"
+          element={
+            <ProtectedRoute>
+              <BrowseProjects
+                projects={allProjects}
+                token={token}
+                onOpenProject={openProjectModal}
+                onDelete={handleDeleteProject}
+                currentUserId={user?.id}
+              />
             </ProtectedRoute>
           }
         />
@@ -82,26 +169,41 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        {/* Catch-all route - redirects any unmatched routes to landing page */}
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {showBottomNav && <BottomNav onOpenForm={openProjectForm} />}
+      {showBottomNav &&
+        (isBigScreen ? (
+          <PortalNav />
+        ) : (
+          <BottomNav />
+        ))}
 
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
+          token={token}
           onClose={closeProjectModal}
-          onEdit={openProjectForm}
+          onEdit={openEditModal}
           isOwner={selectedProject.isOwner}
+          onDelete={handleDeleteProject}
         />
       )}
 
-      {showProjectForm && (
-        <ProjectFormModal
+      {/* Edit Modal */}
+      {editingProject && (
+        <EditProjectModal
           project={editingProject}
-          onClose={closeProjectForm}
-          onSave={closeProjectForm}
+          onClose={closeFormModal}
+          onSave={handleEditProject}
         />
       )}
     </div>
@@ -110,10 +212,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <AppContent />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
