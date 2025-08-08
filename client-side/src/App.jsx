@@ -37,6 +37,7 @@ function AppContent() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
   const [guestSearchVisible, setGuestSearchVisible] = useState(false);
+  const [browseSearchVisible, setBrowseSearchVisible] = useState(false);
   const location = useLocation();
   const isBigScreen = useIsBigScreen();
 
@@ -121,7 +122,12 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
-      {showHeader && <Header />}
+      {showHeader && (
+        <Header 
+          onSearchToggle={() => setBrowseSearchVisible(!browseSearchVisible)}
+          showSearchButton={true}
+        />
+      )}
       {showGuestHeader && (
         <GuestHeader 
           onSearchToggle={() => setGuestSearchVisible(!guestSearchVisible)}
@@ -166,6 +172,7 @@ function AppContent() {
                 onDelete={handleDeleteProject}
                 currentUserId={user?.id}
                 onProjectRevived={refetchProjects}
+                searchVisible={browseSearchVisible}
               />
             </ProtectedRoute>
           }

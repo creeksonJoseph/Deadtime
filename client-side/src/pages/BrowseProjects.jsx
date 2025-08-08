@@ -1,16 +1,19 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ProjectCard } from "../components/ProjectCard";
 import { Search, Filter, Skull, ChevronDown } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 
-export function BrowseProjects({ projects, token, onOpenProject, currentUserId, onProjectRevived }) {
+export function BrowseProjects({ projects, token, onOpenProject, currentUserId, onProjectRevived, searchVisible = false }) {
   // projects = only other users' projects, passed from AppContent
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(searchVisible);
+  const [isSticky, setIsSticky] = useState(false);
+  const filtersRef = useRef(null);
 
   // Project types for filter buttons
   const projectTypes = [
@@ -78,26 +81,32 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
     return filtered;
   }, [projects, searchTerm, selectedType, sortBy]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (filtersRef.current && showSearchBar) {
+        const rect = filtersRef.current.getBoundingClientRect();
+        setIsSticky(rect.top <= 80);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showSearchBar]);
+
+  useEffect(() => {
+    setShowSearchBar(searchVisible);
+  }, [searchVisible]);
+
   return (
     <div className="min-h-screen py-8 px-4 pb-24">
       <div className="container mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
-            <h1 className="text-6xl font-gothic text-[#34e0a1]">
-              The Graveyard
-            </h1>
-            <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
-          </div>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Browse the digital remains of abandoned projects. Each tombstone
-            tells a story waiting for resurrection.
-          </p>
-        </div>
-
         {/* Filters and Search */}
-        <div className="glass rounded-lg p-4 md:p-6 mb-8">
+        {showSearchBar && (
+          <div 
+            ref={filtersRef}
+            className={`glass rounded-lg p-4 md:p-6 mb-8 transition-all duration-200 ${
+              isSticky ? 'fixed top-20 left-4 right-4 z-40 mx-auto max-w-7xl' : ''
+            }`}
+          >
           {/* Mobile: Search + Filter Button */}
           <div className="md:hidden">
             <div className="flex gap-2 mb-4">
@@ -211,6 +220,25 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
               ))}
             </div>
           </div>
+          </div>
+        )}
+
+        {/* Spacer when sticky */}
+        {isSticky && showSearchBar && <div className="h-32 md:h-40"></div>}
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
+            <h1 className="text-6xl font-gothic text-[#34e0a1]">
+              The Graveyard
+            </h1>
+            <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
+          </div>
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            Browse the digital remains of abandoned projects. Each tombstone
+            tells a story waiting for resurrection.
+          </p>
         </div>
 
         {/* Results count */}

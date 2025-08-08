@@ -167,7 +167,11 @@ export function AccountPage() {
       </div>
 
       {/* Achievements */}
-      <div className="glass rounded-2xl p-8 neon-glow grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="glass rounded-2xl p-8 neon-glow">
+        <h3 className="font-zasline text-2xl text-[#34e0a1] mb-6 text-center">
+          🏆 Achievements
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {badges.map((b) => (
           <div
             key={b.name}
@@ -189,6 +193,7 @@ export function AccountPage() {
             )}
           </div>
         ))}
+        </div>
       </div>
       
       <ConfirmDialog
