@@ -28,12 +28,15 @@ import { AddProjectPage } from "./pages/AddProjectPage.jsx";
 import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Header } from "./components/Header";
+import { GuestHeader } from "./components/GuestHeader";
+import { GuestBrowse } from "./pages/GuestBrowse";
 
 function AppContent() {
   const { user, token } = useAuth();
   const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
+  const [guestSearchVisible, setGuestSearchVisible] = useState(false);
   const location = useLocation();
   const isBigScreen = useIsBigScreen();
 
@@ -96,6 +99,7 @@ function AppContent() {
   const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard"].includes(
     location.pathname
   );
+  const showGuestHeader = location.pathname === "/guest-browse";
 
   const openProjectModal = (project) => {
     setSelectedProject(project);
@@ -118,10 +122,17 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
       {showHeader && <Header />}
+      {showGuestHeader && (
+        <GuestHeader 
+          onSearchToggle={() => setGuestSearchVisible(!guestSearchVisible)}
+          showSearchButton={true}
+        />
+      )}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/guest-browse" element={<GuestBrowse searchVisible={guestSearchVisible} />} />
         <Route path="/auth/github/callback" element={<GithubCallback />} />
         <Route
           path="/add-project"

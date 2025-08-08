@@ -240,6 +240,22 @@ export function LandingPage() {
           </motion.button>
         </div>
 
+        {/* Guest Browse Button */}
+        <motion.div
+          variants={fadeSlide("up", 1.4)}
+          initial="hidden"
+          animate="show"
+          className="mt-8"
+        >
+          <Button
+            onClick={() => navigate("/guest-browse")}
+            variant="outline"
+            className="border-slate-600 text-slate-300 hover:bg-slate-800/60 px-6 py-2 text-sm transition-all duration-300 hover:scale-105"
+          >
+            Browse as Guest
+          </Button>
+        </motion.div>
+
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {[
             {
