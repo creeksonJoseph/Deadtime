@@ -110,52 +110,52 @@ export function AccountPage() {
       </div>
 
       {/* Profile Section */}
-      <div className="glass rounded-2xl p-8 mb-8 neon-glow">
-        <div className="flex flex-col md:flex-row items-start gap-6">
+      <div className="glass rounded-xl p-4 md:p-8 mb-6 md:mb-8 neon-glow">
+        <div className="flex items-center gap-4 md:gap-6">
           {/* Avatar */}
-          <div className="w-24 h-24 rounded-full glass flex items-center justify-center overflow-hidden">
-            <div className="text-3xl">👤</div>
+          <div className="w-16 h-16 md:w-24 md:h-24 rounded-full glass flex items-center justify-center overflow-hidden">
+            <div className="text-2xl md:text-3xl">👤</div>
           </div>
 
           {/* User Info */}
           <div className="flex-1">
-            <h2 className="font-zasline text-4xl text-slate-200 mb-2">
+            <h2 className="font-zasline text-2xl md:text-4xl text-slate-200 mb-1 md:mb-2">
               {user.username}
             </h2>
-            <p className="text-slate-400 mb-4">{user.email}</p>
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-400 mb-2 md:mb-4 text-sm md:text-base">{user.email}</p>
+            <p className="text-slate-500 text-xs md:text-sm">
               Joined{" "}
-              {new Date(stats.joinDate).toLocaleDateString("en-US", {
+              {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
-              })}
+              }) : "Recently"}
             </p>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-          <div className="text-2xl mb-2">⚰️</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
+        <div className="glass rounded-lg p-3 md:p-6 text-center hover:glass-strong transition-all duration-300">
+          <div className="text-xl md:text-2xl mb-1 md:mb-2">⚰️</div>
+          <div className="text-lg md:text-2xl font-bold text-[#34e0a1] mb-1">
             {stats.totalProjects}
           </div>
-          <div className="text-slate-400 text-sm">Projects Buried</div>
+          <div className="text-slate-400 text-xs md:text-sm">Projects I Buried</div>
         </div>
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">🪄</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
             {stats.projectsRevived}
           </div>
-          <div className="text-slate-400 text-sm">Projects Revived</div>
+          <div className="text-slate-400 text-sm">Projects I Revived</div>
         </div>
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">❤️</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
             {stats.revivedProjects}
           </div>
-          <div className="text-slate-400 text-sm">Got Revived</div>
+          <div className="text-slate-400 text-sm">My Projects Revived</div>
         </div>
         <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
           <div className="text-2xl mb-2">🏆</div>
@@ -167,20 +167,20 @@ export function AccountPage() {
       </div>
 
       {/* Achievements */}
-      <div className="glass rounded-2xl p-8 neon-glow">
-        <h3 className="font-zasline text-2xl text-[#34e0a1] mb-6 text-center">
+      <div className="glass rounded-xl p-4 md:p-8 neon-glow">
+        <h3 className="font-zasline text-xl md:text-2xl text-[#34e0a1] mb-4 md:mb-6 text-center">
           🏆 Achievements
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
         {badges.map((b) => (
           <div
             key={b.name}
-            className={`flex flex-col items-center p-4 rounded-lg glass ${
+            className={`flex flex-col items-center p-2 md:p-4 rounded-lg glass ${
               b.unlocked ? "neon-glow" : "opacity-50"
             }`}
           >
-            <span className="text-3xl mb-2">{b.icon}</span>
-            <span className="font-bold text-slate-200">{b.name}</span>
+            <span className="text-2xl md:text-3xl mb-1 md:mb-2">{b.icon}</span>
+            <span className="font-bold text-slate-200 text-sm md:text-base">{b.name}</span>
             <span className="text-xs text-slate-400">{b.desc}</span>
             {!b.unlocked && (
               <span className="text-xs text-yellow-400 mt-1">

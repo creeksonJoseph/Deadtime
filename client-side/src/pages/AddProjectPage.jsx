@@ -165,6 +165,7 @@ export function AddProjectPage({ onProjectCreated }) {
   const validate = () => {
     if (!formData.title.trim()) return "Title is required";
     if (!formData.description.trim()) return "Description is required";
+    if (!formData.logoUrl.trim()) return "Project logo is required";
     if (!formData.abandonmentReason.trim()) return "Cause of Death is required";
     return "";
   };
@@ -201,19 +202,19 @@ export function AddProjectPage({ onProjectCreated }) {
       </button>
 
       {/* Header - Fixed at top */}
-      <div className="text-center py-4 px-4">
-        <Skull className="w-16 h-16 mx-auto mb-6 text-[#34e0a1] animate-pulse" />
-        <h1 className="text-5xl font-gothic text-[#34e0a1] mb-4">Bury Your Project</h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+      <div className="text-center py-3 md:py-4 px-4">
+        <Skull className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 text-[#34e0a1] animate-pulse" />
+        <h1 className="text-3xl md:text-5xl font-gothic text-[#34e0a1] mb-3 md:mb-4">Bury Your Project</h1>
+        <p className="text-base md:text-lg text-slate-400 max-w-2xl mx-auto">
           Give your abandoned project a proper digital burial. Fill out this death certificate so others can pay their respects.
         </p>
       </div>
 
       {/* Form - Full width landscape */}
-      <div className="px-4 pb-8">
+      <div className="px-4 pb-6 md:pb-8">
         <div className="w-full max-w-none">
-          <Card className="tombstone-card p-8 mx-auto max-w-7xl">
-              <form onSubmit={handleSubmit} className="space-y-6">
+          <Card className="tombstone-card p-4 md:p-8 mx-auto max-w-7xl">
+              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                 {/* Project Title */}
                 <div className="space-y-2">
                   <Label
@@ -244,17 +245,17 @@ export function AddProjectPage({ onProjectCreated }) {
                           key={type.value}
                           type="button"
                           onClick={() => handleInputChange("type", type.value)}
-                          className={`p-4 rounded-lg border-2 text-left transition-all ${
+                          className={`p-3 md:p-4 rounded-lg border-2 text-left transition-all ${
                             formData.type === type.value
                               ? "border-[#34e0a1] bg-[#34e0a1]/10 text-[#34e0a1]"
                               : "border-border hover:border-[#34e0a1]/50"
                           }`}
                         >
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Icon className="w-5 h-5" />
-                            <span className="font-medium">{type.label}</span>
+                          <div className="flex items-center space-x-2 mb-1 md:mb-2">
+                            <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                            <span className="font-medium text-sm md:text-base">{type.label}</span>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs md:text-sm text-muted-foreground">
                             {type.description}
                           </p>
                         </button>
@@ -378,8 +379,11 @@ export function AddProjectPage({ onProjectCreated }) {
                   {/* Logo Upload */}
                   <div>
                     <Label className="text-foreground font-medium mb-2 block">
-                      Project Logo (Optional)
+                      Project Logo *
                     </Label>
+                    <p className="text-sm text-slate-400 mb-3">
+                      Help someone visualize your project
+                    </p>
                     {!formData.logoUrl ? (
                       <div className="relative">
                         <input

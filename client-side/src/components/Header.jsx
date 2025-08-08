@@ -12,7 +12,7 @@ export function Header({ onSearchToggle, showSearchButton = false }) {
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2 group">
             <Skull className="w-8 h-8 text-[#34e0a1] group-hover:animate-pulse" />
-            <span className="text-[40px] font-gothic text-[#34e0a1]">
+            <span className="text-[24px] md:text-[40px] font-gothic text-[#34e0a1]">
               DEADTIME
             </span>
           </Link>

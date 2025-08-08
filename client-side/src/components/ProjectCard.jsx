@@ -4,7 +4,7 @@ import { ExternalLink, User, MoreVertical, Star, Trash2 } from "lucide-react";
 
 function PostedBy({ username }) {
   return (
-    <div className="flex items-center gap-3 pt-2 border-t border-slate-700/50">
+    <div className="flex items-center gap-3 pt-2 border-t border-slate-700/50 bg-slate-800/10 -mx-6 px-6 pb-2">
       <div className="w-8 h-8 bg-gradient-to-br from-[#fcdb32] to-[#fcdb32]/70 rounded-full flex items-center justify-center flex-shrink-0">
         <User className="w-4 h-4 text-[#141d38]" />
       </div>
@@ -23,6 +23,7 @@ export function ProjectCard({
   showPostedBy = true,
   onDelete,
   currentUserId,
+  isMobile = false,
 }) {
   const [username, setUsername] = useState("Loading...");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,6 +69,13 @@ export function ProjectCard({
     return text.substring(0, maxLength).trim() + "...";
   };
 
+  const truncateToWords = (text, maxWords = 40) => {
+    if (!text) return "";
+    const words = text.split(' ');
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + "...";
+  };
+
   useEffect(() => {
     if (!project.creatorId) {
       console.warn("No creatorId found for project:", project);
@@ -95,7 +103,7 @@ export function ProjectCard({
   }, [project.creatorId, token]);
 
   return (
-    <div className="w-[300px] h-[380px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative">
+    <div className={`${isMobile ? 'w-full bg-[#141d38] border-0 border-b border-b-slate-600/10 md:border md:border-slate-600/30 rounded-none md:rounded-2xl shadow-[0_4px_0_rgba(52,224,161,0.1)] md:shadow-lg mb-1 md:mb-0' : 'w-[300px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg'} h-[380px] hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative`}>
       {/* 3-dots menu - only show for project owner */}
       {isOwner && (
         <>
@@ -135,7 +143,7 @@ export function ProjectCard({
         </div>
       )}
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className={`p-6 flex flex-col ${project.logoUrl ? 'flex-1' : 'flex-1 justify-center'}`}>
         <div className="mb-3">
           <div className="flex items-start justify-between mb-2">
             <h3 className="text-white font-bold text-xl leading-tight line-clamp-2 flex-1 mr-2">
@@ -153,8 +161,8 @@ export function ProjectCard({
           </p>
         </div>
 
-        <p className="text-slate-300 text-sm leading-relaxed mb-4 flex-1">
-          {truncateDescription(project.description)}
+        <p className="text-slate-300 text-sm leading-relaxed mb-4 overflow-hidden break-words flex-1">
+          {truncateToWords(project.description, 40)}
         </p>
 
         <div className="space-y-4 mt-auto">

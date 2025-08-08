@@ -7,8 +7,6 @@ import {
   FileText,
   MoreVertical,
   Trash2,
-  Share2,
-  Download,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Badge } from "./ui/badge";
@@ -16,7 +14,6 @@ import { Button } from "./ui/button";
 import { getGhostCardById } from "../api/ghostcards";
 import { getNotesForProject, createGhostNote } from "../api/ghostnotes";
 import { ReviveProjectModal } from "./ReviveProjectModal";
-import { TombstoneCard } from "./TombstoneCard";
 import { Textarea } from "./ui/textarea";
 
 export function ProjectModal({
@@ -39,7 +36,7 @@ export function ProjectModal({
   const [error, setError] = useState("");
   const [showRevive, setShowRevive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showTombstone, setShowTombstone] = useState(false);
+
 
   const projectToUse = loadedProject || project;
 
@@ -148,7 +145,7 @@ export function ProjectModal({
 
       {/* Modal Container */}
       <div
-        className={`relative w-full max-w-4xl max-h-[95vh] mb-20 md:mb-0 flex flex-col bg-[#141d38] rounded-3xl overflow-hidden shadow-2xl border border-slate-600/20 transition-all duration-300 transform ${
+        className={`relative w-full max-w-2xl max-h-[90vh] mb-4 md:mb-0 flex flex-col bg-[#141d38] rounded-2xl overflow-hidden shadow-2xl border border-slate-600/20 transition-all duration-300 transform ${
           visible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -233,14 +230,14 @@ export function ProjectModal({
           ) : null}
 
           {/* Header Section */}
-          <div className="p-8 pb-6">
-            <div className="flex items-start justify-between gap-6 mb-6">
+          <div className="p-4 pb-3">
+            <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2 mb-2">
                   {projectToUse.logoUrl &&
                     projectToUse.images &&
                     projectToUse.images.length > 0 && (
-                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-600/30 flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-600/30 flex-shrink-0">
                         <img
                           src={projectToUse.logoUrl}
                           alt={projectToUse.title}
@@ -249,15 +246,15 @@ export function ProjectModal({
                       </div>
                     )}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-4xl font-roboto font-bold text-white mb-2 leading-tight">
+                    <h2 className="text-2xl font-roboto font-bold text-white mb-1 leading-tight">
                       {projectToUse.title}
                     </h2>
-                    <div className="space-y-1">
-                      <p className="text-slate-400 text-base">
+                    <div className="space-y-0.5">
+                      <p className="text-slate-400 text-sm">
                         Started: {formatDate(projectToUse.dateStarted)}
                       </p>
                       {projectToUse.dateAbandoned && (
-                        <p className="text-red-400 text-base">
+                        <p className="text-red-400 text-sm">
                           Abandoned: {formatDate(projectToUse.dateAbandoned)}
                         </p>
                       )}
@@ -266,7 +263,7 @@ export function ProjectModal({
                 </div>
               </div>
               <Badge
-                className={`${getStatusColor(projectToUse.status)} px-4 py-2 rounded-xl border text-base font-medium`}
+                className={`${getStatusColor(projectToUse.status)} px-3 py-1 rounded-lg border text-sm font-medium`}
               >
                 {getStatusLabel(projectToUse.status)}
               </Badge>
@@ -274,21 +271,21 @@ export function ProjectModal({
           </div>
 
           {/* Project Details */}
-          <div className="px-8 pb-8 space-y-8">
+          <div className="px-4 pb-4 space-y-4">
             {/* Project Info Section */}
             <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-1 h-6 bg-[#34e0a1] rounded-full"></div>
-                <h3 className="text-xl font-semibold text-white">Project Information</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1 h-4 bg-[#34e0a1] rounded-full"></div>
+                <h3 className="text-lg font-semibold text-white">Project Information</h3>
               </div>
               
               {/* Project Type */}
               {projectToUse.type && (
-                <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/30">
-                  <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
                     Project Type
                   </h4>
-                  <p className="text-slate-200 capitalize">
+                  <p className="text-slate-200 capitalize text-sm">
                     {projectToUse.type === 'code' ? 'Coding Project' : 
                      projectToUse.type === 'business' ? 'Business Idea' :
                      projectToUse.type === 'content' ? 'Content Project' : 
@@ -298,11 +295,11 @@ export function ProjectModal({
               )}
               
               {/* Description */}
-              <div className="bg-slate-800/30 rounded-xl p-6 border border-slate-700/30">
-                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">
+              <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/30">
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
                   About this project
                 </h4>
-                <p className="text-slate-300 leading-relaxed text-lg">
+                <p className="text-slate-300 leading-relaxed text-sm">
                   {projectToUse.description}
                 </p>
               </div>
@@ -396,13 +393,7 @@ export function ProjectModal({
                   Revive Project
                 </Button>
               )}
-              <Button
-                onClick={() => setShowTombstone(true)}
-                className="bg-transparent border-2 border-slate-500 text-slate-300 hover:bg-slate-500 hover:text-white px-8 py-3 rounded-xl transition-all duration-200 font-semibold text-base"
-              >
-                <Share2 className="w-5 h-5 mr-2" />
-                Generate RIP Card
-              </Button>
+
               </div>
             </div>
           </div>
@@ -453,7 +444,7 @@ export function ProjectModal({
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="max-h-96 overflow-y-auto space-y-6 pr-2">
                 {notes.map((note) => (
                   <div
                     key={note._id}
@@ -505,107 +496,7 @@ export function ProjectModal({
         />
       )}
 
-      {/* Tombstone Card Modal */}
-      {showTombstone && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-            onClick={() => setShowTombstone(false)}
-          />
-          <div className="relative bg-[#141d38] rounded-2xl p-8 border border-slate-600/30 shadow-2xl max-w-lg w-full">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white">RIP Card</h3>
-              <button
-                onClick={() => setShowTombstone(false)}
-                className="w-8 h-8 bg-slate-800/80 hover:bg-slate-700/80 rounded-full flex items-center justify-center transition-all"
-              >
-                <X className="w-4 h-4 text-slate-300" />
-              </button>
-            </div>
-            <TombstoneCard 
-              project={projectToUse}
-              onDownload={async () => {
-                try {
-                  const html2canvas = (await import('html2canvas')).default;
-                  const element = document.getElementById('tombstone-card');
-                  if (element) {
-                    // Wait for fonts and images to load
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    const canvas = await html2canvas(element, {
-                      backgroundColor: '#1e293b',
-                      scale: 2,
-                      useCORS: true,
-                      allowTaint: true,
-                      foreignObjectRendering: false,
-                      logging: false,
-                      width: element.offsetWidth,
-                      height: element.offsetHeight
-                    });
-                    const link = document.createElement('a');
-                    link.download = `${projectToUse.title.replace(/[^a-z0-9]/gi, '_')}-rip-card.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }
-                } catch (error) {
-                  console.error('Failed to download tombstone card:', error);
-                  alert('Download failed. Please try again.');
-                }
-              }}
-              onShare={async () => {
-                try {
-                  const html2canvas = (await import('html2canvas')).default;
-                  const element = document.getElementById('tombstone-card');
-                  if (element) {
-                    // Wait for fonts and images to load
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    const canvas = await html2canvas(element, {
-                      backgroundColor: '#1e293b',
-                      scale: 2,
-                      useCORS: true,
-                      allowTaint: true,
-                      foreignObjectRendering: false,
-                      logging: false,
-                      width: element.offsetWidth,
-                      height: element.offsetHeight
-                    });
-                    
-                    // Convert canvas to blob
-                    canvas.toBlob(async (blob) => {
-                      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'rip-card.png', { type: 'image/png' })] })) {
-                        await navigator.share({
-                          title: `RIP: ${projectToUse.title}`,
-                          text: `Check out this abandoned project: ${projectToUse.title}`,
-                          files: [new File([blob], 'rip-card.png', { type: 'image/png' })]
-                        });
-                      } else {
-                        // Fallback: download the image
-                        const link = document.createElement('a');
-                        link.download = `${projectToUse.title.replace(/[^a-z0-9]/gi, '_')}-rip-card.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        alert('Image downloaded! You can now share it manually.');
-                      }
-                    }, 'image/png');
-                  }
-                } catch (error) {
-                  console.error('Share failed:', error);
-                  // Fallback - just copy link
-                  try {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard!');
-                  } catch (clipboardError) {
-                    console.error('Clipboard failed:', clipboardError);
-                  }
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

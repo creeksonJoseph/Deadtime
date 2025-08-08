@@ -5,7 +5,14 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 
-export function BrowseProjects({ projects, token, onOpenProject, currentUserId, onProjectRevived, searchVisible = false }) {
+export function BrowseProjects({
+  projects,
+  token,
+  onOpenProject,
+  currentUserId,
+  onProjectRevived,
+  searchVisible = false,
+}) {
   // projects = only other users' projects, passed from AppContent
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
@@ -88,8 +95,8 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
         setIsSticky(rect.top <= 80);
       }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [showSearchBar]);
 
   useEffect(() => {
@@ -97,129 +104,141 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
   }, [searchVisible]);
 
   return (
-    <div className="min-h-screen py-8 px-4 pb-24">
+    <div className="min-h-screen sm:py-2 md:py-4 lg:py-6  px-4 pb-24">
       <div className="container mx-auto">
         {/* Filters and Search */}
         {showSearchBar && (
-          <div 
+          <div
             ref={filtersRef}
             className={`glass rounded-lg p-4 md:p-6 mb-8 transition-all duration-200 ${
-              isSticky ? 'fixed top-20 left-4 right-4 z-40 mx-auto max-w-7xl' : ''
+              isSticky
+                ? "fixed top-20 left-4 right-4 z-40 mx-auto max-w-7xl"
+                : ""
             }`}
           >
-          {/* Mobile: Search + Filter Button */}
-          <div className="md:hidden">
-            <div className="flex gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Search projects..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            {/* Mobile: Search + Filter Button */}
+            <div className="md:hidden">
+              <div className="flex gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Search projects..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFiltersOpen(!filtersOpen)}
+                  className="px-3 border-[#34e0a1]/30 hover:bg-[#34e0a1] hover:text-[#141d38]"
+                >
+                  <Filter className="w-4 h-4" />
+                  <ChevronDown
+                    className={`w-4 h-4 ml-1 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+                  />
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFiltersOpen(!filtersOpen)}
-                className="px-3 border-[#34e0a1]/30 hover:bg-[#34e0a1] hover:text-[#141d38]"
-              >
-                <Filter className="w-4 h-4" />
-                <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
-              </Button>
+
+              {/* Mobile Filters Dropdown */}
+              {filtersOpen && (
+                <div className="space-y-4 border-t border-slate-600/30 pt-4">
+                  {/* Sort */}
+                  <div>
+                    <label className="text-sm text-slate-400 mb-2 block">
+                      Sort by
+                    </label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full bg-[#141d38] border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-200"
+                    >
+                      <option value="recent">Recently Abandoned</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="revivals">Most Revivals</option>
+                    </select>
+                  </div>
+
+                  {/* Type Filters */}
+                  <div>
+                    <label className="text-sm text-slate-400 mb-2 block">
+                      Project Type
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {projectTypes.map((type) => (
+                        <Button
+                          key={type.value}
+                          variant={
+                            selectedType === type.value ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => setSelectedType(type.value)}
+                          className={
+                            selectedType === type.value
+                              ? "bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38]"
+                              : "hover:bg-[#34e0a1] hover:text-[#141d38] border-[#34e0a1]/30"
+                          }
+                        >
+                          {type.label} ({type.count})
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            {/* Mobile Filters Dropdown */}
-            {filtersOpen && (
-              <div className="space-y-4 border-t border-slate-600/30 pt-4">
+
+            {/* Desktop: Original Layout */}
+            <div className="hidden md:block">
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Search for projects, owners, or descriptions..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
                 {/* Sort */}
-                <div>
-                  <label className="text-sm text-slate-400 mb-2 block">Sort by</label>
+                <div className="flex items-center space-x-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-[#141d38] border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-200"
+                    className="bg-[#141d38] border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-200"
                   >
                     <option value="recent">Recently Abandoned</option>
                     <option value="oldest">Oldest First</option>
                     <option value="revivals">Most Revivals</option>
                   </select>
                 </div>
-                
-                {/* Type Filters */}
-                <div>
-                  <label className="text-sm text-slate-400 mb-2 block">Project Type</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {projectTypes.map((type) => (
-                      <Button
-                        key={type.value}
-                        variant={selectedType === type.value ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedType(type.value)}
-                        className={
-                          selectedType === type.value
-                            ? "bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38]"
-                            : "hover:bg-[#34e0a1] hover:text-[#141d38] border-[#34e0a1]/30"
-                        }
-                      >
-                        {type.label} ({type.count})
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Desktop: Original Layout */}
-          <div className="hidden md:block">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              {/* Search */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Search for projects, owners, or descriptions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
               </div>
 
-              {/* Sort */}
-              <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-slate-400" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-[#141d38] border border-slate-600 rounded-md px-3 py-2 text-sm text-slate-200"
-                >
-                  <option value="recent">Recently Abandoned</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="revivals">Most Revivals</option>
-                </select>
+              {/* Type Filters */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                {projectTypes.map((type) => (
+                  <Button
+                    key={type.value}
+                    variant={
+                      selectedType === type.value ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setSelectedType(type.value)}
+                    className={
+                      selectedType === type.value
+                        ? "bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38]"
+                        : "hover:bg-[#34e0a1] hover:text-[#141d38] border-[#34e0a1]/30"
+                    }
+                  >
+                    {type.label} ({type.count})
+                  </Button>
+                ))}
               </div>
             </div>
-
-            {/* Type Filters */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {projectTypes.map((type) => (
-                <Button
-                  key={type.value}
-                  variant={selectedType === type.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedType(type.value)}
-                  className={
-                    selectedType === type.value
-                      ? "bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38]"
-                      : "hover:bg-[#34e0a1] hover:text-[#141d38] border-[#34e0a1]/30"
-                  }
-                >
-                  {type.label} ({type.count})
-                </Button>
-              ))}
-            </div>
-          </div>
           </div>
         )}
 
@@ -230,7 +249,7 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
-            <h1 className="text-6xl font-gothic text-[#34e0a1]">
+            <h1 className="text-4xl md:text-6xl font-gothic text-[#34e0a1]">
               The Graveyard
             </h1>
             <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
@@ -260,7 +279,7 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
 
         {/* Projects Grid */}
         {filteredAndSortedProjects.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-0 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedProjects.map((project) => (
               <ProjectCard
                 key={project._id}
@@ -269,6 +288,7 @@ export function BrowseProjects({ projects, token, onOpenProject, currentUserId, 
                 onClick={() => onOpenProject(project)}
                 showPostedBy={true}
                 currentUserId={currentUserId}
+                isMobile={true}
               />
             ))}
           </div>

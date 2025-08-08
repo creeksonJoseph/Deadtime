@@ -122,7 +122,7 @@ export function GuestBrowse({ searchVisible = false }) {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 pb-24">
+    <div className="min-h-screen pt-6 sm:py-2 md:py-4 lg:py-6 px-4 pb-24">
       {/* Toast Notification */}
       {showToast && (
         <div className="fixed top-20 right-4 z-50 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-in slide-in-from-right">
@@ -270,7 +270,7 @@ export function GuestBrowse({ searchVisible = false }) {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
-            <h1 className="text-6xl font-gothic text-[#34e0a1]">
+            <h1 className="text-4xl md:text-6xl font-gothic text-[#34e0a1]">
               The Graveyard
             </h1>
             <Skull className="w-8 h-8 text-[#34e0a1] animate-pulse" />
@@ -300,7 +300,7 @@ export function GuestBrowse({ searchVisible = false }) {
 
         {/* Projects Grid */}
         {filteredAndSortedProjects.length > 0 ? (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-0 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedProjects.map((project) => (
               <div key={project._id} className="relative">
                 <ProjectCard
@@ -309,6 +309,7 @@ export function GuestBrowse({ searchVisible = false }) {
                   onClick={() => {}} // No modal for guests
                   showPostedBy={true}
                   currentUserId={null} // No user ID for guests
+                  isMobile={true}
                 />
                 {/* Guest overlay */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
