@@ -110,11 +110,20 @@ export function ProjectModal({
     if (!newNote.trim()) return;
     setLoadingNote(true);
     try {
-      const note = await createGhostNote(
+      const response = await createGhostNote(
         { projectId: projectToUse._id, note: newNote, isAnonymous: true },
         token
       );
-      setNotes((prev) => [note, ...prev]);
+      // Ensure the note has all required fields
+      const noteWithDefaults = {
+        _id: response._id || Date.now().toString(),
+        note: response.note || newNote,
+        createdAt: response.createdAt || new Date().toISOString(),
+        system: response.system || false,
+        isAnonymous: response.isAnonymous || true,
+        ...response
+      };
+      setNotes((prev) => [noteWithDefaults, ...prev]);
       setNewNote("");
     } catch {
       setError("Failed to post comment.");

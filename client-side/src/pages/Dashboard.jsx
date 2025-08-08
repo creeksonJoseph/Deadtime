@@ -28,7 +28,7 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
   const revivedSectionRef = useRef(null);
 
   const scrollToSection = (ref) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
   }
 
   return (
-    <div className="min-h-screen sm:py-2 md:py-4 lg:py-6 px-4 pb-24">
+    <div className="min-h-screen sm:py-3 md:py-5 lg:py-7 px-4 pb-24">
       <div className="container mx-auto">
         {/* Welcome Header */}
         <div className="text-left mb-8 px-4">
@@ -78,7 +78,7 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-2 md:gap-4 mb-10 w-full">
-          <Card 
+          <Card
             className="tombstone-card p-3 md:p-6 text-center aspect-square md:aspect-auto flex flex-col justify-center cursor-pointer hover:scale-105 transition-transform duration-200"
             onClick={() => scrollToSection(buriedSectionRef)}
           >
@@ -89,7 +89,7 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
             <p className="text-xs md:text-sm text-slate-400">Buried</p>
           </Card>
 
-          <Card 
+          <Card
             className="tombstone-card p-3 md:p-6 text-center aspect-square md:aspect-auto flex flex-col justify-center cursor-pointer hover:scale-105 transition-transform duration-200"
             onClick={() => scrollToSection(revivedSectionRef)}
           >
@@ -100,9 +100,9 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
             <p className="text-xs md:text-sm text-slate-400">Revived</p>
           </Card>
 
-          <Card 
+          <Card
             className="tombstone-card p-3 md:p-6 text-center aspect-square md:aspect-auto flex flex-col justify-center cursor-pointer hover:scale-105 transition-transform duration-200"
-            onClick={() => navigate('/account')}
+            onClick={() => navigate("/account")}
           >
             <Award className="w-6 h-6 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 text-[#34e0a1]" />
             <h3 className="text-lg md:text-2xl font-bold text-white mb-1">
