@@ -10,6 +10,7 @@ import {
   Share2,
   Download,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { getGhostCardById } from "../api/ghostcards";
@@ -28,11 +29,12 @@ export function ProjectModal({
   onDelete,
   onProjectRevived,
 }) {
+  const { user } = useAuth();
   const [visible, setVisible] = useState(false);
   const [loadedProject, setLoadedProject] = useState(project);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(false);
+
   const [loadingNote, setLoadingNote] = useState(false);
   const [error, setError] = useState("");
   const [showRevive, setShowRevive] = useState(false);
@@ -56,26 +58,8 @@ export function ProjectModal({
     if (projectToUse?._id) {
       getNotesForProject(projectToUse._id, token)
         .then(async (fetchedNotes) => {
-          // Fetch user data for notes that don't have user info
-          const notesWithUsers = await Promise.all(
-            fetchedNotes.map(async (note) => {
-              if (!note.isAnonymous && !note.system && (!note.user || !note.user.username)) {
-                try {
-                  const userRes = await fetch(`https://deadtime.onrender.com/api/users/${note.userId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                  });
-                  if (userRes.ok) {
-                    const userData = await userRes.json();
-                    return { ...note, user: userData.user };
-                  }
-                } catch (err) {
-                  console.error('Failed to fetch user for note:', err);
-                }
-              }
-              return note;
-            })
-          );
-          setNotes(notesWithUsers);
+
+          setNotes(fetchedNotes);
         })
         .catch((err) => {
           if (err.message === "Failed to fetch notes") {
@@ -130,12 +114,11 @@ export function ProjectModal({
     setLoadingNote(true);
     try {
       const note = await createGhostNote(
-        { projectId: projectToUse._id, note: newNote, isAnonymous },
+        { projectId: projectToUse._id, note: newNote, isAnonymous: true },
         token
       );
       setNotes((prev) => [note, ...prev]);
       setNewNote("");
-      setIsAnonymous(false);
     } catch {
       setError("Failed to post comment.");
     } finally {
@@ -165,7 +148,7 @@ export function ProjectModal({
 
       {/* Modal Container */}
       <div
-        className={`relative w-full max-w-4xl max-h-[95vh] flex flex-col bg-[#141d38] rounded-3xl overflow-hidden shadow-2xl border border-slate-600/20 transition-all duration-300 transform ${
+        className={`relative w-full max-w-4xl max-h-[95vh] mb-20 md:mb-0 flex flex-col bg-[#141d38] rounded-3xl overflow-hidden shadow-2xl border border-slate-600/20 transition-all duration-300 transform ${
           visible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -266,7 +249,7 @@ export function ProjectModal({
                       </div>
                     )}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-3xl font-bold text-white mb-2 leading-tight">
+                    <h2 className="text-4xl font-roboto font-bold text-white mb-2 leading-tight">
                       {projectToUse.title}
                     </h2>
                     <div className="space-y-1">
@@ -404,7 +387,7 @@ export function ProjectModal({
                   Edit Project
                 </Button>
               )}
-              {!isOwner && (
+              {!isOwner && projectToUse.creatorId !== user?.id && (
                 <Button
                   className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-[#fcdb32]/20 text-base"
                   onClick={() => setShowRevive(true)}
@@ -440,16 +423,7 @@ export function ProjectModal({
                   placeholder="Share your thoughts about this project..."
                   className="min-h-[120px] bg-slate-900/60 border-slate-600/40 text-slate-200 placeholder:text-slate-500 rounded-xl resize-none focus:border-[#fcdb32]/50 focus:ring-[#fcdb32]/20 text-base p-4"
                 />
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-3 text-base text-slate-400">
-                    <input
-                      type="checkbox"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="rounded border-slate-600 bg-slate-800 text-[#fcdb32] focus:ring-[#fcdb32]/20 w-4 h-4"
-                    />
-                    Post anonymously
-                  </label>
+                <div className="flex items-center justify-end">
                   <Button
                     onClick={handlePostNote}
                     disabled={loadingNote || !newNote.trim()}
@@ -493,22 +467,12 @@ export function ProjectModal({
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-gradient-to-br from-[#fcdb32] to-[#fcdb32]/70 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-[#141d38] text-base font-semibold">
-                            {note.system
-                              ? "S"
-                              : note.isAnonymous
-                                ? "A"
-                                : (note.user?.username || note.user?.name || "U")
-                                    .charAt(0)
-                                    .toUpperCase()}
+                            {note.system ? "S" : "A"}
                           </span>
                         </div>
                         <div>
                           <p className="font-semibold text-white text-base">
-                            {note.system
-                              ? "System"
-                              : note.isAnonymous
-                                ? "Anonymous User"
-                                : note.user?.username || note.user?.name || "Unknown User"}
+                            {note.system ? "System" : "Anonymous User"}
                           </p>
                           <p className="text-slate-500 text-sm">
                             {formatDate(note.createdAt)}
@@ -565,12 +529,17 @@ export function ProjectModal({
                   const html2canvas = (await import('html2canvas')).default;
                   const element = document.getElementById('tombstone-card');
                   if (element) {
+                    // Wait for fonts and images to load
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     const canvas = await html2canvas(element, {
-                      backgroundColor: '#141d38',
+                      backgroundColor: '#1e293b',
                       scale: 2,
                       useCORS: true,
                       allowTaint: true,
-                      foreignObjectRendering: true
+                      foreignObjectRendering: false,
+                      logging: false,
+                      width: element.offsetWidth,
+                      height: element.offsetHeight
                     });
                     const link = document.createElement('a');
                     link.download = `${projectToUse.title.replace(/[^a-z0-9]/gi, '_')}-rip-card.png`;
@@ -586,19 +555,45 @@ export function ProjectModal({
               }}
               onShare={async () => {
                 try {
-                  if (navigator.share) {
-                    await navigator.share({
-                      title: `RIP: ${projectToUse.title}`,
-                      text: `Check out this abandoned project: ${projectToUse.title}`,
-                      url: window.location.href
+                  const html2canvas = (await import('html2canvas')).default;
+                  const element = document.getElementById('tombstone-card');
+                  if (element) {
+                    // Wait for fonts and images to load
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    const canvas = await html2canvas(element, {
+                      backgroundColor: '#1e293b',
+                      scale: 2,
+                      useCORS: true,
+                      allowTaint: true,
+                      foreignObjectRendering: false,
+                      logging: false,
+                      width: element.offsetWidth,
+                      height: element.offsetHeight
                     });
-                  } else {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard!');
+                    
+                    // Convert canvas to blob
+                    canvas.toBlob(async (blob) => {
+                      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'rip-card.png', { type: 'image/png' })] })) {
+                        await navigator.share({
+                          title: `RIP: ${projectToUse.title}`,
+                          text: `Check out this abandoned project: ${projectToUse.title}`,
+                          files: [new File([blob], 'rip-card.png', { type: 'image/png' })]
+                        });
+                      } else {
+                        // Fallback: download the image
+                        const link = document.createElement('a');
+                        link.download = `${projectToUse.title.replace(/[^a-z0-9]/gi, '_')}-rip-card.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        alert('Image downloaded! You can now share it manually.');
+                      }
+                    }, 'image/png');
                   }
                 } catch (error) {
                   console.error('Share failed:', error);
-                  // Fallback - just copy to clipboard
+                  // Fallback - just copy link
                   try {
                     await navigator.clipboard.writeText(window.location.href);
                     alert('Link copied to clipboard!');
