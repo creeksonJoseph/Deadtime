@@ -7,7 +7,7 @@ export function BottomNav({ onOpenForm }) {
 
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, label: "Home" },
-    { id: "browse", path: "/browse", icon: Search, label: "Browse Projects" },
+    { id: "browse", path: "/browse", icon: Search, label: "Browse" },
     { id: "account", path: "/account", icon: User, label: "Account" },
   ];
 
@@ -26,7 +26,7 @@ export function BottomNav({ onOpenForm }) {
             <button
               key={item.id}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center space-y-1 px-4 py-2 rounded-lg transition-all duration-300 ${
+              className={`relative flex flex-col items-center space-y-1 px-4 py-2 rounded-lg transition-all duration-300 ${
                 isActive
                   ? "text-[#34e0a1] scale-110 drop-shadow-[0_0_5px_#34e0a1]"
                   : "text-slate-400 hover:text-[#34e0a1]"

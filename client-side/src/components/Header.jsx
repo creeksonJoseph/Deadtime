@@ -29,6 +29,7 @@ export function Header({ onSearchToggle, showSearchButton = false }) {
               </button>
             )}
             
+
             {/* Profile Icon */}
             <Link
               to="/account"

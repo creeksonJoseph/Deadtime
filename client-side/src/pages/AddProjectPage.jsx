@@ -381,7 +381,7 @@ export function AddProjectPage({ onProjectCreated }) {
                 {/* Logo Upload */}
                 <div>
                   <Label className="text-foreground font-medium mb-2 block">
-                    Project Logo *
+                    Project images *
                   </Label>
                   <p className="text-sm text-slate-400 mb-3">
                     Help someone visualize your project
@@ -399,7 +399,7 @@ export function AddProjectPage({ onProjectCreated }) {
                       <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
                         <ImageIcon className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
                         <p className="text-slate-300 mb-1">
-                          {uploadingLogo ? "Uploading..." : "Upload Logo"}
+                          {uploadingLogo ? "Uploading..." : "Upload image"}
                         </p>
                         <p className="text-slate-500 text-sm">
                           {uploadingLogo
@@ -417,7 +417,7 @@ export function AddProjectPage({ onProjectCreated }) {
                             alt="Logo preview"
                             className="w-12 h-12 rounded object-cover"
                           />
-                          <span className="text-slate-300">Logo uploaded</span>
+                          <span className="text-slate-300">image uploaded</span>
                         </div>
                         <div className="flex space-x-2">
                           <Button

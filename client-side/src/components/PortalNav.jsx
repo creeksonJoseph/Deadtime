@@ -24,7 +24,7 @@ export function PortalNav({ onOpenForm }) {
               transition={{ duration: 0.4 }}
               whileHover={{ scale: 1.2, rotate: 3 }}
               whileTap={{ scale: 0.9 }}
-              className={`w-14 h-14 flex items-center justify-center rounded-full border-2
+              className={`relative w-14 h-14 flex items-center justify-center rounded-full border-2
                 transition-all duration-300 backdrop-blur-xl
                 ${
                   isActive

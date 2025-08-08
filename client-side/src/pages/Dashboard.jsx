@@ -68,8 +68,8 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
         {/* Welcome Header */}
         <div className="text-left mb-8 px-4">
           <h1 className="text-4xl md:text-6xl font-zasline text-[#34e0a1] mb-2">
-            <span className="block">Welcome</span>
-            <span className="block">back, {user.username}</span>
+            <span className="block md:inline">Welcome </span>
+            <span className="block md:inline">back, {user.username}</span>
           </h1>
           <p className="text-lg text-slate-400">
             Your digital necromancy dashboard
