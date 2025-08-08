@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import { Label } from "./ui/label";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Label } from "../components/ui/label";
 import {
   Skull,
   GitBranch,
@@ -20,9 +20,9 @@ import {
 import { createGhostCard } from "../api/ghostcards";
 import { useAuth } from "../contexts/AuthContext";
 
-export function AddProjectPage() {
+export function AddProjectPage({ onProjectCreated }) {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, refreshUser } = useAuth();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -122,24 +122,40 @@ export function AddProjectPage() {
 
   const handleLogoUpload = async (file) => {
     if (!file) return;
-    const url = await uploadToCloudinary(
-      file,
-      "image",
-      setLogoProgress,
-      setUploadingLogo
-    );
-    setFormData((prev) => ({ ...prev, logoUrl: url }));
+    try {
+      const url = await uploadToCloudinary(
+        file,
+        "image",
+        setLogoProgress,
+        setUploadingLogo
+      );
+      setFormData((prev) => ({ ...prev, logoUrl: url }));
+    } catch (error) {
+      setError("Failed to upload logo");
+    }
   };
 
   const handlePdfUpload = async (file) => {
     if (!file) return;
-    const url = await uploadToCloudinary(
-      file,
-      "raw",
-      setPdfProgress,
-      setUploadingPdf
-    );
-    setFormData((prev) => ({ ...prev, pitchDeckUrl: url }));
+    try {
+      const url = await uploadToCloudinary(
+        file,
+        "raw",
+        setPdfProgress,
+        setUploadingPdf
+      );
+      setFormData((prev) => ({ ...prev, pitchDeckUrl: url }));
+    } catch (error) {
+      setError("Failed to upload PDF");
+    }
+  };
+
+  const handleDeleteLogo = () => {
+    setFormData((prev) => ({ ...prev, logoUrl: "" }));
+  };
+
+  const handleDeletePdf = () => {
+    setFormData((prev) => ({ ...prev, pitchDeckUrl: "" }));
   };
 
   const handleInputChange = (field, value) => {
@@ -164,6 +180,8 @@ export function AddProjectPage() {
     setLoading(true);
     try {
       await createGhostCard(formData, token);
+      await refreshUser(); // Update user stats immediately
+      if (onProjectCreated) await onProjectCreated(); // Refetch projects for dashboard
       setLoading(false);
       navigate(-1);
     } catch (err) {
@@ -173,7 +191,7 @@ export function AddProjectPage() {
   };
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-8">
       {/* Exit Button */}
       <button
         onClick={() => navigate(-1)}
@@ -183,7 +201,7 @@ export function AddProjectPage() {
       </button>
 
       {/* Header - Fixed at top */}
-      <div className="text-center py-8 px-4">
+      <div className="text-center py-4 px-4">
         <Skull className="w-16 h-16 mx-auto mb-6 text-[#34e0a1] animate-pulse" />
         <h1 className="text-5xl font-gothic text-[#34e0a1] mb-4">Bury Your Project</h1>
         <p className="text-lg text-slate-400 max-w-2xl mx-auto">
@@ -362,22 +380,54 @@ export function AddProjectPage() {
                     <Label className="text-foreground font-medium mb-2 block">
                       Project Logo (Optional)
                     </Label>
-                    <div className="relative">
-                      <input
-                        ref={logoInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={(e) => handleLogoUpload(e.target.files[0])}
-                      />
-                      <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-                        <ImageIcon className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
-                        <p className="text-slate-300 mb-1">Upload Logo</p>
-                        <p className="text-slate-500 text-sm">
-                          Click or drag & drop
-                        </p>
+                    {!formData.logoUrl ? (
+                      <div className="relative">
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          onChange={(e) => handleLogoUpload(e.target.files[0])}
+                          disabled={uploadingLogo}
+                        />
+                        <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
+                          <ImageIcon className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
+                          <p className="text-slate-300 mb-1">{uploadingLogo ? "Uploading..." : "Upload Logo"}</p>
+                          <p className="text-slate-500 text-sm">
+                            {uploadingLogo ? "Please wait" : "Click or drag & drop"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="glass rounded-lg p-4 border border-[#34e0a1]/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <img src={formData.logoUrl} alt="Logo preview" className="w-12 h-12 rounded object-cover" />
+                            <span className="text-slate-300">Logo uploaded</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(formData.logoUrl, '_blank')}
+                              className="border-[#34e0a1]/30 text-[#34e0a1] hover:bg-[#34e0a1]/10"
+                            >
+                              Preview
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={handleDeleteLogo}
+                              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {logoProgress > 0 && (
                       <div className="glass rounded-lg overflow-hidden mt-2">
                         <div
@@ -393,22 +443,54 @@ export function AddProjectPage() {
                     <Label className="text-foreground font-medium mb-2 block">
                       Pitch Deck (Optional)
                     </Label>
-                    <div className="relative">
-                      <input
-                        ref={pdfInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={(e) => handlePdfUpload(e.target.files[0])}
-                      />
-                      <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-                        <FileText className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
-                        <p className="text-slate-300 mb-1">Upload PDF</p>
-                        <p className="text-slate-500 text-sm">
-                          Click or drag & drop
-                        </p>
+                    {!formData.pitchDeckUrl ? (
+                      <div className="relative">
+                        <input
+                          ref={pdfInputRef}
+                          type="file"
+                          accept="application/pdf"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          onChange={(e) => handlePdfUpload(e.target.files[0])}
+                          disabled={uploadingPdf}
+                        />
+                        <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
+                          <FileText className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
+                          <p className="text-slate-300 mb-1">{uploadingPdf ? "Uploading..." : "Upload PDF"}</p>
+                          <p className="text-slate-500 text-sm">
+                            {uploadingPdf ? "Please wait" : "Click or drag & drop"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="glass rounded-lg p-4 border border-[#34e0a1]/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="w-8 h-8 text-[#34e0a1]" />
+                            <span className="text-slate-300">PDF uploaded</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(formData.pitchDeckUrl, '_blank')}
+                              className="border-[#34e0a1]/30 text-[#34e0a1] hover:bg-[#34e0a1]/10"
+                            >
+                              Preview
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={handleDeletePdf}
+                              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {pdfProgress > 0 && (
                       <div className="glass rounded-lg overflow-hidden mt-2">
                         <div
@@ -436,7 +518,9 @@ export function AddProjectPage() {
                     className="w-full bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-background neon-glow"
                   >
                     <Skull className="w-5 h-5 mr-2" />
-                    {loading || uploadingLogo || uploadingPdf
+                    {uploadingLogo || uploadingPdf
+                      ? "Uploading..."
+                      : loading
                       ? "Burying Project..."
                       : "Lay This Project to Rest"}
                   </Button>

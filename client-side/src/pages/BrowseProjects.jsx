@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import { ProjectCard } from "./ProjectCard";
+import { ProjectCard } from "../components/ProjectCard";
 import { Search, Filter, Skull, ChevronDown } from "lucide-react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
 
-export function BrowseProjects({ projects, token, onOpenProject, currentUserId }) {
+export function BrowseProjects({ projects, token, onOpenProject, currentUserId, onProjectRevived }) {
   // projects = only other users' projects, passed from AppContent
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");

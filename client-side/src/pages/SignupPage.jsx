@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { ArrowLeft, Github, Eye, EyeOff } from "lucide-react";
 import { signup } from "../api/auth";
+import { Toast } from "../components/Toast";
 
 export function SignupPage() {
   const [email, setEmail] = useState("");
@@ -15,9 +16,25 @@ export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
-  const [loading, setLoading] = useState(false); // 🔹 loading state
+  const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.documentElement.style.margin = "0";
+    document.documentElement.style.padding = "0";
+    return () => {
+      document.body.style.overflow = "unset";
+      document.body.style.margin = "";
+      document.body.style.padding = "";
+      document.documentElement.style.margin = "";
+      document.documentElement.style.padding = "";
+    };
+  }, []);
 
   const passwordsMatch =
     confirmPassword.length > 0 && password === confirmPassword;
@@ -34,7 +51,11 @@ export function SignupPage() {
 
       if (data.token) {
         login(data.token);
-        navigate("/dashboard");
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+          navigate("/dashboard");
+        }, 2000);
       } else {
         console.warn("No token received from signup");
       }
@@ -89,7 +110,7 @@ export function SignupPage() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden bg-[#141d38]">
+    <div className="h-screen w-screen flex items-center justify-center  bg-[#141d38] fixed top-0 left-0 m-0 p-0">
       {/* Background with neon blobs */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-[#34e0a1]/5 blur-3xl" />
@@ -120,7 +141,7 @@ export function SignupPage() {
       </button>
 
       <motion.div
-        className="relative w-full max-w-md z-10"
+        className="relative w-full max-w-md z-10 mx-6"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -295,6 +316,15 @@ export function SignupPage() {
           </div>
         </div>
       </motion.div>
+      
+      <AnimatePresence>
+        {showToast && (
+          <Toast 
+            message="Account created successfully! Welcome to DEADTIME." 
+            onClose={() => setShowToast(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

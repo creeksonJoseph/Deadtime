@@ -71,6 +71,26 @@ export function AuthProvider({ children }) {
     navigate("/dashboard");
   }
 
+  async function refreshUser() {
+    if (!token || !user?.id) return;
+    try {
+      const data = await getUserProfile(user.id, token);
+      if (data?.user) {
+        const updatedUser = {
+          ...data.user,
+          id: data.user._id || data.user.id,
+          // Store the project data for AccountPage
+          postedProjects: data.postedProjects || [],
+          revivedProjects: data.revivedProjects || [],
+        };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+    }
+  }
+
   function logout() {
     setToken("");
     setUser(null);
@@ -81,7 +101,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

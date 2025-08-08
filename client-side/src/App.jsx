@@ -11,12 +11,12 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
-import { LandingPage } from "./components/LandingPage";
-import { LoginPage } from "./components/LoginPage";
-import { SignupPage } from "./components/SignupPage";
-import { Dashboard } from "./components/Dashboard";
-import { BrowseProjects } from "./components/BrowseProjects";
-import { AccountPage } from "./components/AccountPage";
+import { LandingPage } from "./pages/LandingPage";
+import { LoginPage } from "./pages/LoginPage";
+import { SignupPage } from "./pages/SignupPage";
+import { Dashboard } from "./pages/Dashboard";
+import { BrowseProjects } from "./pages/BrowseProjects";
+import { AccountPage } from "./pages/AccountPage";
 import { BottomNav } from "./components/BottomNav.jsx";
 import { ProjectModal } from "./components/ProjectModal";
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
@@ -24,9 +24,9 @@ import { useIsBigScreen } from "./components/UseIsBigScreen";
 import { PortalNav } from "./components/PortalNav";
 import { EditProjectModal } from "./components/EditProjectModal.jsx";
 
-import { AddProjectPage } from "./components/AddProjectPage.jsx";
+import { AddProjectPage } from "./pages/AddProjectPage.jsx";
 import GithubCallback from "./components/GithubCallback";
-import { Leaderboard } from "./components/Leaderboard";
+import { Leaderboard } from "./pages/Leaderboard";
 import { Header } from "./components/Header";
 
 function AppContent() {
@@ -36,6 +36,17 @@ function AppContent() {
   const [editingProject, setEditingProject] = useState(null);
   const location = useLocation();
   const isBigScreen = useIsBigScreen();
+
+  const refetchProjects = async () => {
+    if (token) {
+      try {
+        const projects = await getGhostCards(token);
+        setAllProjects(projects);
+      } catch (error) {
+        console.error('Failed to refetch projects:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (token) {
@@ -116,7 +127,7 @@ function AppContent() {
           path="/add-project"
           element={
             <ProtectedRoute>
-              <AddProjectPage />
+              <AddProjectPage onProjectCreated={refetchProjects} />
             </ProtectedRoute>
           }
         />
@@ -143,6 +154,7 @@ function AppContent() {
                 onOpenProject={openProjectModal}
                 onDelete={handleDeleteProject}
                 currentUserId={user?.id}
+                onProjectRevived={refetchProjects}
               />
             </ProtectedRoute>
           }
@@ -157,6 +169,7 @@ function AppContent() {
                 onOpenProject={openProjectModal}
                 onDelete={handleDeleteProject}
                 currentUserId={user?.id}
+                onProjectRevived={refetchProjects}
               />
             </ProtectedRoute>
           }
@@ -195,6 +208,7 @@ function AppContent() {
           onEdit={openEditModal}
           isOwner={selectedProject.isOwner}
           onDelete={handleDeleteProject}
+          onProjectRevived={refetchProjects}
         />
       )}
 

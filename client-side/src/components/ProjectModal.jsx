@@ -26,6 +26,7 @@ export function ProjectModal({
   onEdit,
   isOwner = false,
   onDelete,
+  onProjectRevived,
 }) {
   const [visible, setVisible] = useState(false);
   const [loadedProject, setLoadedProject] = useState(project);
@@ -268,9 +269,16 @@ export function ProjectModal({
                     <h2 className="text-3xl font-bold text-white mb-2 leading-tight">
                       {projectToUse.title}
                     </h2>
-                    <p className="text-slate-400 text-base">
-                      Started: {formatDate(projectToUse.dateStarted)}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-slate-400 text-base">
+                        Started: {formatDate(projectToUse.dateStarted)}
+                      </p>
+                      {projectToUse.dateAbandoned && (
+                        <p className="text-red-400 text-base">
+                          Abandoned: {formatDate(projectToUse.dateAbandoned)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -284,44 +292,74 @@ export function ProjectModal({
 
           {/* Project Details */}
           <div className="px-8 pb-8 space-y-8">
-            {/* Description */}
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4">
-                About this project
-              </h3>
-              <p className="text-slate-300 leading-relaxed text-lg">
-                {projectToUse.description}
-              </p>
-            </div>
-
-            {/* Abandonment Reason */}
-            {projectToUse.abandonmentReason && (
-              <div className="bg-slate-800/40 rounded-2xl p-8 border border-slate-700/30">
-                <h4 className="text-base font-semibold text-[#fcdb32] mb-3 uppercase tracking-wide">
-                  Why it was abandoned
+            {/* Project Info Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-6 bg-[#34e0a1] rounded-full"></div>
+                <h3 className="text-xl font-semibold text-white">Project Information</h3>
+              </div>
+              
+              {/* Project Type */}
+              {projectToUse.type && (
+                <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/30">
+                  <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                    Project Type
+                  </h4>
+                  <p className="text-slate-200 capitalize">
+                    {projectToUse.type === 'code' ? 'Coding Project' : 
+                     projectToUse.type === 'business' ? 'Business Idea' :
+                     projectToUse.type === 'content' ? 'Content Project' : 
+                     projectToUse.type}
+                  </p>
+                </div>
+              )}
+              
+              {/* Description */}
+              <div className="bg-slate-800/30 rounded-xl p-6 border border-slate-700/30">
+                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                  About this project
                 </h4>
                 <p className="text-slate-300 leading-relaxed text-lg">
-                  {projectToUse.abandonmentReason}
+                  {projectToUse.description}
                 </p>
+              </div>
+            </div>
+
+            {/* Abandonment Section */}
+            {projectToUse.abandonmentReason && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-6 bg-red-400 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white">Cause of Death</h3>
+                </div>
+                <div className="bg-red-500/10 rounded-2xl p-6 border border-red-500/30">
+                  <p className="text-slate-300 leading-relaxed text-lg">
+                    {projectToUse.abandonmentReason}
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Links */}
+            {/* Resources Section */}
             {(projectToUse.externalLink || projectToUse.pitchDeckUrl) && (
-              <div className="space-y-4">
-                <h4 className="text-base font-semibold text-slate-400 uppercase tracking-wide">
-                  Resources
-                </h4>
-                <div className="flex flex-wrap gap-4">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-6 bg-[#fcdb32] rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white">Resources</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {projectToUse.externalLink && (
                     <a
                       href={projectToUse.externalLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-3 px-6 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/30 font-medium"
+                      className="flex items-center gap-3 p-4 bg-slate-800/40 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/50 font-medium group"
                     >
-                      <ExternalLink className="w-5 h-5" />
-                      View External Link
+                      <ExternalLink className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <div>
+                        <div className="font-semibold">External Link</div>
+                        <div className="text-sm text-slate-400">View project online</div>
+                      </div>
                     </a>
                   )}
                   {projectToUse.pitchDeckUrl && (
@@ -329,16 +367,22 @@ export function ProjectModal({
                       href={projectToUse.pitchDeckUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-3 px-6 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/30 font-medium"
-                      download
+                      className="flex items-center gap-3 p-4 bg-slate-800/40 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/50 font-medium group"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const link = document.createElement('a');
+                        link.href = projectToUse.pitchDeckUrl;
+                        link.download = `${projectToUse.title}-pitch-deck.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
                     >
-                      <FileText className="w-5 h-5" />
-                      Download Pitch Deck
-                      <span className="text-sm bg-slate-700/60 px-3 py-1 rounded-lg">
-                        {projectToUse.pitchDeckUrl.endsWith(".pdf")
-                          ? "PDF"
-                          : "File"}
-                      </span>
+                      <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <div>
+                        <div className="font-semibold">Pitch Deck</div>
+                        <div className="text-sm text-slate-400">Download PDF document</div>
+                      </div>
                     </a>
                   )}
                 </div>
@@ -346,7 +390,8 @@ export function ProjectModal({
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4 pt-4">
+            <div className="border-t border-slate-700/50 pt-8">
+              <div className="flex flex-wrap gap-4">
               {isOwner && (
                 <Button
                   onClick={() => {
@@ -375,15 +420,16 @@ export function ProjectModal({
                 <Share2 className="w-5 h-5 mr-2" />
                 Generate RIP Card
               </Button>
+              </div>
             </div>
           </div>
 
           {/* Comments Section */}
           <div className="border-t border-slate-700/50 bg-slate-900/30 p-8">
-            <h3 className="text-2xl font-semibold text-white mb-8 flex items-center gap-3">
-              <div className="w-1.5 h-8 bg-[#fcdb32] rounded-full"></div>
-              Comments
-            </h3>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-1 h-6 bg-[#fcdb32] rounded-full"></div>
+              <h3 className="text-xl font-semibold text-white">Community Discussion</h3>
+            </div>
 
             {/* New Comment Form */}
             <div className="bg-slate-800/40 rounded-2xl p-8 mb-8 border border-slate-700/30">
@@ -490,6 +536,7 @@ export function ProjectModal({
             if (updatedCard) {
               setLoadedProject(updatedCard);
             }
+            if (onProjectRevived) onProjectRevived();
           }}
         />
       )}

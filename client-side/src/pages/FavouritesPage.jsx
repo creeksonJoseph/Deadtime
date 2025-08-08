@@ -1,4 +1,4 @@
-import { ProjectCard } from "./ProjectCard";
+import { ProjectCard } from "../components/ProjectCard";
 import { Skull } from "lucide-react";
 
 export function FavouritesPage({ projects, token, onOpenProject, onDelete, currentUserId }) {

@@ -1,34 +1,43 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { Button } from "./ui/button";
-
-import { Badge } from "./ui/badge";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
 import { LogOut, Star } from "lucide-react";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export function AccountPage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
 
-  const [userInfo, setUserInfo] = useState(null);
   const [stats, setStats] = useState({
     totalProjects: 0,
     revivedProjects: 0,
+    projectsRevived: 0,
     joinDate: "",
   });
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
 
   useEffect(() => {
     if (!user) return;
-    setUserInfo(user);
+    
+    // If user data doesn't have project info, refresh it
+    if (!user.postedProjects && !user.revivedProjects) {
+      refreshUser();
+      return;
+    }
+    
+    // Calculate stats from cached user data
     setStats({
       totalProjects: user.postedProjects?.length || 0,
-      revivedProjects: user.revivedProjects?.length || 0,
+      revivedProjects: user.postedProjects?.filter(p => p.status === 'revived')?.length || 0,
+      projectsRevived: user.revivedProjects?.length || 0,
       joinDate: user.createdAt,
     });
-  }, [user]);
+  }, [user, refreshUser]);
 
-  if (!userInfo) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-slate-400">Loading profile...</p>
@@ -46,7 +55,7 @@ export function AccountPage() {
     {
       name: "Necromancer",
       icon: "🪄",
-      unlocked: stats.revivedProjects >= 3,
+      unlocked: stats.projectsRevived >= 3,
       desc: "3 revived projects",
     },
     {
@@ -58,7 +67,7 @@ export function AccountPage() {
     {
       name: "Project Phoenix",
       icon: "🔥",
-      unlocked: stats.revivedProjects >= 5,
+      unlocked: stats.projectsRevived >= 5,
       desc: "5 revived projects",
     },
     {
@@ -70,7 +79,7 @@ export function AccountPage() {
     {
       name: "Soul Shepherd",
       icon: "🌟",
-      unlocked: stats.revivedProjects >= 10,
+      unlocked: stats.projectsRevived >= 10,
       desc: "10 revived projects",
     },
   ];
@@ -91,7 +100,7 @@ export function AccountPage() {
           <p className="text-slate-400">Manage your graveyard profile</p>
         </div>
         <Button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutDialog(true)}
           variant="outline"
           className="border-red-500/30 text-red-400 hover:bg-red-500/10"
         >
@@ -111,9 +120,9 @@ export function AccountPage() {
           {/* User Info */}
           <div className="flex-1">
             <h2 className="font-zasline text-4xl text-slate-200 mb-2">
-              {userInfo.username}
+              {user.username}
             </h2>
-            <p className="text-slate-400 mb-4">{userInfo.email}</p>
+            <p className="text-slate-400 mb-4">{user.email}</p>
             <p className="text-slate-500 text-sm">
               Joined{" "}
               {new Date(stats.joinDate).toLocaleDateString("en-US", {
@@ -174,13 +183,21 @@ export function AccountPage() {
                 {b.name === "Gravekeeper"
                   ? `${5 - stats.totalProjects} to go`
                   : b.name === "Necromancer"
-                    ? `${3 - stats.revivedProjects} to go`
+                    ? `${3 - stats.projectsRevived} to go`
                     : ""}
               </span>
             )}
           </div>
         ))}
       </div>
+      
+      <ConfirmDialog
+        isOpen={showLogoutDialog}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutDialog(false)}
+        title="Confirm Logout"
+        message="Are you sure you want to leave the graveyard? You'll need to sign in again to access your account."
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Button } from "./ui/button";
+import { Button } from "../components/ui/button";
 import { Github } from "lucide-react";
 
 export function LandingPage() {

@@ -11,7 +11,7 @@ export function ReviveProjectModal({ projectId, onClose, onRevived }) {
   const [newProjectLink, setNewProjectLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { token } = useAuth();
+  const { token, refreshUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +24,7 @@ export function ReviveProjectModal({ projectId, onClose, onRevived }) {
     setError("");
     try {
       const result = await reviveProject(projectId, notes, newProjectLink, token);
+      await refreshUser(); // Update user stats immediately
       setLoading(false);
       onRevived(result.card);
       onClose();
