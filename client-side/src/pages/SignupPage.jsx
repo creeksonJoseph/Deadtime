@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { ArrowLeft, Github, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Github, Eye, EyeOff, Check, X } from "lucide-react";
 import { signup } from "../api/auth";
 import { Toast } from "../components/Toast";
 
@@ -18,6 +18,8 @@ export function SignupPage() {
   const [activeInput, setActiveInput] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -39,9 +41,17 @@ export function SignupPage() {
   const passwordsMatch =
     confirmPassword.length > 0 && password === confirmPassword;
 
+  const passwordRequirements = {
+    length: password.length >= 8,
+    symbol: /[.!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?]/.test(password),
+    number: /\d/.test(password)
+  };
+
+  const isPasswordStrong = Object.values(passwordRequirements).every(Boolean);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!passwordsMatch) return;
+    if (!passwordsMatch || !isPasswordStrong) return;
 
     setLoading(true);
     try {
@@ -51,6 +61,7 @@ export function SignupPage() {
 
       if (data.token) {
         login(data.token);
+        setToastMessage("Account created successfully! Welcome to DEADTIME.");
         setShowToast(true);
         setTimeout(() => {
           setShowToast(false);
@@ -60,7 +71,10 @@ export function SignupPage() {
         console.warn("No token received from signup");
       }
     } catch (err) {
-      alert("Signup failed. Try again.");
+      const errorMessage = err.response?.data?.message || "Signup failed. Try again.";
+      setToastMessage(errorMessage);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
       console.error(err.response?.data || err.message);
     } finally {
       setLoading(false);
@@ -192,13 +206,20 @@ export function SignupPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onFocus={() => setActiveInput("password")}
+                  onFocus={() => {
+                    setActiveInput("password");
+                    setShowPasswordRequirements(true);
+                  }}
                   onBlur={() => setActiveInput(null)}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`mt-2 glass border transition-all text-slate-200 placeholder:text-slate-500 pr-12 ${
-                    activeInput === "password"
-                      ? "border-[#34e0a1] shadow-[0_0_12px_#34e0a1]"
-                      : "border-[#34e0a1]/30"
+                    password.length > 0
+                      ? isPasswordStrong
+                        ? "border-green-400 shadow-[0_0_12px_#22c55e]"
+                        : "border-red-400 shadow-[0_0_12px_#f87171]"
+                      : activeInput === "password"
+                        ? "border-[#34e0a1] shadow-[0_0_12px_#34e0a1]"
+                        : "border-[#34e0a1]/30"
                   }`}
                   placeholder="••••••••"
                   required
@@ -215,6 +236,58 @@ export function SignupPage() {
                   )}
                 </button>
               </div>
+              
+              {/* Password Requirements Dropdown */}
+              <AnimatePresence>
+                {showPasswordRequirements && password.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 p-3 glass rounded-lg border border-[#34e0a1]/20 overflow-hidden"
+                  >
+                    <div className="space-y-2">
+                      <div className={`flex items-center space-x-2 text-sm ${
+                        passwordRequirements.length ? "text-green-400" : "text-red-400"
+                      }`}>
+                        {passwordRequirements.length ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <X className="w-4 h-4" />
+                        )}
+                        <span>At least 8 characters</span>
+                      </div>
+                      <div className={`flex items-center space-x-2 text-sm ${
+                        passwordRequirements.symbol ? "text-green-400" : "text-red-400"
+                      }`}>
+                        {passwordRequirements.symbol ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <X className="w-4 h-4" />
+                        )}
+                        <span>Contains a symbol (. ! @ # etc.)</span>
+                      </div>
+                      <div className={`flex items-center space-x-2 text-sm ${
+                        passwordRequirements.number ? "text-green-400" : "text-red-400"
+                      }`}>
+                        {passwordRequirements.number ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <X className="w-4 h-4" />
+                        )}
+                        <span>Contains a number</span>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-[#34e0a1]/20">
+                        <span className={`text-xs font-medium ${
+                          isPasswordStrong ? "text-green-400" : "text-red-400"
+                        }`}>
+                          Password is {isPasswordStrong ? "Strong" : "Weak"}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Confirm Password */}
@@ -227,7 +300,10 @@ export function SignupPage() {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
-                  onFocus={() => setActiveInput("confirmPassword")}
+                  onFocus={() => {
+                    setActiveInput("confirmPassword");
+                    setShowPasswordRequirements(false);
+                  }}
                   onBlur={() => setActiveInput(null)}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className={`mt-2 glass border transition-all text-slate-200 placeholder:text-slate-500 pr-12 ${
@@ -264,11 +340,11 @@ export function SignupPage() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isPasswordStrong || !passwordsMatch}
               className={`w-full bg-[#34e0a1] text-[#141d38] py-3 neon-glow transition-all duration-300 hover:scale-[1.02] ${
-                loading
-                  ? "animate-pulse cursor-not-allowed"
-                  : "hover:bg-[#34e0a1]/90"
+                loading || !isPasswordStrong || !passwordsMatch
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-[#34e0a1]/90 hover:scale-[1.02]"
               }`}
             >
               {loading ? "Creating Account..." : "Enter the Graveyard"}
@@ -320,7 +396,7 @@ export function SignupPage() {
       <AnimatePresence>
         {showToast && (
           <Toast 
-            message="Account created successfully! Welcome to DEADTIME." 
+            message={toastMessage} 
             onClose={() => setShowToast(false)} 
           />
         )}
