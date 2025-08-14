@@ -50,12 +50,10 @@ export function BrowseProjects({
   // Filtering and sorting logic
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = projects.filter((project) => {
-      const matchesSearch =
-        project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (project.author?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        );
+      const matchesSearch = searchTerm === "" || 
+        (project.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (project.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (project.author || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesType =
         selectedType === "all" || project.type === selectedType;
@@ -65,22 +63,22 @@ export function BrowseProjects({
 
     switch (sortBy) {
       case "recent":
-        filtered.sort(
-          (a, b) =>
-            new Date(b.dateAbandoned).getTime() -
-            new Date(a.dateAbandoned).getTime()
-        );
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.dateAbandoned || a.createdAt || 0);
+          const dateB = new Date(b.dateAbandoned || b.createdAt || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
         break;
       case "oldest":
-        filtered.sort(
-          (a, b) =>
-            new Date(a.dateAbandoned).getTime() -
-            new Date(b.dateAbandoned).getTime()
-        );
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.dateAbandoned || a.createdAt || 0);
+          const dateB = new Date(b.dateAbandoned || b.createdAt || 0);
+          return dateA.getTime() - dateB.getTime();
+        });
         break;
       case "revivals":
         filtered.sort(
-          (a, b) => (b.revivals?.length || 0) - (a.revivals?.length || 0)
+          (a, b) => (b.revivedBy?.length || 0) - (a.revivedBy?.length || 0)
         );
         break;
     }
@@ -267,7 +265,7 @@ export function BrowseProjects({
             {filteredAndSortedProjects.length !== 1 ? "s" : ""}
           </p>
 
-          {filteredAndSortedProjects.some((p) => p.revivals?.length > 0) && (
+          {filteredAndSortedProjects.some((p) => p.revivedBy?.length > 0) && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-[#34e0a1] rounded-full animate-pulse" />
               <span className="text-sm text-[#34e0a1]">
