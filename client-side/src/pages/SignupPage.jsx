@@ -55,8 +55,8 @@ export function SignupPage() {
 
     setLoading(true);
     try {
-      const username = email.split("@")[0];
-      const data = await signup({ username, email, password });
+      const username = email.split("@")[0].toLowerCase();
+      const data = await signup({ username, email: email.toLowerCase(), password });
       console.log("Signup success:", data);
 
       if (data.token) {
