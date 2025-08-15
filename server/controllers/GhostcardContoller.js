@@ -4,7 +4,14 @@ const GhostCard = require('../models/GhostCard');
 exports.getAllGhostCards = async (req,res) => {
     try{
           const cards = await GhostCard.find().sort({createdAt : -1});
-          res.status(200).json(cards)
+
+          //add revivedBycount
+          const formattedCards = cards.map(card => ({
+            ...card.toObject(),  
+            revivedByCount: card.revivedBy.length
+          }));
+          res.status(200).json(formattedCards)
+
     } catch (error){
         res.status(500).json({message :"🔴 Failed to fetch ghostCards ",error: error.message});
     }
@@ -16,8 +23,14 @@ exports.getGhostCardById = async (req,res) => {
         const card = await GhostCard.findById(req.params.id);
 
         if (!card) return res.status(404).json({message: "🔴 Card not Found"});
+        //add revivedByCount to the single card object
+        const formattedCard = {
+          ...card.toObject(),
+          revivedByCount : card.revivedBy.length
 
-        res.status(200).json(card);
+        };
+
+        res.status(200).json(formattedCard);
     }  catch (error) {
         res.status(500).json({message:"🔴 Failed to fetch Card",error: error.message});
     }

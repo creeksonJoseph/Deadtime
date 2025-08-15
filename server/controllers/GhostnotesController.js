@@ -29,7 +29,7 @@ exports.getNotesForProject = async (req,res) => {
 
     try{
         const {projectId} = req.params;
-        const notes = await Ghostnotes.find({projectId}).sort({createdAt: -1});
+        const notes = await Ghostnotes.find({projectId}).sort({createdAt: -1}).populate('userId','username');
         res.status(200).json(notes);
     } catch (error){
         res.status(500).json({message: "🔴 Failed to fetch notes",error:error.message});
