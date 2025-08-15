@@ -6,3 +6,4 @@ const {protect} = require("../middleware/authmiddleware");
 router.put("/:id",protect,reviveGhostCard);
 
 module.exports = router;
+
