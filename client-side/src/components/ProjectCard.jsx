@@ -156,9 +156,16 @@ export function ProjectCard({
             </Badge>
           </div>
 
-          <p className="text-slate-400 text-xs mb-1">
-            Posted on {formatDate(project.createdAt)}
-          </p>
+          <div className="flex items-center justify-between text-xs mb-1">
+            <p className="text-slate-400">
+              Posted on {formatDate(project.createdAt)}
+            </p>
+            {project.revivedBy && project.revivedBy.length > 0 && (
+              <span className="text-[#34e0a1] font-medium">
+                {project.revivedBy.length} revival{project.revivedBy.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
 
         <p className="text-slate-300 text-sm leading-relaxed mb-4 overflow-hidden break-words flex-1">

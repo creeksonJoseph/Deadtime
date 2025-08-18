@@ -3,6 +3,32 @@ const GhostCard = require("../models/GhostCard");
 const RevivalLog = require("../models/RevivalLog");
 const User = require("../models/User");
 
+// Get all revival logs for notifications page
+exports.getAllRevivalLogs = async (req, res) => {
+    try {
+        const revivals = await RevivalLog.find()
+            .populate('userId', 'username')
+            .populate('projectId', 'title type creatorId')
+            .sort({ revivedAt: -1 });
+        res.status(200).json(revivals);
+    } catch (error) {
+        res.status(500).json({ message: "🔴 Failed to fetch revival logs", error: error.message });
+    }
+};
+
+// Get revival log by ID for modal details
+exports.getRevivalLogById = async (req, res) => {
+    try {
+        const revival = await RevivalLog.findById(req.params.id)
+            .populate('userId', 'username')
+            .populate('projectId', 'title description type creatorId');
+        if (!revival) return res.status(404).json({ message: "🔴 Revival log not found" });
+        res.status(200).json(revival);
+    } catch (error) {
+        res.status(500).json({ message: "🔴 Failed to fetch revival log", error: error.message });
+    }
+};
+
 exports.reviveGhostCard = async (req, res) => {
     try {
         const { notes, newProjectLink } = req.body;

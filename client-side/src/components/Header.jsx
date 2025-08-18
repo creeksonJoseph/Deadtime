@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Skull, User, Search } from "lucide-react";
+import { Skull, User, Search, Bell } from "lucide-react";
 
 export function Header({ onSearchToggle, showSearchButton = false }) {
   const location = useLocation();
@@ -29,6 +29,14 @@ export function Header({ onSearchToggle, showSearchButton = false }) {
               </button>
             )}
             
+
+            {/* Notifications Icon */}
+            <Link
+              to="/notifications"
+              className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+            >
+              <Bell className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+            </Link>
 
             {/* Profile Icon */}
             <Link
