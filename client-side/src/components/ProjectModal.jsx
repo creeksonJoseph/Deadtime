@@ -12,7 +12,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { getGhostCardById } from "../api/ghostcards";
-import { getNotesForProject, createGhostNote } from "../api/ghostnotes";
+import { getNotesForProject, createGhostNote, deleteGhostNote } from "../api/ghostnotes";
 import { ReviveProjectModal } from "./ReviveProjectModal";
 import { Textarea } from "./ui/textarea";
 
@@ -31,11 +31,12 @@ export function ProjectModal({
   const [loadedProject, setLoadedProject] = useState(project);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
-
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [loadingNote, setLoadingNote] = useState(false);
   const [error, setError] = useState("");
   const [showRevive, setShowRevive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [commentMenuOpen, setCommentMenuOpen] = useState(null);
 
 
   const projectToUse = loadedProject || project;
@@ -54,10 +55,7 @@ export function ProjectModal({
   useEffect(() => {
     if (projectToUse?._id) {
       getNotesForProject(projectToUse._id, token)
-        .then(async (fetchedNotes) => {
-
-          setNotes(fetchedNotes);
-        })
+        .then(setNotes)
         .catch((err) => {
           if (err.message === "Failed to fetch notes") {
             setError(
@@ -110,26 +108,40 @@ export function ProjectModal({
     if (!newNote.trim()) return;
     setLoadingNote(true);
     try {
-      const response = await createGhostNote(
-        { projectId: projectToUse._id, note: newNote, isAnonymous: true },
+      await createGhostNote(
+        { projectId: projectToUse._id, note: newNote, isAnonymous },
         token
       );
-      // Ensure the note has all required fields
-      const noteWithDefaults = {
-        _id: response._id || Date.now().toString(),
-        note: response.note || newNote,
-        createdAt: response.createdAt || new Date().toISOString(),
-        system: response.system || false,
-        isAnonymous: response.isAnonymous || true,
-        ...response
-      };
-      setNotes((prev) => [noteWithDefaults, ...prev]);
+      // Refetch notes to get properly populated data from backend
+      const updatedNotes = await getNotesForProject(projectToUse._id, token);
+      setNotes(updatedNotes);
       setNewNote("");
     } catch {
       setError("Failed to post comment.");
     } finally {
       setLoadingNote(false);
     }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await deleteGhostNote(noteId, token);
+      setNotes((prev) => prev.filter(note => note._id !== noteId));
+    } catch {
+      setError("Failed to delete comment.");
+    }
+  };
+
+  const canDeleteNote = (note) => {
+    // Admin can delete any comment
+    if (user?.role === 'admin') return true;
+    // Project owner can delete any comment on their project
+    if (projectToUse.creatorId === user?.id) return true;
+    // For now, allow deletion if userId is undefined (backend issue)
+    if (!note.userId && !note.isAnonymous) return true;
+    // User can delete their own non-anonymous comments
+    if (!note.isAnonymous && note.userId?._id === user?.id) return true;
+    return false;
   };
 
   if (!projectToUse)
@@ -423,7 +435,17 @@ export function ProjectModal({
                   placeholder="Share your thoughts about this project..."
                   className="min-h-[120px] bg-slate-900/60 border-slate-600/40 text-slate-200 placeholder:text-slate-500 rounded-xl resize-none focus:border-[#fcdb32]/50 focus:ring-[#fcdb32]/20 text-base p-4"
                 />
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="rounded border-slate-600"
+                    />
+                    Post anonymously
+                  </label>
+                  <div>
                   <Button
                     onClick={handlePostNote}
                     disabled={loadingNote || !newNote.trim()}
@@ -431,6 +453,7 @@ export function ProjectModal({
                   >
                     {loadingNote ? "Posting..." : "Post Comment"}
                   </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -472,13 +495,39 @@ export function ProjectModal({
                         </div>
                         <div>
                           <p className="font-semibold text-white text-base">
-                            {note.system ? "System" : "Anonymous User"}
+                            {note.system ? "System" : 
+                             note.isAnonymous ? "Anonymous" : 
+                             (note.userId?.username || user?.username || "Gravekeeper")}
                           </p>
                           <p className="text-slate-500 text-sm">
                             {formatDate(note.createdAt)}
                           </p>
                         </div>
                       </div>
+                      {canDeleteNote(note) && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setCommentMenuOpen(commentMenuOpen === note._id ? null : note._id)}
+                            className="text-slate-400 hover:text-slate-300 p-2 hover:bg-slate-700/50 rounded-lg transition-all"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {commentMenuOpen === note._id && (
+                            <div className="absolute top-10 right-0 z-50 bg-[#141d38] border border-slate-700/40 rounded-xl shadow-lg py-2 w-32">
+                              <button
+                                className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 transition-all text-sm"
+                                onClick={() => {
+                                  setCommentMenuOpen(null);
+                                  handleDeleteNote(note._id);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="text-slate-300 leading-relaxed pl-14 text-base">
                       {note.note}

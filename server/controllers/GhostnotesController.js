@@ -13,6 +13,7 @@ exports.createGhostnotes = async (req,res) => {
         }
 
         const ghostnote = await Ghostnotes.create({
+            userId: req.user.id,
             projectId,
             note,
             isAnonymous

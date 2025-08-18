@@ -12,14 +12,12 @@ export function NotesSection({ projectId }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Only fetch if user is admin (due to backend restriction)
+  // Fetch notes for all users
   useEffect(() => {
-    if (user.role === "admin") {
-      getNotesForProject(projectId, token)
-        .then(setNotes)
-        .catch(() => {});
-    }
-  }, [projectId, token, user.role]);
+    getNotesForProject(projectId, token)
+      .then(setNotes)
+      .catch(() => {});
+  }, [projectId, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,10 +28,8 @@ export function NotesSection({ projectId }) {
       setNote("");
       setIsAnonymous(false);
       setLoading(false);
-      // Optionally refetch notes if admin
-      if (user.role === "admin") {
-        getNotesForProject(projectId, token).then(setNotes);
-      }
+      // Refetch notes after posting
+      getNotesForProject(projectId, token).then(setNotes);
     } catch {
       setLoading(false);
       setError("Failed to post note.");
@@ -67,21 +63,35 @@ export function NotesSection({ projectId }) {
           {loading ? "Posting..." : "Post Note"}
         </Button>
       </form>
-      {user.role === "admin" && (
+      {notes.length > 0 ? (
         <div>
-          <h4 className="text-slate-400 mb-2">All Notes</h4>
-          <ul className="space-y-2">
+          <h4 className="text-slate-400 mb-4">Project Notes ({notes.length})</h4>
+          <div className="space-y-3">
             {notes.map((n) => (
-              <li key={n._id} className="glass rounded-lg p-3">
-                <span className="text-slate-300">{n.note}</span>
-                {n.isAnonymous && (
-                  <span className="ml-2 text-xs text-slate-500">
-                    (anonymous)
+              <div key={n._id} className="glass rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">
+                      {n.isAnonymous === true ? "Anonymous" : (n.userId?.username || "Gravekeeper")}
+                    </span>
+                    {n.isAnonymous === true && (
+                      <span className="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">
+                        🕶️ Anonymous
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {new Date(n.createdAt).toLocaleDateString()}
                   </span>
-                )}
-              </li>
+                </div>
+                <p className="text-slate-300">{n.note}</p>
+              </div>
             ))}
-          </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="text-slate-500 text-center py-4">
+          No notes yet. Be the first to leave a note!
         </div>
       )}
     </div>
