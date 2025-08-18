@@ -50,9 +50,14 @@ export function BrowseProjects({
   // Filtering and sorting logic
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = projects.filter((project) => {
-      const matchesSearch = searchTerm === "" || 
-        (project.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (project.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch =
+        searchTerm === "" ||
+        (project.title || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (project.description || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         (project.author || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesType =
@@ -265,14 +270,14 @@ export function BrowseProjects({
             {filteredAndSortedProjects.length !== 1 ? "s" : ""}
           </p>
 
-          {filteredAndSortedProjects.some((p) => p.revivedBy?.length > 0) && (
+          {/* {filteredAndSortedProjects.some((p) => p.revivedBy?.length > 0) && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-[#34e0a1] rounded-full animate-pulse" />
               <span className="text-sm text-[#34e0a1]">
                 Projects with revivals
               </span>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Projects Grid */}

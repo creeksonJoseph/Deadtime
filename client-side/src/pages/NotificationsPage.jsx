@@ -14,33 +14,12 @@ export function NotificationsPage() {
   const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
-    console.log('Current user:', user);
-    console.log('User ID:', user?.id);
     getAllRevivalLogs(token)
       .then((allRevivals) => {
-        console.log('All revival logs:', allRevivals);
-        console.log('Total revivals fetched:', allRevivals.length);
-        
-        allRevivals.forEach((revival, index) => {
-          console.log(`Revival ${index}:`, {
-            revivalId: revival._id,
-            projectCreatorId: revival.projectId?.creatorId,
-            revivalUserId: revival.userId?._id,
-            projectTitle: revival.projectId?.title,
-            reviverUsername: revival.userId?.username,
-            isMyProject: revival.projectId?.creatorId === user?.id,
-            isOtherUser: revival.userId?._id !== user?.id
-          });
-        });
-        
-        // Filter to show only revivals of current user's projects by other users
         const myProjectRevivals = allRevivals.filter(revival => 
           revival.projectId?.creatorId === user?.id && 
           revival.userId?._id !== user?.id
         );
-        
-        console.log('Filtered revivals (my projects by others):', myProjectRevivals);
-        console.log('Filtered count:', myProjectRevivals.length);
         setRevivals(myProjectRevivals);
       })
       .catch((error) => {

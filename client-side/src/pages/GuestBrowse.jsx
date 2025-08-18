@@ -73,9 +73,14 @@ export function GuestBrowse({ searchVisible = false }) {
 
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = projects.filter((project) => {
-      const matchesSearch = searchTerm === "" || 
-        (project.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (project.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch =
+        searchTerm === "" ||
+        (project.title || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (project.description || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         (project.author || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesType =
@@ -299,14 +304,14 @@ export function GuestBrowse({ searchVisible = false }) {
             {filteredAndSortedProjects.length !== 1 ? "s" : ""}
           </p>
 
-          {filteredAndSortedProjects.some((p) => p.revivedBy?.length > 0) && (
+          {/* {filteredAndSortedProjects.some((p) => p.revivedBy?.length > 0) && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-[#34e0a1] rounded-full animate-pulse" />
               <span className="text-sm text-[#34e0a1]">
                 Projects with revivals
               </span>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Projects Grid */}
@@ -363,11 +368,11 @@ export function GuestBrowse({ searchVisible = false }) {
         {showLoginModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div 
+            <div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setShowLoginModal(false)}
             />
-            
+
             {/* Modal */}
             <div className="relative bg-[#141d38] rounded-2xl p-8 border border-slate-600/30 shadow-2xl max-w-md w-full mx-4">
               <button
@@ -376,14 +381,17 @@ export function GuestBrowse({ searchVisible = false }) {
               >
                 <X className="w-4 h-4 text-slate-300" />
               </button>
-              
+
               <div className="text-center">
                 <div className="w-16 h-16 bg-[#34e0a1]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Skull className="w-8 h-8 text-[#34e0a1]" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Join the Graveyard</h3>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Join the Graveyard
+                </h3>
                 <p className="text-slate-400 mb-6">
-                  Sign up to view project details and help revive abandoned projects!
+                  Sign up to view project details and help revive abandoned
+                  projects!
                 </p>
                 <div className="flex gap-3">
                   <Button
@@ -394,7 +402,7 @@ export function GuestBrowse({ searchVisible = false }) {
                     Maybe Later
                   </Button>
                   <Button
-                    onClick={() => window.location.href = '/signup'}
+                    onClick={() => (window.location.href = "/signup")}
                     className="flex-1 bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] font-semibold"
                   >
                     Join to View Details
