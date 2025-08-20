@@ -28,6 +28,7 @@ import { AddProjectPage } from "./pages/AddProjectPage.jsx";
 import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./pages/Leaderboard";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { AdminDashboard } from "./pages/AdminDashboard";
 import { Header } from "./components/Header";
 import { GuestHeader } from "./components/GuestHeader";
 import { GuestBrowse } from "./pages/GuestBrowse";
@@ -98,7 +99,7 @@ function AppContent() {
   const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
     location.pathname
   );
-  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard", "/notifications"].includes(
+  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard", "/notifications", "/admin"].includes(
     location.pathname
   );
   const showGuestHeader = location.pathname === "/guest-browse";
@@ -214,6 +215,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
