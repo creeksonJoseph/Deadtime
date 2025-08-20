@@ -13,7 +13,7 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.role !== "admin") return;
+    if (!isAdmin) return;
     
     const fetchData = async () => {
       try {
@@ -55,7 +55,10 @@ export function AdminDashboard() {
     }
   };
 
-  if (user?.role !== "admin") {
+  // Temporary admin check - replace with your email
+  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
+  
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
