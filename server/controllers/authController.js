@@ -11,7 +11,7 @@ exports.signup = async (req,res) => {
     try{
         const {username,email,password} = req.body;
         //check if Email exists
-        const EmailExists = await User.findOne({email});
+        const EmailExists = await User.findOne({email: { $regex: new RegExp(`^${email}$`, 'i') }});
         if (EmailExists) return res.status(400).json({message: "Email already exists"});
         
         //hash password
@@ -40,7 +40,7 @@ exports.signup = async (req,res) => {
 exports.login  = async (req,res) => {
     try{
         const {email,password} = req.body;
-        const user = await User.findOne({email});
+        const user = await User.findOne({email: { $regex: new RegExp(`^${email}$`, 'i') }});
 
         if (!user) return res.status(404).json({message: "🔴 User Not Found"});
 
@@ -98,7 +98,7 @@ exports.githubLogin = async (req,res) => {
         //if email is null use a fallback 
         const userEmail = email || `${githubId}@github.user`;
         //check if user already exists or creaate new
-        let user = await User.findOne({email: userEmail});
+        let user = await User.findOne({email: { $regex: new RegExp(`^${userEmail}$`, 'i') }});
 
         if (!user) {
             user = await User.create({

@@ -79,6 +79,13 @@ export function ProjectCard({
   useEffect(() => {
     if (!project.creatorId) {
       console.warn("No creatorId found for project:", project);
+      setUsername("Unknown");
+      return;
+    }
+
+    // If no token (guest user), show generic username
+    if (!token) {
+      setUsername("Anonymous User");
       return;
     }
 
