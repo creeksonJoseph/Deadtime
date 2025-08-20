@@ -13,7 +13,6 @@ export function BottomNav({ onOpenForm }) {
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, label: "Home" },
     { id: "browse", path: "/browse", icon: Search, label: "Browse" },
-    ...(isAdmin ? [{ id: "admin", path: "/admin", icon: Shield, label: "Admin" }] : []),
     { id: "account", path: "/account", icon: User, label: "Account" },
   ];
 

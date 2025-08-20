@@ -96,10 +96,10 @@ function AppContent() {
     ? allProjects.filter((p) => p.creatorId !== user.id)
     : [];
 
-  const showBottomNav = ["/dashboard", "/browse", "/account"].includes(
+  const showBottomNav = ["/dashboard", "/browse", "/account", "/admin", "/add-project"].includes(
     location.pathname
   );
-  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard", "/notifications", "/admin"].includes(
+  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard", "/notifications", "/admin", "/add-project"].includes(
     location.pathname
   );
   const showGuestHeader = location.pathname === "/guest-browse";

@@ -33,12 +33,12 @@ export function Header({ onSearchToggle, showSearchButton = false }) {
             
 
             {/* Admin Dashboard (only for admins) */}
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
               <Link
                 to="/admin"
-                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+                className="w-10 h-10 bg-red-900/60 hover:bg-red-800/60 rounded-full flex items-center justify-center transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
               >
-                <Shield className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+                <Shield className="w-5 h-5 text-red-400 hover:text-red-300 transition-colors" />
               </Link>
             )}
 

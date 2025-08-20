@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Skull, Home, LogIn, UserPlus, Search, Menu, X } from "lucide-react";
+import { Skull, Home, LogIn, UserPlus, Search, Menu, X, Shield } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 export function GuestHeader({ onSearchToggle, showSearchButton = false }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <nav className="border-b border-slate-600/30 bg-gray-900/95 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
@@ -19,6 +21,14 @@ export function GuestHeader({ onSearchToggle, showSearchButton = false }) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
+            {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
+              <Link
+                to="/admin"
+                className="w-10 h-10 bg-red-900/60 hover:bg-red-800/60 rounded-full flex items-center justify-center transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
+              >
+                <Shield className="w-5 h-5 text-red-400 hover:text-red-300 transition-colors" />
+              </Link>
+            )}
             {showSearchButton && (
               <button
                 onClick={onSearchToggle}
@@ -53,6 +63,14 @@ export function GuestHeader({ onSearchToggle, showSearchButton = false }) {
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center space-x-2">
+            {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
+              <Link
+                to="/admin"
+                className="w-10 h-10 bg-red-900/60 hover:bg-red-800/60 rounded-full flex items-center justify-center transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
+              >
+                <Shield className="w-5 h-5 text-red-400 hover:text-red-300 transition-colors" />
+              </Link>
+            )}
             {showSearchButton && (
               <button
                 onClick={onSearchToggle}
