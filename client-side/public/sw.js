@@ -1,4 +1,4 @@
-const CACHE_NAME = 'deadtime-v1';
+const CACHE_NAME = 'deadtime-v2';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
