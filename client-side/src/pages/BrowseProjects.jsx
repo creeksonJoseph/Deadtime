@@ -66,18 +66,27 @@ export function BrowseProjects({
       return matchesSearch && matchesType;
     });
 
+    console.log('🔍 Sorting by:', sortBy);
+    console.log('📊 Sample project dates:', filtered.slice(0, 3).map(p => ({
+      title: p.title,
+      createdAt: p.createdAt,
+      createdAtParsed: new Date(p.createdAt)
+    })));
+
     switch (sortBy) {
       case "recent":
         filtered.sort((a, b) => {
-          const dateA = new Date(a.dateAbandoned || a.createdAt || 0);
-          const dateB = new Date(b.dateAbandoned || b.createdAt || 0);
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          console.log(`📅 Recent sort: ${a.title} (${dateA.toISOString()}) vs ${b.title} (${dateB.toISOString()})`);
           return dateB.getTime() - dateA.getTime();
         });
         break;
       case "oldest":
         filtered.sort((a, b) => {
-          const dateA = new Date(a.dateAbandoned || a.createdAt || 0);
-          const dateB = new Date(b.dateAbandoned || b.createdAt || 0);
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          console.log(`📅 Oldest sort: ${a.title} (${dateA.toISOString()}) vs ${b.title} (${dateB.toISOString()})`);
           return dateA.getTime() - dateB.getTime();
         });
         break;
@@ -87,6 +96,8 @@ export function BrowseProjects({
         );
         break;
     }
+
+    console.log('✅ Final sorted order:', filtered.slice(0, 5).map(p => p.title));
 
     return filtered;
   }, [projects, searchTerm, selectedType, sortBy]);
