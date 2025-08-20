@@ -110,10 +110,10 @@ export function AccountPage() {
       </div>
 
       {/* Profile Section */}
-      <div className="glass rounded-xl p-4 md:p-8 mb-6 md:mb-8 neon-glow">
+      <div className="bg-slate-800/30 rounded-xl p-4 md:p-8 mb-6 md:mb-8 border border-slate-700/30">
         <div className="flex items-center gap-4 md:gap-6">
           {/* Avatar */}
-          <div className="w-16 h-16 md:w-24 md:h-24 rounded-full glass flex items-center justify-center overflow-hidden">
+          <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-slate-700/50 flex items-center justify-center overflow-hidden">
             <div className="text-2xl md:text-3xl">👤</div>
           </div>
 
@@ -136,28 +136,28 @@ export function AccountPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
-        <div className="glass rounded-lg p-3 md:p-6 text-center hover:glass-strong transition-all duration-300">
+        <div className="bg-slate-800/30 rounded-lg p-3 md:p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
           <div className="text-xl md:text-2xl mb-1 md:mb-2">⚰️</div>
           <div className="text-lg md:text-2xl font-bold text-[#34e0a1] mb-1">
             {stats.totalProjects}
           </div>
           <div className="text-slate-400 text-xs md:text-sm">Projects I Buried</div>
         </div>
-        <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
+        <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
           <div className="text-2xl mb-2">🪄</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
             {stats.projectsRevived}
           </div>
           <div className="text-slate-400 text-sm">Projects I Revived</div>
         </div>
-        <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
+        <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
           <div className="text-2xl mb-2">❤️</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
             {stats.revivedProjects}
           </div>
           <div className="text-slate-400 text-sm">My Projects Revived</div>
         </div>
-        <div className="glass rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
+        <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
           <div className="text-2xl mb-2">🏆</div>
           <div className="text-2xl font-bold text-[#34e0a1] mb-1">
             {badges.filter((a) => a.unlocked).length}
@@ -167,7 +167,7 @@ export function AccountPage() {
       </div>
 
       {/* Achievements */}
-      <div className="glass rounded-xl p-4 md:p-8 neon-glow">
+      <div className="bg-slate-800/30 rounded-xl p-4 md:p-8 border border-slate-700/30">
         <h3 className="font-zasline text-xl md:text-2xl text-[#34e0a1] mb-4 md:mb-6 text-center">
           🏆 Achievements
         </h3>
@@ -175,8 +175,8 @@ export function AccountPage() {
         {badges.map((b) => (
           <div
             key={b.name}
-            className={`flex flex-col items-center p-2 md:p-4 rounded-lg glass ${
-              b.unlocked ? "neon-glow" : "opacity-50"
+            className={`flex flex-col items-center p-2 md:p-4 rounded-lg bg-slate-700/30 border border-slate-600/30 ${
+              b.unlocked ? "border-[#34e0a1]/30" : "opacity-50"
             }`}
           >
             <span className="text-2xl md:text-3xl mb-1 md:mb-2">{b.icon}</span>
