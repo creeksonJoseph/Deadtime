@@ -1,0 +1,27 @@
+{
+  "name": "Deadtime - Project Graveyard",
+  "short_name": "Deadtime",
+  "description": "Browse and revive abandoned projects in the digital graveyard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141d38",
+  "theme_color": "#34e0a1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
