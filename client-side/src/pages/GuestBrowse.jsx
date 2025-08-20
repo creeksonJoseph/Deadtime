@@ -7,6 +7,7 @@ import { getGhostCards } from "../api/ghostcards";
 
 export function GuestBrowse({ searchVisible = false }) {
   const [projects, setProjects] = useState([]);
+  const [projectsWithUsernames, setProjectsWithUsernames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
@@ -23,6 +24,23 @@ export function GuestBrowse({ searchVisible = false }) {
       try {
         const data = await getGhostCards();
         setProjects(data);
+        
+        // Try to fetch usernames for search functionality (will fail for guests, that's ok)
+        const projectsWithUsers = await Promise.all(
+          data.map(async (project) => {
+            try {
+              const userRes = await fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`);
+              if (userRes.ok) {
+                const userData = await userRes.json();
+                return { ...project, authorUsername: userData.user?.username || 'Unknown' };
+              }
+            } catch (error) {
+              // Silently fail for guests
+            }
+            return { ...project, authorUsername: 'Anonymous User' };
+          })
+        );
+        setProjectsWithUsernames(projectsWithUsers);
       } catch (error) {
         console.error("Failed to fetch projects:", error);
       } finally {
@@ -72,7 +90,8 @@ export function GuestBrowse({ searchVisible = false }) {
   ];
 
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = projects.filter((project) => {
+    const searchData = projectsWithUsernames.length > 0 ? projectsWithUsernames : projects;
+    let filtered = searchData.filter((project) => {
       const matchesSearch =
         searchTerm === "" ||
         (project.title || "")
@@ -81,7 +100,9 @@ export function GuestBrowse({ searchVisible = false }) {
         (project.description || "")
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        (project.author || "").toLowerCase().includes(searchTerm.toLowerCase());
+        (project.authorUsername || project.author || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       const matchesType =
         selectedType === "all" || project.type === selectedType;
@@ -123,7 +144,7 @@ export function GuestBrowse({ searchVisible = false }) {
     console.log('✅ Final sorted order:', filtered.slice(0, 5).map(p => p.title));
 
     return filtered;
-  }, [projects, searchTerm, selectedType, sortBy]);
+  }, [projects, projectsWithUsernames, searchTerm, selectedType, sortBy]);
 
   if (loading) {
     return (

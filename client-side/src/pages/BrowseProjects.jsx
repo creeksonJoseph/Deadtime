@@ -14,6 +14,7 @@ export function BrowseProjects({
   searchVisible = false,
 }) {
   // projects = only other users' projects, passed from AppContent
+  const [projectsWithUsernames, setProjectsWithUsernames] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
@@ -49,7 +50,8 @@ export function BrowseProjects({
 
   // Filtering and sorting logic
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = projects.filter((project) => {
+    const searchData = projectsWithUsernames.length > 0 ? projectsWithUsernames : projects;
+    let filtered = searchData.filter((project) => {
       const matchesSearch =
         searchTerm === "" ||
         (project.title || "")
@@ -58,7 +60,9 @@ export function BrowseProjects({
         (project.description || "")
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        (project.author || "").toLowerCase().includes(searchTerm.toLowerCase());
+        (project.authorUsername || project.author || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       const matchesType =
         selectedType === "all" || project.type === selectedType;
@@ -100,7 +104,7 @@ export function BrowseProjects({
     console.log('✅ Final sorted order:', filtered.slice(0, 5).map(p => p.title));
 
     return filtered;
-  }, [projects, searchTerm, selectedType, sortBy]);
+  }, [projects, projectsWithUsernames, searchTerm, selectedType, sortBy]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,6 +120,35 @@ export function BrowseProjects({
   useEffect(() => {
     setShowSearchBar(searchVisible);
   }, [searchVisible]);
+
+  useEffect(() => {
+    const fetchUsernames = async () => {
+      if (!token || !projects.length) {
+        setProjectsWithUsernames(projects);
+        return;
+      }
+      
+      const projectsWithUsers = await Promise.all(
+        projects.map(async (project) => {
+          try {
+            const userRes = await fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              return { ...project, authorUsername: userData.user?.username || 'Unknown' };
+            }
+          } catch (error) {
+            console.error('Error fetching username:', error);
+          }
+          return { ...project, authorUsername: 'Unknown' };
+        })
+      );
+      setProjectsWithUsernames(projectsWithUsers);
+    };
+    
+    fetchUsernames();
+  }, [projects, token]);
 
   return (
     <div className="min-h-screen sm:py-2 md:py-4 lg:py-6  px-4 pb-24">
