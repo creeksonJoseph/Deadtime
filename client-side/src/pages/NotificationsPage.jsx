@@ -2,42 +2,77 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllRevivalLogs, getRevivalLogById } from "../api/revivalLogs";
-import { Heart, ExternalLink, X, Calendar, User, ArrowLeft } from "lucide-react";
+import { getCommentsForProject } from "../api/comments";
+import { Heart, ExternalLink, X, Calendar, User, ArrowLeft, MessageCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export function NotificationsPage() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
   const [revivals, setRevivals] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [userProjects, setUserProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRevival, setSelectedRevival] = useState(null);
-  const [modalLoading, setModalLoading] = useState(false);
+
 
   useEffect(() => {
-    getAllRevivalLogs(token)
-      .then((allRevivals) => {
+    const fetchNotifications = async () => {
+      try {
+        // Fetch user's projects
+        const projectsRes = await fetch("https://deadtime.onrender.com/api/ghostcards", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const allProjects = await projectsRes.json();
+        const myProjects = allProjects.filter(p => p.creatorId === user?.id);
+        setUserProjects(myProjects);
+
+        // Fetch revivals
+        const allRevivals = await getAllRevivalLogs(token);
         const myProjectRevivals = allRevivals.filter(revival => 
           revival.projectId?.creatorId === user?.id && 
           revival.userId?._id !== user?.id
         );
         setRevivals(myProjectRevivals);
-      })
-      .catch((error) => {
-        console.error('Error fetching revival logs:', error);
-      })
-      .finally(() => setLoading(false));
+
+        // Fetch comments on user's projects
+        const allComments = [];
+        console.log('My projects:', myProjects);
+        for (const project of myProjects) {
+          try {
+            console.log(`Fetching comments for project: ${project.title} (${project._id})`);
+            const projectComments = await getCommentsForProject(project._id, token);
+            console.log(`Comments for ${project.title}:`, projectComments);
+            const othersComments = projectComments.filter(comment => {
+              const isOtherUser = comment.userId?._id !== user?.id;
+              const isNotAnonymous = !comment.isAnonymous;
+              console.log(`Comment by ${comment.userId?.username}: isOtherUser=${isOtherUser}, isNotAnonymous=${isNotAnonymous}`);
+              return isOtherUser && isNotAnonymous;
+            });
+            console.log(`Filtered comments for ${project.title}:`, othersComments);
+            allComments.push(...othersComments.map(comment => ({
+              ...comment,
+              projectTitle: project.title,
+              projectId: project._id
+            })));
+          } catch (error) {
+            console.error(`Error fetching comments for project ${project._id}:`, error);
+          }
+        }
+        console.log('All comments:', allComments);
+        setComments(allComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, [token, user?.id]);
 
-  const handleRevivalClick = async (revivalId) => {
-    setModalLoading(true);
-    try {
-      const details = await getRevivalLogById(revivalId, token);
-      setSelectedRevival(details);
-    } catch (error) {
-      console.error("Failed to fetch revival details");
-    } finally {
-      setModalLoading(false);
-    }
+  const handleRevivalClick = (revival) => {
+    setSelectedRevival(revival);
   };
 
   const formatDate = (date) =>
@@ -54,7 +89,7 @@ export function NotificationsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Heart className="w-16 h-16 mx-auto mb-4 text-[#34e0a1] animate-pulse" />
-          <p className="text-slate-400">Loading revival history...</p>
+          <p className="text-slate-400">Loading notifications...</p>
         </div>
       </div>
     );
@@ -74,28 +109,28 @@ export function NotificationsPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-4xl font-gothic text-[#34e0a1] mb-2">
-            Your Project Revivals
+            Notifications
           </h1>
           <p className="text-slate-400">
-            See who has revived your abandoned projects
+            See who has revived or commented on your projects
           </p>
         </div>
 
-        {revivals.length === 0 ? (
+        {revivals.length === 0 && comments.length === 0 ? (
           <div className="text-center py-16">
             <Heart className="w-16 h-16 mx-auto mb-4 text-slate-400 opacity-50" />
-            <h3 className="text-2xl font-semibold mb-2">No Revivals Yet</h3>
+            <h3 className="text-2xl font-semibold mb-2">No Notifications Yet</h3>
             <p className="text-slate-400">
-              None of your projects have been revived by other users yet.
+              No one has revived or commented on your projects yet.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Revival Notifications */}
             {revivals.map((revival) => (
               <div
-                key={revival._id}
-                onClick={() => handleRevivalClick(revival._id)}
-                className="glass rounded-lg p-6 hover:bg-slate-800/40 transition-all cursor-pointer border border-slate-700/30"
+                key={`revival-${revival._id}`}
+                className="glass rounded-lg p-6 hover:bg-slate-800/40 transition-all border border-slate-700/30"
               >
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-[#34e0a1]/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -114,17 +149,60 @@ export function NotificationsPage() {
                     <p className="text-slate-400 text-sm mb-2">
                       {revival.notes ? revival.notes.substring(0, 100) + "..." : "No notes provided"}
                     </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-xs text-slate-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(revival.revivedAt)}
+                        </div>
+                        {revival.newProjectLink && (
+                          <div className="flex items-center gap-1">
+                            <ExternalLink className="w-3 h-3" />
+                            New version available
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleRevivalClick(revival)}
+                        className="bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] text-xs px-3 py-1"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Comment Notifications */}
+            {comments.map((comment) => (
+              <div
+                key={`comment-${comment._id}`}
+                className="glass rounded-lg p-6 hover:bg-slate-800/40 transition-all cursor-pointer border border-slate-700/30"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MessageCircle className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-white">
+                        {comment.userId?.username || "Unknown User"}
+                      </span>
+                      <span className="text-slate-400">commented on</span>
+                      <span className="font-semibold text-blue-400">
+                        {comment.projectTitle}
+                      </span>
+                    </div>
+                    <p className="text-slate-300 text-sm mb-2">
+                      "{comment.note.substring(0, 100)}{comment.note.length > 100 ? '...' : ''}"
+                    </p>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {formatDate(revival.revivedAt)}
+                        {formatDate(comment.createdAt)}
                       </div>
-                      {revival.newProjectLink && (
-                        <div className="flex items-center gap-1">
-                          <ExternalLink className="w-3 h-3" />
-                          New version available
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -148,13 +226,7 @@ export function NotificationsPage() {
                 <X className="w-4 h-4 text-slate-300" />
               </button>
 
-              {modalLoading ? (
-                <div className="text-center py-8">
-                  <Heart className="w-8 h-8 mx-auto mb-4 text-[#34e0a1] animate-pulse" />
-                  <p className="text-slate-400">Loading details...</p>
-                </div>
-              ) : (
-                <div>
+              <div>
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-12 h-12 bg-[#34e0a1]/20 rounded-full flex items-center justify-center">
                       <Heart className="w-6 h-6 text-[#34e0a1]" />
@@ -227,7 +299,6 @@ export function NotificationsPage() {
                     )}
                   </div>
                 </div>
-              )}
             </div>
           </div>
         )}
