@@ -26,6 +26,41 @@ exports.getuserProfile = async (req,res) => {
         res.status(500).json({message: "🔴 Failed to load user profile",error:error.message});
     }
 };
+//update user email or username or profilepic
+exports.updateuserprofile = async (req,res) => {
+  const userId = req.params.userId;
+  const {username,email,profilepic} = req.body;
+  try{
+
+    //Build an object with only the fields provided
+    const updates = {}
+    if (username) updates.username = username;
+    if (email) updates.email = email;
+    if (profilepic) updates.profilepic = profilepic;
+
+    //Find and update
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set : updates},
+      {new : true, runValidators: true}
+    ).select("username email profilepic revivalCount")
+
+    if (!updatedUser) {
+      return res.status(404).json({message: "🔴 User Not Found!"})
+    }
+    res.status(200).json({
+      message: "🟢User profile updated successfully",
+      user: updatedUser,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "🔴 Failed to update User profile",
+      error : error.message,
+    });
+  }
+  
+};
 
 exports.getLeaderboard = async (req,res) => {
     try{
@@ -72,3 +107,47 @@ exports.getAllUsersWithProjects = async (req, res) => {
   }
 };
 
+//Admin : Delete a User and his buried projects 
+exports.deleteUser = async (req,res) => {
+  const userId = req.params.userId;
+  try{
+    //Delete the user 
+    const user = await User.findByIdAndDelete(userId);
+    if (!user){
+      return res.status(404).json({message: "🔴 User Not Found!"});
+    }
+    //also delete all  buried projects created by user
+    await GhostCard.deleteMany({creatorId: userId});
+
+    res.status(200).json({
+      message: "🟢 User and their projects deleted successfully",
+      deletedUser : user
+    });
+  } catch (error) {
+    res.status(500).json({
+      message : "🔴 Failed to deleted user",
+      error : error.message
+    });
+  }
+}
+
+//Admin : delete a ghost project 
+exports.admindeletedProject = async (req,res) => {
+  const projectId = req.params.id;
+
+  try{
+    const project = await GhostCard.findByIdAndDelete(projectId);
+    if (!project) {
+      return res.status(404).json({message : "🔴 Project Not Found!"});
+    }
+    res.status(200).json({
+      message: "🟢Project deleted succcessfully",
+      deletedproject: project
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "🔴 Failed to delete Project",
+      error: error.message
+    });
+  }
+};
