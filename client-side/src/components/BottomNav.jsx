@@ -1,13 +1,19 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus, Search, User, Home } from "lucide-react";
+import { Plus, Search, User, Home, Shield } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 export function BottomNav({ onOpenForm }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Check if user is admin
+  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
 
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, label: "Home" },
     { id: "browse", path: "/browse", icon: Search, label: "Browse" },
+    ...(isAdmin ? [{ id: "admin", path: "/admin", icon: Shield, label: "Admin" }] : []),
     { id: "account", path: "/account", icon: User, label: "Account" },
   ];
 

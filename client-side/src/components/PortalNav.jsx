@@ -1,10 +1,15 @@
 import { motion } from "framer-motion";
-import { Plus, Search, User, Home } from "lucide-react";
+import { Plus, Search, User, Home, Shield } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export function PortalNav({ onOpenForm }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Check if user is admin
+  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
 
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, title: "Dashboard" },
@@ -62,6 +67,32 @@ export function PortalNav({ onOpenForm }) {
           Add Project
         </div>
       </div>
+
+      {/* Admin Button (only for admins) */}
+      {isAdmin && (
+        <div className="relative group">
+          <motion.button
+            onClick={() => navigate('/admin')}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            whileHover={{ scale: 1.2, rotate: 3 }}
+            whileTap={{ scale: 0.9 }}
+            className={`w-14 h-14 flex items-center justify-center rounded-full border-2
+              transition-all duration-300 backdrop-blur-xl
+              ${
+                location.pathname === '/admin'
+                  ? "bg-red-500/20 text-red-400 border-red-400/40 shadow-[0_0_15px_red]"
+                  : "text-slate-400 border-slate-600/40 hover:text-red-400 hover:shadow-[0_0_10px_red]"
+              }`}
+          >
+            <Shield className="w-6 h-6" />
+          </motion.button>
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+            Admin
+          </div>
+        </div>
+      )}
 
       {/* Account Button */}
       <div className="relative group">

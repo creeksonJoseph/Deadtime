@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { getAllUsers, deleteUser, getAdminStats } from "../api/admin";
+import { getAllUsers, deleteUser } from "../api/admin";
 import { getGhostCards, deleteGhostCard } from "../api/ghostcards";
 import { Trash2, Users, FolderOpen, TrendingUp, AlertTriangle } from "lucide-react";
 
@@ -8,7 +8,7 @@ export function AdminDashboard() {
   const { token, user } = useAuth();
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [stats, setStats] = useState({});
+
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
 
@@ -17,14 +17,12 @@ export function AdminDashboard() {
     
     const fetchData = async () => {
       try {
-        const [usersData, projectsData, statsData] = await Promise.all([
+        const [usersData, projectsData] = await Promise.all([
           getAllUsers(token),
-          getGhostCards(token),
-          getAdminStats(token).catch(() => ({})) // Fallback if endpoint doesn't exist
+          getGhostCards(token)
         ]);
         setUsers(usersData);
         setProjects(projectsData);
-        setStats(statsData);
       } catch (error) {
         console.error("Failed to fetch admin data:", error);
       } finally {
@@ -194,10 +192,10 @@ export function AdminDashboard() {
                       <td className="py-3 px-4">{user.username}</td>
                       <td className="py-3 px-4 text-slate-400">{user.email}</td>
                       <td className="py-3 px-4 text-slate-400">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="py-3 px-4 text-slate-400">
-                        {projects.filter(p => p.creatorId === user._id).length}
+                        {user.revivalCount || 0}
                       </td>
                       <td className="py-3 px-4">
                         <button
