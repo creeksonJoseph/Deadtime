@@ -1,4 +1,4 @@
-const CACHE_NAME = 'deadtime-v2';
+const CACHE_NAME = 'deadtime-v4';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
@@ -12,6 +12,8 @@ const urlsToCache = [
 
 // Install event
 self.addEventListener('install', (event) => {
+  // Skip waiting to activate immediately
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(urlsToCache))
@@ -32,6 +34,7 @@ self.addEventListener('fetch', (event) => {
 
 // Activate event
 self.addEventListener('activate', (event) => {
+  // Take control immediately
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -41,6 +44,8 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
