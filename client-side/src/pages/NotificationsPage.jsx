@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { getAllRevivalLogs, getRevivalLogById } from "../api/revivalLogs";
+import { getAllRevivalLogs } from "../api/revivalLogs";
 import { getCommentsForProject } from "../api/comments";
 import { Heart, ExternalLink, X, Calendar, User, ArrowLeft, MessageCircle } from "lucide-react";
 import { Button } from "../components/ui/button";

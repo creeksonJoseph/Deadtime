@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Download, Share2, Skull } from "lucide-react";
 import { Button } from "./ui/button";
 

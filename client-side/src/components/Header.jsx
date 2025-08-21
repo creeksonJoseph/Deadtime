@@ -1,25 +1,35 @@
 import { Link, useLocation } from "react-router-dom";
-import { Skull, User, Search, Bell, Shield } from "lucide-react";
+import { Skull, User, Search, Bell, Shield, Menu } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
-export function Header({ onSearchToggle, showSearchButton = false }) {
+export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = false }) {
   const location = useLocation();
   const { user } = useAuth();
   const shouldShowSearch = showSearchButton && location.pathname === '/browse';
   
   return (
     <nav className="border-b border-slate-600/30 bg-gray-900/95 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between h-16">
+        {/* Logo with Hamburger Menu */}
+        <div className="flex items-center">
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={onSidebarToggle}
+            className="hidden md:flex w-16 h-16 bg-slate-800/60 hover:bg-slate-700/60 items-center justify-center transition-all duration-200 border-r border-slate-600/40 hover:border-[#34e0a1]/50"
+          >
+            <Menu className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+          </button>
+            
           {/* Logo */}
-          <Link to="/dashboard" className="flex items-center space-x-2 group">
+          <Link to="/dashboard" className="flex items-center space-x-2 group px-4">
             <Skull className="w-8 h-8 text-[#34e0a1] group-hover:animate-pulse" />
             <span className="text-[24px] md:text-[40px] font-gothic text-[#34e0a1]">
               DEADTIME
             </span>
           </Link>
+        </div>
 
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 px-4">
             {/* Search Button */}
             {shouldShowSearch && (
               <button
@@ -57,7 +67,6 @@ export function Header({ onSearchToggle, showSearchButton = false }) {
             >
               <User className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
             </Link>
-          </div>
         </div>
       </div>
     </nav>

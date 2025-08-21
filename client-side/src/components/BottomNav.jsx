@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus, Search, User, Home, Shield } from "lucide-react";
+import { Plus, Search, User, Home } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 export function BottomNav({ onOpenForm }) {

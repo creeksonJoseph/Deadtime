@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
-import { ExternalLink, User, MoreVertical, Star, Trash2 } from "lucide-react";
+import { ExternalLink, User, MoreVertical, Trash2 } from "lucide-react";
 
 function PostedBy({ username }) {
   return (

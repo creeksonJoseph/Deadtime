@@ -2,36 +2,83 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllUsers, deleteUser } from "../api/admin";
 import { getGhostCards, deleteGhostCard } from "../api/ghostcards";
-import { Trash2, Users, FolderOpen, TrendingUp, AlertTriangle } from "lucide-react";
+import { Trash2, Users, FolderOpen, TrendingUp, AlertTriangle, X, Search } from "lucide-react";
 
 export function AdminDashboard() {
   const { token, user } = useAuth();
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
-
+  const [projectsWithUsernames, setProjectsWithUsernames] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState({ show: false, project: null });
+  const [userSearch, setUserSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
+
+  // Admin check
+  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
 
   useEffect(() => {
-    if (!isAdmin) return;
+    console.log('🔍 Admin Dashboard useEffect:', { 
+      isAdmin, 
+      token: !!token, 
+      tokenValue: token?.substring(0, 20) + '...', 
+      user: !!user,
+      userEmail: user?.email,
+      userRole: user?.role
+    });
+    
+    if (!isAdmin || !token) {
+      console.log('❌ Admin check failed:', { isAdmin, hasToken: !!token });
+      setLoading(false);
+      return;
+    }
     
     const fetchData = async () => {
+      console.log('📡 Starting admin data fetch...');
       try {
-        const [usersData, projectsData] = await Promise.all([
-          getAllUsers(token),
-          getGhostCards(token)
-        ]);
-        setUsers(usersData);
+        console.log('🔄 Fetching projects (bypassing admin endpoint)...');
+        // Since admin endpoints are failing, use regular endpoints
+        const projectsData = await getGhostCards(token);
+        
+        // Create mock users data from projects for now
+        const usersData = [];
+        console.log('📊 Using projects-only approach due to admin endpoint issues');
+        console.log('✅ Fetched data:', { 
+          projectsCount: projectsData?.length,
+          projectsData: projectsData?.slice(0, 2)
+        });
+        setUsers(usersData); // Empty for now
         setProjects(projectsData);
+        
+        // Resolve usernames for projects
+        const projectsWithNames = await Promise.all(
+          projectsData.map(async (project) => {
+            try {
+              const userRes = await fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              if (userRes.ok) {
+                const userData = await userRes.json();
+                return { ...project, creatorUsername: userData.user?.username || 'Unknown' };
+              }
+            } catch (error) {
+              console.error('Error fetching username:', error);
+            }
+            return { ...project, creatorUsername: 'Unknown' };
+          })
+        );
+        setProjectsWithUsernames(projectsWithNames);
       } catch (error) {
-        console.error("Failed to fetch admin data:", error);
+        console.error('❌ Failed to fetch admin data:', error);
+        console.error('Error details:', error.response?.data || error.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [token, user]);
+  }, [token, user, isAdmin]);
 
   const handleDeleteUser = async (userId) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
@@ -44,17 +91,15 @@ export function AdminDashboard() {
   };
 
   const handleDeleteProject = async (projectId) => {
-    if (!confirm("Are you sure you want to delete this project?")) return;
     try {
       await deleteGhostCard(projectId, token);
       setProjects(projects.filter(p => p._id !== projectId));
+      setProjectsWithUsernames(projectsWithUsernames.filter(p => p._id !== projectId));
+      setDeleteModal({ show: false, project: null });
     } catch (error) {
       console.error("Failed to delete project:", error);
     }
   };
-
-  // Temporary admin check - replace with your email
-  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
   
   if (!isAdmin) {
     return (
@@ -76,10 +121,23 @@ export function AdminDashboard() {
     );
   }
 
-  const totalUsers = users.length;
+  const totalUsers = "N/A"; // Admin endpoint unavailable
   const totalProjects = projects.length;
   const totalRevivals = projects.reduce((sum, p) => sum + (p.revivedBy?.length || 0), 0);
-  const activeUsers = users.filter(u => new Date(u.lastLogin) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
+  // Calculate unique creators from projects
+  const uniqueCreators = new Set(projects.map(p => p.creatorId)).size;
+  const activeUsers = uniqueCreators; // Use unique project creators as proxy
+
+  // Filter functions
+  const filteredUsers = users.filter(userObj => 
+    userObj.user?.username?.toLowerCase().includes(userSearch.toLowerCase()) ||
+    userObj.user?.email?.toLowerCase().includes(userSearch.toLowerCase())
+  );
+  
+  const filteredProjects = projectsWithUsernames.filter(project =>
+    project.title?.toLowerCase().includes(projectSearch.toLowerCase()) ||
+    project.creatorUsername?.toLowerCase().includes(projectSearch.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen pb-20 px-6 pt-8">
@@ -155,11 +213,11 @@ export function AdminDashboard() {
             <div className="glass rounded-lg p-6">
               <h3 className="text-xl font-bold text-[#34e0a1] mb-4">Recent Projects</h3>
               <div className="space-y-3">
-                {projects.slice(0, 5).map(project => (
+                {projectsWithUsernames.slice(0, 5).map(project => (
                   <div key={project._id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                     <div>
                       <p className="font-medium">{project.title}</p>
-                      <p className="text-sm text-slate-400">by {project.username || "Unknown"}</p>
+                      <p className="text-sm text-slate-400">by {project.creatorUsername || "Unknown"}</p>
                     </div>
                     <div className="text-sm text-slate-400">
                       {new Date(project.createdAt).toLocaleDateString()}
@@ -174,41 +232,23 @@ export function AdminDashboard() {
         {/* Users Tab */}
         {activeTab === "users" && (
           <div className="glass rounded-lg p-6">
-            <h3 className="text-xl font-bold text-[#34e0a1] mb-4">User Management</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-600">
-                    <th className="text-left py-3 px-4 text-slate-300">Username</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Email</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Joined</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Projects</th>
-                    <th className="text-left py-3 px-4 text-slate-300">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(user => (
-                    <tr key={user._id} className="border-b border-slate-700/50">
-                      <td className="py-3 px-4">{user.username}</td>
-                      <td className="py-3 px-4 text-slate-400">{user.email}</td>
-                      <td className="py-3 px-4 text-slate-400">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-slate-400">
-                        {user.revivalCount || 0}
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[#34e0a1]">User Management</h3>
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#34e0a1]"
+                />
+              </div>
+            </div>
+            <div className="text-center py-8">
+              <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <p className="text-slate-400">User management unavailable</p>
+              <p className="text-sm text-slate-500">Admin user endpoint is currently inaccessible</p>
             </div>
           </div>
         )}
@@ -216,7 +256,19 @@ export function AdminDashboard() {
         {/* Projects Tab */}
         {activeTab === "projects" && (
           <div className="glass rounded-lg p-6">
-            <h3 className="text-xl font-bold text-[#34e0a1] mb-4">Project Management</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[#34e0a1]">Project Management</h3>
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={projectSearch}
+                  onChange={(e) => setProjectSearch(e.target.value)}
+                  className="pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#34e0a1]"
+                />
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -229,10 +281,10 @@ export function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {projects.map(project => (
+                  {filteredProjects.map(project => (
                     <tr key={project._id} className="border-b border-slate-700/50">
                       <td className="py-3 px-4">{project.title}</td>
-                      <td className="py-3 px-4 text-slate-400">{project.username || "Unknown"}</td>
+                      <td className="py-3 px-4 text-slate-400">{project.creatorUsername || "Unknown"}</td>
                       <td className="py-3 px-4 text-slate-400">
                         {new Date(project.createdAt).toLocaleDateString()}
                       </td>
@@ -241,7 +293,7 @@ export function AdminDashboard() {
                       </td>
                       <td className="py-3 px-4">
                         <button
-                          onClick={() => handleDeleteProject(project._id)}
+                          onClick={() => setDeleteModal({ show: true, project })}
                           className="text-red-400 hover:text-red-300 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -255,6 +307,46 @@ export function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="glass rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-red-400">Delete Project</h3>
+              <button
+                onClick={() => setDeleteModal({ show: false, project: null })}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-slate-300 mb-2">
+              Are you sure you want to delete this project?
+            </p>
+            <p className="text-[#34e0a1] font-medium mb-6">
+              "{deleteModal.project?.title}"
+            </p>
+            <p className="text-sm text-slate-400 mb-6">
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal({ show: false, project: null })}
+                className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteProject(deleteModal.project._id)}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

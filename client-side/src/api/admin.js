@@ -1,12 +1,23 @@
 const API_URL = "https://deadtime.onrender.com/api";
 
-// Use leaderboard endpoint to get all users with stats
+// Use admin endpoint to get all users with their projects
 export async function getAllUsers(token) {
-  const res = await fetch(`${API_URL}/users/leaderboard`, {
-    headers: { Authorization: `Bearer ${token}` },
+  console.log('📡 getAllUsers called with token:', !!token);
+  console.log('🔑 Token value:', token?.substring(0, 20) + '...');
+  const headers = { Authorization: `Bearer ${token}` };
+  console.log('📝 Headers:', headers);
+  const res = await fetch(`${API_URL}/users`, {
+    headers,
   });
-  if (!res.ok) throw new Error("Failed to fetch users");
-  return res.json();
+  console.log('📊 getAllUsers response:', { status: res.status, ok: res.ok });
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('❌ getAllUsers error response:', errorText);
+    throw new Error(`Failed to fetch users: ${res.status} ${errorText}`);
+  }
+  const data = await res.json();
+  console.log('✅ getAllUsers success:', { count: data?.length, sample: data?.slice(0, 2) });
+  return data;
 }
 
 // Note: Delete user endpoint may not exist - will show error gracefully

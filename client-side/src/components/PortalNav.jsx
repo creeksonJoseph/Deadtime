@@ -1,12 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, User, Home, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, User, Home } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
 
-export function PortalNav({ onOpenForm }) {
+export function PortalNav({ isOpen, onToggle }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(true);
 
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, title: "Dashboard" },
@@ -16,20 +14,6 @@ export function PortalNav({ onOpenForm }) {
 
   return (
     <>
-      {/* Toggle Button */}
-      <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed left-4 top-1/2 -translate-y-1/2 z-50 w-10 h-10 bg-[#34e0a1]/20 hover:bg-[#34e0a1]/30 rounded-full flex items-center justify-center border border-[#34e0a1]/40 backdrop-blur-xl transition-all duration-300"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        {isOpen ? (
-          <ChevronLeft className="w-5 h-5 text-[#34e0a1]" />
-        ) : (
-          <ChevronRight className="w-5 h-5 text-[#34e0a1]" />
-        )}
-      </motion.button>
-
       {/* Sidebar */}
       <AnimatePresence>
         {isOpen && (

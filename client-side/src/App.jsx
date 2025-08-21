@@ -23,7 +23,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import { useIsBigScreen } from "./components/UseIsBigScreen";
 import { PortalNav } from "./components/PortalNav";
 import { EditProjectModal } from "./components/EditProjectModal.jsx";
-
 import { AddProjectPage } from "./pages/AddProjectPage.jsx";
 import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./pages/Leaderboard";
@@ -40,6 +39,7 @@ function AppContent() {
   const [editingProject, setEditingProject] = useState(null);
   const [guestSearchVisible, setGuestSearchVisible] = useState(false);
   const [browseSearchVisible, setBrowseSearchVisible] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const isBigScreen = useIsBigScreen();
 
@@ -127,6 +127,7 @@ function AppContent() {
       {showHeader && (
         <Header 
           onSearchToggle={() => setBrowseSearchVisible(!browseSearchVisible)}
+          onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
           showSearchButton={true}
         />
       )}
@@ -231,7 +232,7 @@ function AppContent() {
 
       {showBottomNav &&
         (isBigScreen ? (
-          <PortalNav />
+          <PortalNav isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
         ) : (
           <BottomNav />
         ))}

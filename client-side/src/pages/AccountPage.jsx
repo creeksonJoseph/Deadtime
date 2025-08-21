@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
-import { LogOut, Star } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export function AccountPage() {
@@ -128,7 +127,10 @@ export function AccountPage() {
               {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
-              }) : "Recently"}
+              }) : new Date().toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}
             </p>
           </div>
         </div>
