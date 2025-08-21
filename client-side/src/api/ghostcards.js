@@ -9,7 +9,7 @@ export async function getGhostCards(token) {
 }
 
 export async function getGhostCardById(id, token) {
-  const res = await fetch(`/api/ghostcards/${id}`, {
+  const res = await fetch(`${API_URL}/${id}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Failed to fetch project");

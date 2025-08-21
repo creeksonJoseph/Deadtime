@@ -10,14 +10,11 @@ import {
   AlertTriangle,
   X,
   Search,
-  ArrowLeft,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { UserCard } from "../components/UserCard";
 
 export function AdminDashboard({ sidebarOpen }) {
   const { token, user } = useAuth();
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [projectsWithUsernames, setProjectsWithUsernames] = useState([]);
@@ -36,8 +33,13 @@ export function AdminDashboard({ sidebarOpen }) {
   const [userApiForbidden, setUserApiForbidden] = useState(false);
 
   // Admin check
-  const isAdmin =
-    user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
+  const isAdmin = user?.role === "admin";
+  
+  // Debug logging
+  console.log('User object:', user);
+  console.log('User role:', user?.role);
+  console.log('Is admin:', isAdmin);
+  console.log('Token (first 50 chars):', token?.substring(0, 50));
 
   useEffect(() => {
     if (!isAdmin || !token) {
@@ -49,10 +51,13 @@ export function AdminDashboard({ sidebarOpen }) {
       try {
         // Admin: fetch all users with their projects
         try {
+          console.log('Attempting to fetch users with token:', token?.substring(0, 50));
           const usersData = await getAllUsers(token);
+          console.log('Users data received:', usersData);
           setUsers(usersData || []);
           setUserApiForbidden(false);
         } catch (e) {
+          console.log('Admin API error:', e);
           // Likely 403 from backend (not admin on server side)
           setUserApiForbidden(true);
           // Fallback: derive users from projects and fetch their profiles individually
@@ -203,13 +208,6 @@ export function AdminDashboard({ sidebarOpen }) {
 
   return (
     <div className={`min-h-screen pb-20 px-6 pt-8 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="fixed top-20 left-4 z-50 w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
-      >
-        <ArrowLeft className="w-4 h-4 text-slate-300 hover:text-[#34e0a1] transition-colors" />
-      </button>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-gothic text-[#34e0a1] mb-8">
           Admin Dashboard

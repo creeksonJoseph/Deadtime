@@ -111,13 +111,6 @@ export function NotificationsPage({ sidebarOpen }) {
 
   return (
     <div className={`min-h-screen py-6 px-4 pb-24 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="fixed top-20 left-4 z-50 w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
-      >
-        <ArrowLeft className="w-4 h-4 text-slate-300 hover:text-[#34e0a1] transition-colors" />
-      </button>
       <div className="container mx-auto max-w-4xl">
 
 

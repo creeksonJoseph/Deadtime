@@ -252,6 +252,7 @@ function AppContent() {
                 onEdit={openEditModal}
                 onDelete={handleDeleteProject}
                 onProjectRevived={refetchProjects}
+                sidebarOpen={sidebarOpen}
               />
             </ProtectedRoute>
           }
