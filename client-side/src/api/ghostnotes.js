@@ -38,9 +38,6 @@ export async function fetchProjectNotesWithAuth(projectId, token) {
     }
   );
   if (res.status === 403) {
-    console.log(
-      "Access forbidden: You do not have permission to view these notes."
-    );
     return [];
   }
   if (!res.ok) throw new Error("Failed to fetch notes");

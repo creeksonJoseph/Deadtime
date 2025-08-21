@@ -16,7 +16,7 @@ export async function getAllUsers(token) {
 
 // Note: Delete user endpoint may not exist - will show error gracefully
 export async function deleteUser(userId, token) {
-  const res = await fetch(`${API_URL}/users/${userId}`, {
+  const res = await fetch(`${API_URL}/users/users/${userId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });

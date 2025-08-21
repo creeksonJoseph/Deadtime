@@ -49,7 +49,7 @@ function AppContent() {
         const projects = await getGhostCards(token);
         setAllProjects(projects);
       } catch (error) {
-        console.error('Failed to refetch projects:', error);
+        // ignore
       }
     }
   };
@@ -85,7 +85,7 @@ function AppContent() {
       setAllProjects((prev) => prev.filter((p) => p._id !== project._id));
       setSelectedProject(null);
     } catch (err) {
-      console.error("Failed to delete project", err);
+      // ignore
     }
   };
 
@@ -96,19 +96,28 @@ function AppContent() {
     ? allProjects.filter((p) => p.creatorId !== user.id)
     : [];
 
-  const showBottomNav = ["/dashboard", "/browse", "/account", "/admin", "/add-project"].includes(
-    location.pathname
-  );
-  const showHeader = ["/dashboard", "/browse", "/account", "/graveyard", "/leaderboard", "/notifications", "/admin", "/add-project"].includes(
-    location.pathname
-  );
+  const showBottomNav = [
+    "/dashboard",
+    "/browse",
+    "/account",
+    "/admin",
+    "/add-project",
+  ].includes(location.pathname);
+  const showHeader = [
+    "/dashboard",
+    "/browse",
+    "/account",
+    "/graveyard",
+    "/leaderboard",
+    "/notifications",
+    "/admin",
+    "/add-project",
+  ].includes(location.pathname);
   const showGuestHeader = location.pathname === "/guest-browse";
 
   const openProjectModal = (project) => {
     setSelectedProject(project);
   };
-
-
 
   const closeProjectModal = () => {
     setSelectedProject(null);
@@ -125,14 +134,14 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
       {showHeader && (
-        <Header 
+        <Header
           onSearchToggle={() => setBrowseSearchVisible(!browseSearchVisible)}
           onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
           showSearchButton={true}
         />
       )}
       {showGuestHeader && (
-        <GuestHeader 
+        <GuestHeader
           onSearchToggle={() => setGuestSearchVisible(!guestSearchVisible)}
           showSearchButton={true}
         />
@@ -141,7 +150,10 @@ function AppContent() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/guest-browse" element={<GuestBrowse searchVisible={guestSearchVisible} />} />
+        <Route
+          path="/guest-browse"
+          element={<GuestBrowse searchVisible={guestSearchVisible} />}
+        />
         <Route path="/auth/github/callback" element={<GithubCallback />} />
         <Route
           path="/add-project"
@@ -158,7 +170,6 @@ function AppContent() {
               <Dashboard
                 projects={myProjects}
                 onOpenProject={openProjectModal}
-
                 onDelete={handleDeleteProject}
               />
             </ProtectedRoute>
@@ -232,7 +243,10 @@ function AppContent() {
 
       {showBottomNav &&
         (isBigScreen ? (
-          <PortalNav isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+          <PortalNav
+            isOpen={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+          />
         ) : (
           <BottomNav />
         ))}

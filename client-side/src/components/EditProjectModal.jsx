@@ -28,7 +28,7 @@ export function EditProjectModal({ project, onClose, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updating project:", formData);
+    // updating project
     await updateGhostCard(project._id, formData, token);
     onSave && onSave();
     onClose();

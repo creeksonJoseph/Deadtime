@@ -25,6 +25,7 @@ export function AdminDashboard() {
   });
   const [userSearch, setUserSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
+  const [userApiForbidden, setUserApiForbidden] = useState(false);
 
   // Admin check
   const isAdmin =
@@ -38,17 +39,57 @@ export function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        // Since admin endpoints are failing, use regular endpoints
+        // Admin: fetch all users with their projects
+        try {
+          const usersData = await getAllUsers(token);
+          setUsers(usersData || []);
+          setUserApiForbidden(false);
+        } catch (e) {
+          // Likely 403 from backend (not admin on server side)
+          setUserApiForbidden(true);
+          // Fallback: derive users from projects and fetch their profiles individually
+          try {
+            const fallbackProjects = await getGhostCards(token);
+            setProjects(fallbackProjects || []);
+            const uniqueCreatorIds = Array.from(
+              new Set(
+                (fallbackProjects || []).map((p) => p.creatorId).filter(Boolean)
+              )
+            );
+            const userEntries = await Promise.all(
+              uniqueCreatorIds.map(async (creatorId) => {
+                try {
+                  const res = await fetch(
+                    `https://deadtime.onrender.com/api/users/${creatorId}`,
+                    {
+                      headers: { Authorization: `Bearer ${token}` },
+                    }
+                  );
+                  if (!res.ok) throw new Error("user fetch failed");
+                  const data = await res.json();
+                  return {
+                    user: data.user,
+                    postedProjects: data.postedProjects || [],
+                    revivedProjects: data.revivedProjects || [],
+                  };
+                } catch {
+                  return null;
+                }
+              })
+            );
+            setUsers(userEntries.filter(Boolean));
+          } catch {
+            setUsers([]);
+          }
+        }
+
+        // Fetch projects (non-admin endpoint is fine)
         const projectsData = await getGhostCards(token);
+        setProjects(projectsData || []);
 
-        // Create mock users data from projects for now
-        const usersData = [];
-        setUsers(usersData); // Empty for now
-        setProjects(projectsData);
-
-        // Resolve usernames for projects
+        // Resolve usernames for projects (best-effort)
         const projectsWithNames = await Promise.all(
-          projectsData.map(async (project) => {
+          (projectsData || []).map(async (project) => {
             try {
               const userRes = await fetch(
                 `https://deadtime.onrender.com/api/users/${project.creatorId}`,
@@ -125,7 +166,7 @@ export function AdminDashboard() {
     );
   }
 
-  const totalUsers = "N/A"; // Admin endpoint unavailable
+  const totalUsers = users.length;
   const totalProjects = projects.length;
   const totalRevivals = projects.reduce(
     (sum, p) => sum + (p.revivedBy?.length || 0),
@@ -277,13 +318,81 @@ export function AdminDashboard() {
                 />
               </div>
             </div>
-            <div className="text-center py-8">
-              <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <p className="text-slate-400">User management unavailable</p>
-              <p className="text-sm text-slate-500">
-                Admin user endpoint is currently inaccessible
-              </p>
-            </div>
+            {userApiForbidden ? (
+              <div className="text-center py-8">
+                <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                <p className="text-slate-400">User management unavailable</p>
+                <p className="text-sm text-slate-500">
+                  Admin endpoint returned 403 (forbidden). Ensure your account
+                  has admin rights on the server.
+                </p>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                <p className="text-slate-400">No users found</p>
+                <p className="text-sm text-slate-500">Try a different search</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-600">
+                      <th className="text-left py-3 px-4 text-slate-300">
+                        Username
+                      </th>
+                      <th className="text-left py-3 px-4 text-slate-300">
+                        Email
+                      </th>
+                      <th className="text-left py-3 px-4 text-slate-300">
+                        Revivals
+                      </th>
+                      <th className="text-left py-3 px-4 text-slate-300">
+                        Posted
+                      </th>
+                      <th className="text-left py-3 px-4 text-slate-300">
+                        Joined
+                      </th>
+                      <th className="text-left py-3 px-4 text-slate-300">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((entry) => (
+                      <tr
+                        key={entry.user._id}
+                        className="border-b border-slate-700/50"
+                      >
+                        <td className="py-3 px-4 text-white">
+                          {entry.user.username}
+                        </td>
+                        <td className="py-3 px-4 text-slate-300">
+                          {entry.user.email}
+                        </td>
+                        <td className="py-3 px-4 text-slate-300">
+                          {entry.user.revivalCount || 0}
+                        </td>
+                        <td className="py-3 px-4 text-slate-300">
+                          {entry.postedProjects?.length || 0}
+                        </td>
+                        <td className="py-3 px-4 text-slate-300">
+                          {new Date(entry.user.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleDeleteUser(entry.user._id)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 

@@ -3,7 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllRevivalLogs } from "../api/revivalLogs";
 import { getCommentsForProject } from "../api/comments";
-import { Heart, ExternalLink, X, Calendar, User, ArrowLeft, MessageCircle } from "lucide-react";
+import {
+  Heart,
+  ExternalLink,
+  X,
+  Calendar,
+  User,
+  ArrowLeft,
+  MessageCircle,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export function NotificationsPage() {
@@ -15,23 +23,26 @@ export function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedRevival, setSelectedRevival] = useState(null);
 
-
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         // Fetch user's projects
-        const projectsRes = await fetch("https://deadtime.onrender.com/api/ghostcards", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const projectsRes = await fetch(
+          "https://deadtime.onrender.com/api/ghostcards",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const allProjects = await projectsRes.json();
-        const myProjects = allProjects.filter(p => p.creatorId === user?.id);
+        const myProjects = allProjects.filter((p) => p.creatorId === user?.id);
         setUserProjects(myProjects);
 
         // Fetch revivals
         const allRevivals = await getAllRevivalLogs(token);
-        const myProjectRevivals = allRevivals.filter(revival => 
-          revival.projectId?.creatorId === user?.id && 
-          revival.userId?._id !== user?.id
+        const myProjectRevivals = allRevivals.filter(
+          (revival) =>
+            revival.projectId?.creatorId === user?.id &&
+            revival.userId?._id !== user?.id
         );
         setRevivals(myProjectRevivals);
 
@@ -39,22 +50,31 @@ export function NotificationsPage() {
         const allComments = [];
         for (const project of myProjects) {
           try {
-            const projectComments = await getCommentsForProject(project._id, token);
-            const othersComments = projectComments.filter(comment => {
+            const projectComments = await getCommentsForProject(
+              project._id,
+              token
+            );
+            const othersComments = projectComments.filter((comment) => {
               const isOtherUser = comment.userId?._id !== user?.id;
               const isNotAnonymous = !comment.isAnonymous;
               return isOtherUser && isNotAnonymous;
             });
-            allComments.push(...othersComments.map(comment => ({
-              ...comment,
-              projectTitle: project.title,
-              projectId: project._id
-            })));
+            allComments.push(
+              ...othersComments.map((comment) => ({
+                ...comment,
+                projectTitle: project.title,
+                projectId: project._id,
+              }))
+            );
           } catch (error) {
             // ignore
           }
         }
-        setComments(allComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+        setComments(
+          allComments.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
+        );
       } catch (error) {
         // ignore
       } finally {
@@ -113,7 +133,9 @@ export function NotificationsPage() {
         {revivals.length === 0 && comments.length === 0 ? (
           <div className="text-center py-16">
             <Heart className="w-16 h-16 mx-auto mb-4 text-slate-400 opacity-50" />
-            <h3 className="text-2xl font-semibold mb-2">No Notifications Yet</h3>
+            <h3 className="text-2xl font-semibold mb-2">
+              No Notifications Yet
+            </h3>
             <p className="text-slate-400">
               No one has revived or commented on your projects yet.
             </p>
@@ -141,7 +163,9 @@ export function NotificationsPage() {
                       </span>
                     </div>
                     <p className="text-slate-400 text-sm mb-2">
-                      {revival.notes ? revival.notes.substring(0, 100) + "..." : "No notes provided"}
+                      {revival.notes
+                        ? revival.notes.substring(0, 100) + "..."
+                        : "No notes provided"}
                     </p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-xs text-slate-500">
@@ -190,7 +214,8 @@ export function NotificationsPage() {
                       </span>
                     </div>
                     <p className="text-slate-300 text-sm mb-2">
-                      "{comment.note.substring(0, 100)}{comment.note.length > 100 ? '...' : ''}"
+                      "{comment.note.substring(0, 100)}
+                      {comment.note.length > 100 ? "..." : ""}"
                     </p>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
                       <div className="flex items-center gap-1">
@@ -221,78 +246,82 @@ export function NotificationsPage() {
               </button>
 
               <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-[#34e0a1]/20 rounded-full flex items-center justify-center">
-                      <Heart className="w-6 h-6 text-[#34e0a1]" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">Project Revival</h2>
-                      <p className="text-slate-400">Revival details and plans</p>
-                    </div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-[#34e0a1]/20 rounded-full flex items-center justify-center">
+                    <Heart className="w-6 h-6 text-[#34e0a1]" />
                   </div>
-
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-slate-800/30 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                          Project
-                        </h4>
-                        <p className="text-white font-semibold">
-                          {selectedRevival.projectId?.title}
-                        </p>
-                        <p className="text-slate-400 text-sm mt-1">
-                          {selectedRevival.projectId?.type} project
-                        </p>
-                      </div>
-                      <div className="bg-slate-800/30 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                          Revived By
-                        </h4>
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-[#34e0a1]" />
-                          <p className="text-white font-semibold">
-                            {selectedRevival.userId?.username}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-800/30 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                        Revival Date
-                      </h4>
-                      <p className="text-white">{formatDate(selectedRevival.revivedAt)}</p>
-                    </div>
-
-                    {selectedRevival.notes && (
-                      <div className="bg-slate-800/30 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                          Revival Plans
-                        </h4>
-                        <p className="text-slate-300 leading-relaxed">
-                          {selectedRevival.notes}
-                        </p>
-                      </div>
-                    )}
-
-                    {selectedRevival.newProjectLink && (
-                      <div className="bg-slate-800/30 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                          New Project Link
-                        </h4>
-                        <a
-                          href={selectedRevival.newProjectLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-[#34e0a1] hover:text-[#34e0a1]/80 transition-colors"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          View Revived Project
-                        </a>
-                      </div>
-                    )}
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">
+                      Project Revival
+                    </h2>
+                    <p className="text-slate-400">Revival details and plans</p>
                   </div>
                 </div>
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-slate-800/30 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                        Project
+                      </h4>
+                      <p className="text-white font-semibold">
+                        {selectedRevival.projectId?.title}
+                      </p>
+                      <p className="text-slate-400 text-sm mt-1">
+                        {selectedRevival.projectId?.type} project
+                      </p>
+                    </div>
+                    <div className="bg-slate-800/30 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                        Revived By
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-[#34e0a1]" />
+                        <p className="text-white font-semibold">
+                          {selectedRevival.userId?.username}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/30 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                      Revival Date
+                    </h4>
+                    <p className="text-white">
+                      {formatDate(selectedRevival.revivedAt)}
+                    </p>
+                  </div>
+
+                  {selectedRevival.notes && (
+                    <div className="bg-slate-800/30 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                        Revival Plans
+                      </h4>
+                      <p className="text-slate-300 leading-relaxed">
+                        {selectedRevival.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedRevival.newProjectLink && (
+                    <div className="bg-slate-800/30 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                        New Project Link
+                      </h4>
+                      <a
+                        href={selectedRevival.newProjectLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-[#34e0a1] hover:text-[#34e0a1]/80 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Revived Project
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}

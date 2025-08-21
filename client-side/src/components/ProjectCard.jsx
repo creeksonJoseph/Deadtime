@@ -132,7 +132,7 @@ export function ProjectCard({
 
   return (
     <div
-      className={`${isMobile ? "w-full bg-[#141d38] border-0 border-b border-b-slate-600/10 md:border md:border-slate-600/30 rounded-none md:rounded-2xl shadow-[0_4px_0_rgba(52,224,161,0.1)] md:shadow-lg mb-1 md:mb-0" : "w-[300px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg"} h-[380px] hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative`}
+      className={`${isMobile ? "w-full bg-[#141d38] border-0 border-b border-b-slate-600/10 md:border md:border-slate-600/30 rounded-none md:rounded-2xl shadow-[0_4px_0_rgba(52,224,161,0.1)] md:shadow-lg mb-1 md:mb-0" : "w-[300px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg"} ${isMobile ? "h-auto" : "h-[380px]"} hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative`}
     >
       {/* 3-dots menu - only show for project owner */}
       {isOwner && (

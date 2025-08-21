@@ -24,20 +24,25 @@ export function GuestBrowse({ searchVisible = false }) {
       try {
         const data = await getGhostCards();
         setProjects(data);
-        
+
         // Try to fetch usernames for search functionality (will fail for guests, that's ok)
         const projectsWithUsers = await Promise.all(
           data.map(async (project) => {
             try {
-              const userRes = await fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`);
+              const userRes = await fetch(
+                `https://deadtime.onrender.com/api/users/${project.creatorId}`
+              );
               if (userRes.ok) {
                 const userData = await userRes.json();
-                return { ...project, authorUsername: userData.user?.username || 'Unknown' };
+                return {
+                  ...project,
+                  authorUsername: userData.user?.username || "Unknown",
+                };
               }
             } catch (error) {
               // Silently fail for guests
             }
-            return { ...project, authorUsername: 'Anonymous User' };
+            return { ...project, authorUsername: "Anonymous User" };
           })
         );
         setProjectsWithUsernames(projectsWithUsers);
@@ -88,7 +93,8 @@ export function GuestBrowse({ searchVisible = false }) {
   ];
 
   const filteredAndSortedProjects = useMemo(() => {
-    const searchData = projectsWithUsernames.length > 0 ? projectsWithUsernames : projects;
+    const searchData =
+      projectsWithUsernames.length > 0 ? projectsWithUsernames : projects;
     let filtered = searchData.filter((project) => {
       const matchesSearch =
         searchTerm === "" ||

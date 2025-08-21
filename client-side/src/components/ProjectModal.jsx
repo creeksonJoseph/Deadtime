@@ -12,7 +12,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { getGhostCardById } from "../api/ghostcards";
-import { getNotesForProject, createGhostNote, deleteGhostNote } from "../api/ghostnotes";
+import {
+  getNotesForProject,
+  createGhostNote,
+  deleteGhostNote,
+} from "../api/ghostnotes";
 import { ReviveProjectModal } from "./ReviveProjectModal";
 import { Textarea } from "./ui/textarea";
 
@@ -37,7 +41,6 @@ export function ProjectModal({
   const [showRevive, setShowRevive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentMenuOpen, setCommentMenuOpen] = useState(null);
-
 
   const projectToUse = loadedProject || project;
 
@@ -64,7 +67,7 @@ export function ProjectModal({
           } else {
             setError("Failed to fetch comments.");
           }
-          console.error("❌ Failed to fetch notes:", err);
+          // silent
         });
     }
   }, [projectToUse, token]);
@@ -126,7 +129,7 @@ export function ProjectModal({
   const handleDeleteNote = async (noteId) => {
     try {
       await deleteGhostNote(noteId, token);
-      setNotes((prev) => prev.filter(note => note._id !== noteId));
+      setNotes((prev) => prev.filter((note) => note._id !== noteId));
     } catch {
       setError("Failed to delete comment.");
     }
@@ -134,7 +137,7 @@ export function ProjectModal({
 
   const canDeleteNote = (note) => {
     // Admin can delete any comment
-    if (user?.role === 'admin') return true;
+    if (user?.role === "admin") return true;
     // Project owner can delete any comment on their project
     if (projectToUse.creatorId === user?.id) return true;
     // For now, allow deletion if userId is undefined (backend issue)
@@ -297,9 +300,11 @@ export function ProjectModal({
             <div className="space-y-6">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-1 h-4 bg-[#34e0a1] rounded-full"></div>
-                <h3 className="text-lg font-semibold text-white">Project Information</h3>
+                <h3 className="text-lg font-semibold text-white">
+                  Project Information
+                </h3>
               </div>
-              
+
               {/* Project Type */}
               {projectToUse.type && (
                 <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30">
@@ -307,14 +312,17 @@ export function ProjectModal({
                     Project Type
                   </h4>
                   <p className="text-slate-200 capitalize text-sm">
-                    {projectToUse.type === 'code' ? 'Coding Project' : 
-                     projectToUse.type === 'business' ? 'Business Idea' :
-                     projectToUse.type === 'content' ? 'Content Project' : 
-                     projectToUse.type}
+                    {projectToUse.type === "code"
+                      ? "Coding Project"
+                      : projectToUse.type === "business"
+                        ? "Business Idea"
+                        : projectToUse.type === "content"
+                          ? "Content Project"
+                          : projectToUse.type}
                   </p>
                 </div>
               )}
-              
+
               {/* Description */}
               <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/30">
                 <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
@@ -331,7 +339,9 @@ export function ProjectModal({
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-1 h-6 bg-red-400 rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-white">Cause of Death</h3>
+                  <h3 className="text-xl font-semibold text-white">
+                    Cause of Death
+                  </h3>
                 </div>
                 <div className="bg-red-500/10 rounded-2xl p-6 border border-red-500/30">
                   <p className="text-slate-300 leading-relaxed text-lg">
@@ -346,7 +356,9 @@ export function ProjectModal({
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-1 h-6 bg-[#fcdb32] rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-white">Resources</h3>
+                  <h3 className="text-xl font-semibold text-white">
+                    Resources
+                  </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {projectToUse.externalLink && (
@@ -359,7 +371,9 @@ export function ProjectModal({
                       <ExternalLink className="w-5 h-5 group-hover:scale-110 transition-transform" />
                       <div>
                         <div className="font-semibold">External Link</div>
-                        <div className="text-sm text-slate-400">View project online</div>
+                        <div className="text-sm text-slate-400">
+                          View project online
+                        </div>
                       </div>
                     </a>
                   )}
@@ -371,7 +385,7 @@ export function ProjectModal({
                       className="flex items-center gap-3 p-4 bg-slate-800/40 hover:bg-slate-700/60 text-[#fcdb32] rounded-xl transition-all duration-200 border border-slate-600/30 hover:border-[#fcdb32]/50 font-medium group"
                       onClick={(e) => {
                         e.preventDefault();
-                        const link = document.createElement('a');
+                        const link = document.createElement("a");
                         link.href = projectToUse.pitchDeckUrl;
                         link.download = `${projectToUse.title}-pitch-deck.pdf`;
                         document.body.appendChild(link);
@@ -382,7 +396,9 @@ export function ProjectModal({
                       <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
                       <div>
                         <div className="font-semibold">Pitch Deck</div>
-                        <div className="text-sm text-slate-400">Download PDF document</div>
+                        <div className="text-sm text-slate-400">
+                          Download PDF document
+                        </div>
                       </div>
                     </a>
                   )}
@@ -393,28 +409,27 @@ export function ProjectModal({
             {/* Action Buttons */}
             <div className="border-t border-slate-700/50 pt-8">
               <div className="flex flex-wrap gap-4">
-              {isOwner && (
-                <Button
-                  onClick={() => {
-                    onClose();
-                    onEdit(projectToUse);
-                  }}
-                  className="bg-transparent border-2 border-[#fcdb32] text-[#fcdb32] hover:bg-[#fcdb32] hover:text-[#141d38] px-8 py-3 rounded-xl transition-all duration-200 font-semibold text-base"
-                >
-                  <Edit className="w-5 h-5 mr-2" />
-                  Edit Project
-                </Button>
-              )}
-              {!isOwner && projectToUse.creatorId !== user?.id && (
-                <Button
-                  className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-[#fcdb32]/20 text-base"
-                  onClick={() => setShowRevive(true)}
-                >
-                  <Heart className="w-5 h-5 mr-2" />
-                  Revive Project
-                </Button>
-              )}
-
+                {isOwner && (
+                  <Button
+                    onClick={() => {
+                      onClose();
+                      onEdit(projectToUse);
+                    }}
+                    className="bg-transparent border-2 border-[#fcdb32] text-[#fcdb32] hover:bg-[#fcdb32] hover:text-[#141d38] px-8 py-3 rounded-xl transition-all duration-200 font-semibold text-base"
+                  >
+                    <Edit className="w-5 h-5 mr-2" />
+                    Edit Project
+                  </Button>
+                )}
+                {!isOwner && projectToUse.creatorId !== user?.id && (
+                  <Button
+                    className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-[#fcdb32]/20 text-base"
+                    onClick={() => setShowRevive(true)}
+                  >
+                    <Heart className="w-5 h-5 mr-2" />
+                    Revive Project
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -423,7 +438,9 @@ export function ProjectModal({
           <div className="border-t border-slate-700/50 bg-slate-900/30 p-8">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-1 h-6 bg-[#fcdb32] rounded-full"></div>
-              <h3 className="text-xl font-semibold text-white">Community Discussion</h3>
+              <h3 className="text-xl font-semibold text-white">
+                Community Discussion
+              </h3>
             </div>
 
             {/* New Comment Form */}
@@ -446,13 +463,13 @@ export function ProjectModal({
                     Post anonymously
                   </label>
                   <div>
-                  <Button
-                    onClick={handlePostNote}
-                    disabled={loadingNote || !newNote.trim()}
-                    className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 text-base"
-                  >
-                    {loadingNote ? "Posting..." : "Post Comment"}
-                  </Button>
+                    <Button
+                      onClick={handlePostNote}
+                      disabled={loadingNote || !newNote.trim()}
+                      className="bg-[#fcdb32] text-[#141d38] hover:bg-[#fcdb32]/90 px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 text-base"
+                    >
+                      {loadingNote ? "Posting..." : "Post Comment"}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -495,9 +512,13 @@ export function ProjectModal({
                         </div>
                         <div>
                           <p className="font-semibold text-white text-base">
-                            {note.system ? "System" : 
-                             note.isAnonymous ? "Anonymous" : 
-                             (note.userId?.username || user?.username || "Gravekeeper")}
+                            {note.system
+                              ? "System"
+                              : note.isAnonymous
+                                ? "Anonymous"
+                                : note.userId?.username ||
+                                  user?.username ||
+                                  "Gravekeeper"}
                           </p>
                           <p className="text-slate-500 text-sm">
                             {formatDate(note.createdAt)}
@@ -507,7 +528,11 @@ export function ProjectModal({
                       {canDeleteNote(note) && (
                         <div className="relative">
                           <button
-                            onClick={() => setCommentMenuOpen(commentMenuOpen === note._id ? null : note._id)}
+                            onClick={() =>
+                              setCommentMenuOpen(
+                                commentMenuOpen === note._id ? null : note._id
+                              )
+                            }
                             className="text-slate-400 hover:text-slate-300 p-2 hover:bg-slate-700/50 rounded-lg transition-all"
                           >
                             <MoreVertical className="w-4 h-4" />
@@ -553,8 +578,6 @@ export function ProjectModal({
           }}
         />
       )}
-
-
     </div>
   );
 }

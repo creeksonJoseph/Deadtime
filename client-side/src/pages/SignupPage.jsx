@@ -19,7 +19,8 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] =
+    useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -44,7 +45,7 @@ export function SignupPage() {
   const passwordRequirements = {
     length: password.length >= 8,
     symbol: /[.!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?]/.test(password),
-    number: /\d/.test(password)
+    number: /\d/.test(password),
   };
 
   const isPasswordStrong = Object.values(passwordRequirements).every(Boolean);
@@ -56,8 +57,12 @@ export function SignupPage() {
     setLoading(true);
     try {
       const username = email.split("@")[0].toLowerCase();
-      const data = await signup({ username, email: email.toLowerCase(), password });
-      console.log("Signup success:", data);
+      const data = await signup({
+        username,
+        email: email.toLowerCase(),
+        password,
+      });
+      // signup success
 
       if (data.token) {
         login(data.token);
@@ -68,14 +73,15 @@ export function SignupPage() {
           navigate("/dashboard");
         }, 2000);
       } else {
-        console.warn("No token received from signup");
+        // no token received
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Signup failed. Try again.";
+      const errorMessage =
+        err.response?.data?.message || "Signup failed. Try again.";
       setToastMessage(errorMessage);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-      console.error(err.response?.data || err.message);
+      // ignore
     } finally {
       setLoading(false);
     }
@@ -236,7 +242,7 @@ export function SignupPage() {
                   )}
                 </button>
               </div>
-              
+
               {/* Password Requirements Dropdown */}
               <AnimatePresence>
                 {showPasswordRequirements && password.length > 0 && (
@@ -247,9 +253,13 @@ export function SignupPage() {
                     className="mt-2 p-3 glass rounded-lg border border-[#34e0a1]/20 overflow-hidden"
                   >
                     <div className="space-y-2">
-                      <div className={`flex items-center space-x-2 text-sm ${
-                        passwordRequirements.length ? "text-green-400" : "text-red-400"
-                      }`}>
+                      <div
+                        className={`flex items-center space-x-2 text-sm ${
+                          passwordRequirements.length
+                            ? "text-green-400"
+                            : "text-red-400"
+                        }`}
+                      >
                         {passwordRequirements.length ? (
                           <Check className="w-4 h-4" />
                         ) : (
@@ -257,9 +267,13 @@ export function SignupPage() {
                         )}
                         <span>At least 8 characters</span>
                       </div>
-                      <div className={`flex items-center space-x-2 text-sm ${
-                        passwordRequirements.symbol ? "text-green-400" : "text-red-400"
-                      }`}>
+                      <div
+                        className={`flex items-center space-x-2 text-sm ${
+                          passwordRequirements.symbol
+                            ? "text-green-400"
+                            : "text-red-400"
+                        }`}
+                      >
                         {passwordRequirements.symbol ? (
                           <Check className="w-4 h-4" />
                         ) : (
@@ -267,9 +281,13 @@ export function SignupPage() {
                         )}
                         <span>Contains a symbol (. ! @ # etc.)</span>
                       </div>
-                      <div className={`flex items-center space-x-2 text-sm ${
-                        passwordRequirements.number ? "text-green-400" : "text-red-400"
-                      }`}>
+                      <div
+                        className={`flex items-center space-x-2 text-sm ${
+                          passwordRequirements.number
+                            ? "text-green-400"
+                            : "text-red-400"
+                        }`}
+                      >
                         {passwordRequirements.number ? (
                           <Check className="w-4 h-4" />
                         ) : (
@@ -278,9 +296,11 @@ export function SignupPage() {
                         <span>Contains a number</span>
                       </div>
                       <div className="mt-2 pt-2 border-t border-[#34e0a1]/20">
-                        <span className={`text-xs font-medium ${
-                          isPasswordStrong ? "text-green-400" : "text-red-400"
-                        }`}>
+                        <span
+                          className={`text-xs font-medium ${
+                            isPasswordStrong ? "text-green-400" : "text-red-400"
+                          }`}
+                        >
                           Password is {isPasswordStrong ? "Strong" : "Weak"}
                         </span>
                       </div>
@@ -392,13 +412,10 @@ export function SignupPage() {
           </div>
         </div>
       </motion.div>
-      
+
       <AnimatePresence>
         {showToast && (
-          <Toast 
-            message={toastMessage} 
-            onClose={() => setShowToast(false)} 
-          />
+          <Toast message={toastMessage} onClose={() => setShowToast(false)} />
         )}
       </AnimatePresence>
     </div>

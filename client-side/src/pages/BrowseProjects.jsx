@@ -49,7 +49,8 @@ export function BrowseProjects({
 
   // Filtering and sorting logic
   const filteredAndSortedProjects = useMemo(() => {
-    const searchData = projectsWithUsernames.length > 0 ? projectsWithUsernames : projects;
+    const searchData =
+      projectsWithUsernames.length > 0 ? projectsWithUsernames : projects;
     let filtered = searchData.filter((project) => {
       const matchesSearch =
         searchTerm === "" ||
@@ -115,26 +116,32 @@ export function BrowseProjects({
         setProjectsWithUsernames(projects);
         return;
       }
-      
+
       const projectsWithUsers = await Promise.all(
         projects.map(async (project) => {
           try {
-            const userRes = await fetch(`https://deadtime.onrender.com/api/users/${project.creatorId}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
+            const userRes = await fetch(
+              `https://deadtime.onrender.com/api/users/${project.creatorId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
             if (userRes.ok) {
               const userData = await userRes.json();
-              return { ...project, authorUsername: userData.user?.username || 'Unknown' };
+              return {
+                ...project,
+                authorUsername: userData.user?.username || "Unknown",
+              };
             }
           } catch (error) {
-            console.error('Error fetching username:', error);
+            // ignore
           }
-          return { ...project, authorUsername: 'Unknown' };
+          return { ...project, authorUsername: "Unknown" };
         })
       );
       setProjectsWithUsernames(projectsWithUsers);
     };
-    
+
     fetchUsernames();
   }, [projects, token]);
 
