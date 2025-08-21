@@ -1,17 +1,20 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Skull, User, Search, Bell, Shield, Menu, Trophy } from "lucide-react";
+import { Skull, User, Search, Bell, Shield, Menu, Trophy, X } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useState } from "react";
 
 export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = false }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const shouldShowSearch = showSearchButton && location.pathname === '/browse';
   
   const handleNavigation = (path) => {
     if (location.pathname !== path) {
       navigate(path);
     }
+    setMobileMenuOpen(false);
   };
   
   return (
@@ -37,53 +40,120 @@ export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = fal
         </div>
 
         <div className="flex items-center space-x-4 px-4">
-            {/* Search Button */}
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              {/* Search Button */}
+              {shouldShowSearch && (
+                <button
+                  onClick={onSearchToggle}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+                >
+                  <Search className="w-4 h-4 text-slate-300" />
+                  <span className="text-slate-300 text-sm">Search</span>
+                </button>
+              )}
+              
+              {/* Admin Dashboard (only for admins) */}
+              {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
+                <button
+                  onClick={() => handleNavigation('/admin')}
+                  className="w-10 h-10 bg-red-900/60 hover:bg-red-800/60 rounded-full flex items-center justify-center transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
+                >
+                  <Shield className="w-5 h-5 text-red-400 hover:text-red-300 transition-colors" />
+                </button>
+              )}
+
+              {/* Notifications Icon */}
+              <button
+                onClick={() => handleNavigation('/notifications')}
+                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+              >
+                <Bell className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+              </button>
+
+              {/* Profile Icon */}
+              <button
+                onClick={() => handleNavigation('/account')}
+                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+              >
+                <User className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+              </button>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="md:hidden flex items-center space-x-2">
+              {/* Notifications Icon (Mobile) */}
+              <button
+                onClick={() => handleNavigation('/notifications')}
+                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+              >
+                <Bell className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+              </button>
+              
+              {/* Mobile Hamburger Menu */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+                ) : (
+                  <Menu className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+                )}
+              </button>
+            </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-b border-slate-600/30 z-40">
+          <div className="flex flex-col p-4 space-y-3">
+            {/* Search Button (Mobile) */}
             {shouldShowSearch && (
               <button
-                onClick={onSearchToggle}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+                onClick={() => {
+                  onSearchToggle();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
               >
-                <Search className="w-4 h-4 text-slate-300" />
-                <span className="text-slate-300 text-sm">Search</span>
+                <Search className="w-5 h-5 text-slate-300" />
+                <span className="text-slate-300">Search Projects</span>
               </button>
             )}
             
-
+            {/* Profile */}
+            <button
+              onClick={() => handleNavigation('/account')}
+              className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+            >
+              <User className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-300">My Account</span>
+            </button>
+            
+            {/* Leaderboard */}
+            <button
+              onClick={() => handleNavigation('/leaderboard')}
+              className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+            >
+              <Trophy className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-300">Leaderboard</span>
+            </button>
+            
             {/* Admin Dashboard (only for admins) */}
             {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
               <button
                 onClick={() => handleNavigation('/admin')}
-                className="w-10 h-10 bg-red-900/60 hover:bg-red-800/60 rounded-full flex items-center justify-center transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-red-900/60 hover:bg-red-800/60 transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
               >
-                <Shield className="w-5 h-5 text-red-400 hover:text-red-300 transition-colors" />
+                <Shield className="w-5 h-5 text-red-400" />
+                <span className="text-red-400">Admin Dashboard</span>
               </button>
             )}
-
-            {/* Notifications Icon */}
-            <button
-              onClick={() => handleNavigation('/notifications')}
-              className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
-            >
-              <Bell className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
-            </button>
-
-            {/* Profile Icon (Desktop) / Leaderboard (Mobile) */}
-            <button
-              onClick={() => handleNavigation('/account')}
-              className="hidden md:flex w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
-            >
-              <User className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
-            </button>
-            
-            {/* Leaderboard Icon (Mobile only) */}
-            <button
-              onClick={() => handleNavigation('/leaderboard')}
-              className="md:hidden w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
-            >
-              <Trophy className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
-            </button>
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }
