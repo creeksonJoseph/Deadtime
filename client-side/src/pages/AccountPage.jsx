@@ -102,8 +102,7 @@ export function AccountPage() {
         ...(editingProfilePic && { profilepic: editingProfilePic }),
       };
 
-      const result = await updateUserProfile(user.id, updates, token);
-      console.log("Profile update result:", result);
+      await updateUserProfile(user.id, updates, token);
 
       // Update local user state immediately with the new data
       const updatedUser = {
@@ -124,7 +123,6 @@ export function AccountPage() {
 
       setIsEditing(false);
     } catch (err) {
-      console.error("Profile update error:", err);
       setError("Failed to update profile");
     } finally {
       setSaving(false);
@@ -152,7 +150,6 @@ export function AccountPage() {
     }
     // Update local user state when user object changes
     setLocalUser(user);
-    console.log("User object in AccountPage:", user);
   }, [user, isEditing]);
 
   useEffect(() => {

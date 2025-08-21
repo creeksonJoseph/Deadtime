@@ -39,13 +39,6 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
   useEffect(() => {
     if (!user || !token) return;
     async function fetchData() {
-      // Debug: Log available data
-      console.log('🔍 Dashboard Data:', {
-        user: user,
-        projects: projects,
-        userRevivedProjects: user.revivedProjects
-      });
-      
       // Get projects this user has revived (from user.revivedProjects)
       const revived = user.revivedProjects || [];
       setRevivedProjects(revived);

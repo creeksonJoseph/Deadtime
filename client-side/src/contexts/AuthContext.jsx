@@ -49,7 +49,6 @@ export function AuthProvider({ children }) {
         localStorage.setItem("user", JSON.stringify(finalUser));
         localStorage.setItem("userId", finalUser.id);
       } catch (err) {
-        console.error("Auth fetchProfile error:", err);
         logout();
       } finally {
         setLoading(false);
@@ -92,7 +91,6 @@ export function AuthProvider({ children }) {
     if (!token || !user?.id) return;
     try {
       const data = await getUserProfile(user.id, token);
-      console.log("Refresh user data:", data);
       if (data?.user) {
         const storedRaw = localStorage.getItem("user");
         const stored = storedRaw ? JSON.parse(storedRaw) : null;
@@ -108,12 +106,11 @@ export function AuthProvider({ children }) {
           postedProjects: data.postedProjects || [],
           revivedProjects: data.revivedProjects || [],
         };
-        console.log("Updated user object:", updatedUser);
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
     } catch (err) {
-      console.error("Failed to refresh user:", err);
+      // ignore
     }
   }
 

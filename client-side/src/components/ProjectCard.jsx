@@ -2,11 +2,31 @@ import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
 import { ExternalLink, User, MoreVertical, Trash2 } from "lucide-react";
 
-function PostedBy({ username }) {
+function PostedBy({ username, profilePic }) {
   return (
     <div className="flex items-center gap-3 pt-2 border-t border-slate-700/50 bg-slate-800/10 -mx-6 px-6 pb-2">
-      <div className="w-8 h-8 bg-gradient-to-br from-[#fcdb32] to-[#fcdb32]/70 rounded-full flex items-center justify-center flex-shrink-0">
-        <User className="w-4 h-4 text-[#141d38]" />
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${profilePic ? "" : "bg-gradient-to-br from-[#fcdb32] to-[#fcdb32]/70"}`}
+      >
+        {profilePic ? (
+          <img
+            src={profilePic}
+            alt={`${username}'s avatar`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to icon if image fails
+              e.currentTarget.style.display = "none";
+              const fallback = e.currentTarget.nextSibling;
+              if (fallback) fallback.style.display = "flex";
+            }}
+          />
+        ) : null}
+        <div
+          style={{ display: profilePic ? "none" : "flex" }}
+          className="w-8 h-8 items-center justify-center"
+        >
+          <User className="w-4 h-4 text-[#141d38] m-auto" />
+        </div>
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-slate-400 text-xs">Posted by</p>
@@ -26,6 +46,7 @@ export function ProjectCard({
   isMobile = false,
 }) {
   const [username, setUsername] = useState("Loading...");
+  const [profilePic, setProfilePic] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const isOwner = currentUserId === project.creatorId;
 
@@ -71,14 +92,13 @@ export function ProjectCard({
 
   const truncateToWords = (text, maxWords = 40) => {
     if (!text) return "";
-    const words = text.split(' ');
+    const words = text.split(" ");
     if (words.length <= maxWords) return text;
-    return words.slice(0, maxWords).join(' ') + "...";
+    return words.slice(0, maxWords).join(" ") + "...";
   };
 
   useEffect(() => {
     if (!project.creatorId) {
-      console.warn("No creatorId found for project:", project);
       setUsername("Unknown");
       return;
     }
@@ -102,15 +122,18 @@ export function ProjectCard({
       })
       .then((user) => {
         setUsername(user.user?.username || "Unknown");
+        setProfilePic(user.user?.profilepic || "");
       })
-      .catch((err) => {
-        console.error("Error fetching user:", err);
+      .catch(() => {
         setUsername("Unknown");
+        setProfilePic("");
       });
   }, [project.creatorId, token]);
 
   return (
-    <div className={`${isMobile ? 'w-full bg-[#141d38] border-0 border-b border-b-slate-600/10 md:border md:border-slate-600/30 rounded-none md:rounded-2xl shadow-[0_4px_0_rgba(52,224,161,0.1)] md:shadow-lg mb-1 md:mb-0' : 'w-[300px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg'} h-[380px] hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative`}>
+    <div
+      className={`${isMobile ? "w-full bg-[#141d38] border-0 border-b border-b-slate-600/10 md:border md:border-slate-600/30 rounded-none md:rounded-2xl shadow-[0_4px_0_rgba(52,224,161,0.1)] md:shadow-lg mb-1 md:mb-0" : "w-[300px] bg-[#141d38] rounded-2xl border border-slate-600/30 shadow-lg"} h-[380px] hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col overflow-hidden relative`}
+    >
       {/* 3-dots menu - only show for project owner */}
       {isOwner && (
         <>
@@ -150,7 +173,9 @@ export function ProjectCard({
         </div>
       )}
 
-      <div className={`p-6 flex flex-col ${project.logoUrl ? 'flex-1' : 'flex-1 justify-center'}`}>
+      <div
+        className={`p-6 flex flex-col ${project.logoUrl ? "flex-1" : "flex-1 justify-center"}`}
+      >
         <div className="mb-3">
           <div className="flex items-start justify-between mb-2">
             <h3 className="text-white font-bold text-xl leading-tight line-clamp-2 flex-1 mr-2">
@@ -169,7 +194,8 @@ export function ProjectCard({
             </p>
             {project.revivedBy && project.revivedBy.length > 0 && (
               <span className="text-[#34e0a1] font-medium">
-                {project.revivedBy.length} revival{project.revivedBy.length !== 1 ? 's' : ''}
+                {project.revivedBy.length} revival
+                {project.revivedBy.length !== 1 ? "s" : ""}
               </span>
             )}
           </div>
@@ -190,7 +216,9 @@ export function ProjectCard({
             </button>
           </div>
 
-          {showPostedBy && <PostedBy username={username} />}
+          {showPostedBy && (
+            <PostedBy username={username} profilePic={profilePic} />
+          )}
         </div>
       </div>
     </div>

@@ -37,32 +37,26 @@ export function NotificationsPage() {
 
         // Fetch comments on user's projects
         const allComments = [];
-        console.log('My projects:', myProjects);
         for (const project of myProjects) {
           try {
-            console.log(`Fetching comments for project: ${project.title} (${project._id})`);
             const projectComments = await getCommentsForProject(project._id, token);
-            console.log(`Comments for ${project.title}:`, projectComments);
             const othersComments = projectComments.filter(comment => {
               const isOtherUser = comment.userId?._id !== user?.id;
               const isNotAnonymous = !comment.isAnonymous;
-              console.log(`Comment by ${comment.userId?.username}: isOtherUser=${isOtherUser}, isNotAnonymous=${isNotAnonymous}`);
               return isOtherUser && isNotAnonymous;
             });
-            console.log(`Filtered comments for ${project.title}:`, othersComments);
             allComments.push(...othersComments.map(comment => ({
               ...comment,
               projectTitle: project.title,
               projectId: project._id
             })));
           } catch (error) {
-            console.error(`Error fetching comments for project ${project._id}:`, error);
+            // ignore
           }
         }
-        console.log('All comments:', allComments);
         setComments(allComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+        // ignore
       } finally {
         setLoading(false);
       }
