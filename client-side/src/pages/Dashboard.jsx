@@ -11,8 +11,9 @@ import {
   Clock,
   Users,
   Target,
-  Zap,
+  Trophy,
 } from "lucide-react";
+import { getLeaderboard } from "../api/users";
 
 export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
   const [revivedProjects, setRevivedProjects] = useState([]);
@@ -24,7 +25,7 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
     avgRevivalsPerProject: 0,
     recentActivity: [],
     joinDate: null,
-    streak: 0,
+    leaderboardPosition: 0,
   });
   const { user, token, loading } = useAuth();
 
@@ -61,24 +62,33 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 5);
 
-      // Calculate streak (days since last activity)
-      const lastActivity = recentActivity[0];
-      const daysSinceActivity = lastActivity
-        ? Math.floor(
-            (Date.now() - new Date(lastActivity.date)) / (1000 * 60 * 60 * 24)
-          )
-        : 0;
-
-      setUserStats({
-        buried: projects.length,
-        revived: revived.length,
-        badges: [],
-        totalRevivals,
-        avgRevivalsPerProject,
-        recentActivity,
-        joinDate: user.createdAt,
-        streak: Math.max(0, 7 - daysSinceActivity), // Simple streak calculation
-      });
+      // Get leaderboard position
+      getLeaderboard(token)
+        .then(leaderboard => {
+          const position = leaderboard.findIndex(u => u._id === user.id) + 1;
+          setUserStats({
+            buried: projects.length,
+            revived: revived.length,
+            badges: [],
+            totalRevivals,
+            avgRevivalsPerProject,
+            recentActivity,
+            joinDate: user.createdAt,
+            leaderboardPosition: position || 0,
+          });
+        })
+        .catch(() => {
+          setUserStats({
+            buried: projects.length,
+            revived: revived.length,
+            badges: [],
+            totalRevivals,
+            avgRevivalsPerProject,
+            recentActivity,
+            joinDate: user.createdAt,
+            leaderboardPosition: 0,
+          });
+        });
     }
     fetchData();
   }, [token, user, projects]);
@@ -114,53 +124,53 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
         </div>
 
         {/* Enhanced Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 mb-8 w-full">
-          <Card className="tombstone-card p-2 md:p-4 text-center flex flex-col justify-center">
-            <Skull className="w-5 h-5 md:w-8 md:h-8 mx-auto mb-1 text-[#34e0a1]" />
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1 md:gap-4 mb-6 md:mb-8 w-full">
+          <Card className="tombstone-card p-1 md:p-4 text-center flex flex-col justify-center min-h-[60px] md:min-h-auto">
+            <Skull className="w-4 h-4 md:w-8 md:h-8 mx-auto mb-0.5 md:mb-1 text-[#34e0a1]" />
+            <h3 className="text-sm md:text-xl font-bold text-white mb-0 md:mb-1">
               {userStats.buried}
             </h3>
-            <p className="text-xs text-slate-400">Buried</p>
+            <p className="text-[10px] md:text-xs text-slate-400">Buried</p>
           </Card>
 
-          <Card className="tombstone-card p-2 md:p-4 text-center flex flex-col justify-center">
-            <Heart className="w-5 h-5 md:w-8 md:h-8 mx-auto mb-1 text-[#fcdb32]" />
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1">
+          <Card className="tombstone-card p-1 md:p-4 text-center flex flex-col justify-center min-h-[60px] md:min-h-auto">
+            <Heart className="w-4 h-4 md:w-8 md:h-8 mx-auto mb-0.5 md:mb-1 text-[#fcdb32]" />
+            <h3 className="text-sm md:text-xl font-bold text-white mb-0 md:mb-1">
               {userStats.revived}
             </h3>
-            <p className="text-xs text-slate-400">Revived</p>
+            <p className="text-[10px] md:text-xs text-slate-400">Revived</p>
           </Card>
 
-          <Card className="tombstone-card p-2 md:p-4 text-center flex flex-col justify-center">
-            <Users className="w-5 h-5 md:w-8 md:h-8 mx-auto mb-1 text-[#ff6b6b]" />
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1">
+          <Card className="tombstone-card p-1 md:p-4 text-center flex flex-col justify-center min-h-[60px] md:min-h-auto">
+            <Users className="w-4 h-4 md:w-8 md:h-8 mx-auto mb-0.5 md:mb-1 text-[#ff6b6b]" />
+            <h3 className="text-sm md:text-xl font-bold text-white mb-0 md:mb-1">
               {userStats.totalRevivals}
             </h3>
-            <p className="text-xs text-slate-400">Total Revivals</p>
+            <p className="text-[10px] md:text-xs text-slate-400">Revivals</p>
           </Card>
 
-          <Card className="tombstone-card p-2 md:p-4 text-center flex flex-col justify-center">
-            <TrendingUp className="w-5 h-5 md:w-8 md:h-8 mx-auto mb-1 text-[#4ecdc4]" />
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1">
+          <Card className="tombstone-card p-1 md:p-4 text-center flex flex-col justify-center min-h-[60px] md:min-h-auto">
+            <TrendingUp className="w-4 h-4 md:w-8 md:h-8 mx-auto mb-0.5 md:mb-1 text-[#4ecdc4]" />
+            <h3 className="text-sm md:text-xl font-bold text-white mb-0 md:mb-1">
               {userStats.avgRevivalsPerProject}
             </h3>
-            <p className="text-xs text-slate-400">Avg/Project</p>
+            <p className="text-[10px] md:text-xs text-slate-400">Avg</p>
           </Card>
 
-          <Card className="tombstone-card p-2 md:p-4 text-center flex flex-col justify-center">
-            <Zap className="w-5 h-5 md:w-8 md:h-8 mx-auto mb-1 text-[#ffd93d]" />
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1">
-              {userStats.streak}
+          <Card className="tombstone-card p-1 md:p-4 text-center flex flex-col justify-center min-h-[60px] md:min-h-auto">
+            <Trophy className="w-4 h-4 md:w-8 md:h-8 mx-auto mb-0.5 md:mb-1 text-[#ffd93d]" />
+            <h3 className="text-sm md:text-xl font-bold text-white mb-0 md:mb-1">
+              {userStats.leaderboardPosition > 0 ? `#${userStats.leaderboardPosition}` : '-'}
             </h3>
-            <p className="text-xs text-slate-400">Day Streak</p>
+            <p className="text-[10px] md:text-xs text-slate-400">Rank</p>
           </Card>
 
-          <Card className="tombstone-card p-3 md:p-4 text-center flex flex-col justify-center">
-            <Award className="w-5 h-5 md:w-8 md:h-8 mx-auto mb-1 text-[#a78bfa]" />
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1">
+          <Card className="tombstone-card p-1 md:p-4 text-center flex flex-col justify-center min-h-[60px] md:min-h-auto">
+            <Award className="w-4 h-4 md:w-8 md:h-8 mx-auto mb-0.5 md:mb-1 text-[#a78bfa]" />
+            <h3 className="text-sm md:text-xl font-bold text-white mb-0 md:mb-1">
               {userStats.badges.length}
             </h3>
-            <p className="text-xs text-slate-400">Badges</p>
+            <p className="text-[10px] md:text-xs text-slate-400">Badges</p>
           </Card>
         </div>
 
@@ -168,14 +178,14 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-10">
           {/* Recent Activity */}
           <div className="lg:col-span-2">
-            <Card className="tombstone-card p-4 md:p-6">
+            <Card className="tombstone-card p-4 md:p-6 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <Clock className="w-6 h-6 text-[#34e0a1]" />
                 <h3 className="text-xl font-bold text-white">
                   Recent Activity
                 </h3>
               </div>
-              <div className="space-y-3">
+              <div className="flex-1 flex flex-col justify-start space-y-3">
                 {userStats.recentActivity.length > 0 ? (
                   userStats.recentActivity.map((activity, index) => {
                     const IconComponent = activity.icon;

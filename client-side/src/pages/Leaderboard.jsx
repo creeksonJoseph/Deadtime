@@ -47,7 +47,7 @@ export function Leaderboard({ sidebarOpen }) {
   }
 
   return (
-    <div className={`min-h-screen pb-20 px-4 md:px-6 pt-8 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
+    <div className={`min-h-screen pb-20 px-4 md:px-6 pt-8 transition-all duration-300 ${sidebarOpen ? 'md:ml-24' : 'md:ml-0'}`}>
 
         
         {/* Header */}
@@ -60,7 +60,7 @@ export function Leaderboard({ sidebarOpen }) {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="glass rounded-lg p-6">
+          <div className="bg-slate-800/30 border border-slate-700/30 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Total Revivals</p>
@@ -69,7 +69,7 @@ export function Leaderboard({ sidebarOpen }) {
               <TrendingUp className="w-8 h-8 text-[#34e0a1]" />
             </div>
           </div>
-          <div className="glass rounded-lg p-6">
+          <div className="bg-slate-800/30 border border-slate-700/30 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Active Revivers</p>
@@ -78,7 +78,7 @@ export function Leaderboard({ sidebarOpen }) {
               <Users className="w-8 h-8 text-[#34e0a1]" />
             </div>
           </div>
-          <div className="glass rounded-lg p-6">
+          <div className="bg-slate-800/30 border border-slate-700/30 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Average Revivals</p>
@@ -91,7 +91,7 @@ export function Leaderboard({ sidebarOpen }) {
 
         {/* Top 3 Podium */}
         {users.length >= 3 && (
-          <div className="glass rounded-lg p-8 mb-8">
+          <div className="bg-slate-800/30 border border-slate-700/30 rounded-lg p-8 mb-8">
             <h3 className="text-xl font-bold text-[#34e0a1] mb-6 text-center">Top Revivers</h3>
             <div className="flex justify-center items-end space-x-4">
               {/* 2nd Place */}
@@ -125,7 +125,7 @@ export function Leaderboard({ sidebarOpen }) {
         )}
 
         {/* Full Leaderboard */}
-        <div className="glass rounded-lg p-6">
+        <div className="bg-slate-800/30 border border-slate-700/30 rounded-lg p-6">
           <h3 className="text-xl font-bold text-[#34e0a1] mb-6">Full Rankings</h3>
           <div className="space-y-3">
             {users.map((u, i) => {

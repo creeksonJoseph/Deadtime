@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   X,
   ExternalLink,
@@ -25,12 +26,12 @@ export function ProjectModal({
   projectId,
   token,
   onClose,
-  onEdit,
   isOwner = false,
   onDelete,
   onProjectRevived,
 }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [loadedProject, setLoadedProject] = useState(project);
   const [notes, setNotes] = useState([]);
@@ -413,7 +414,7 @@ export function ProjectModal({
                   <Button
                     onClick={() => {
                       onClose();
-                      onEdit(projectToUse);
+                      navigate(`/edit-project/${projectToUse._id}`);
                     }}
                     className="bg-transparent border-2 border-[#fcdb32] text-[#fcdb32] hover:bg-[#fcdb32] hover:text-[#141d38] px-8 py-3 rounded-xl transition-all duration-200 font-semibold text-base"
                   >

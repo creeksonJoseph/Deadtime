@@ -9,6 +9,7 @@ import {
   Route,
   useLocation,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { LandingPage } from "./pages/LandingPage";
@@ -22,8 +23,8 @@ import { ProjectModal } from "./components/ProjectModal";
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
 import { useIsBigScreen } from "./components/UseIsBigScreen";
 import { PortalNav } from "./components/PortalNav";
-import { EditProjectModal } from "./components/EditProjectModal.jsx";
 import { AddProjectPage } from "./pages/AddProjectPage.jsx";
+import { EditProjectPage } from "./pages/EditProjectPage.jsx";
 import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./pages/Leaderboard";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -37,11 +38,11 @@ function AppContent() {
   const { user, token } = useAuth();
   const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [editingProject, setEditingProject] = useState(null);
   const [guestSearchVisible, setGuestSearchVisible] = useState(false);
   const [browseSearchVisible, setBrowseSearchVisible] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
   const isBigScreen = useIsBigScreen();
 
   const refetchProjects = async () => {
@@ -63,14 +64,6 @@ function AppContent() {
 
   const handleAddProject = (newProject) => {
     setAllProjects((prev) => [newProject, ...prev]);
-    setEditingProject(null);
-  };
-
-  const handleEditProject = (updatedProject) => {
-    setAllProjects((prev) =>
-      prev.map((p) => (p._id === updatedProject._id ? updatedProject : p))
-    );
-    setEditingProject(null);
   };
 
   // DELETE ONLY
@@ -105,7 +98,7 @@ function AppContent() {
     "/add-project",
     "/leaderboard",
     "/notifications",
-  ].includes(location.pathname) || location.pathname.startsWith("/project/");
+  ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
   const showHeader = [
     "/dashboard",
     "/browse",
@@ -115,7 +108,7 @@ function AppContent() {
     "/notifications",
     "/admin",
     "/add-project",
-  ].includes(location.pathname) || location.pathname.startsWith("/project/");
+  ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
   const showGuestHeader = location.pathname === "/guest-browse";
 
   const openProjectModal = (project) => {
@@ -127,13 +120,7 @@ function AppContent() {
     setSelectedProject(null);
   };
 
-  const closeFormModal = () => {
-    setEditingProject(null);
-  };
 
-  const openEditModal = (project) => {
-    setEditingProject(project);
-  };
 
   return (
     <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
@@ -164,6 +151,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <AddProjectPage onProjectCreated={refetchProjects} sidebarOpen={sidebarOpen} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-project/:projectId"
+          element={
+            <ProtectedRoute>
+              <EditProjectPage onProjectUpdated={refetchProjects} sidebarOpen={sidebarOpen} />
             </ProtectedRoute>
           }
         />
@@ -249,7 +244,6 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ProjectDetailsPage
-                onEdit={openEditModal}
                 onDelete={handleDeleteProject}
                 onProjectRevived={refetchProjects}
                 sidebarOpen={sidebarOpen}
@@ -275,21 +269,13 @@ function AppContent() {
           project={selectedProject}
           token={token}
           onClose={closeProjectModal}
-          onEdit={openEditModal}
           isOwner={selectedProject.isOwner}
           onDelete={handleDeleteProject}
           onProjectRevived={refetchProjects}
         />
       )}
 
-      {/* Edit Modal */}
-      {editingProject && (
-        <EditProjectModal
-          project={editingProject}
-          onClose={closeFormModal}
-          onSave={handleEditProject}
-        />
-      )}
+
     </div>
   );
 }

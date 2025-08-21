@@ -224,7 +224,7 @@ export function AccountPage({ sidebarOpen }) {
   };
 
   return (
-    <div className={`min-h-screen sm:py-3 md:py-5 lg:py-7 px-4 pb-24 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
+    <div className={`min-h-screen py-4 px-4 pb-24 transition-all duration-300 ${sidebarOpen ? 'md:ml-28' : 'md:ml-0'}`}>
       <div className="container mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 px-4">

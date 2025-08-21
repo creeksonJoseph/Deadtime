@@ -21,7 +21,7 @@ import {
 import { ReviveProjectModal } from "../components/ReviveProjectModal";
 import { Textarea } from "../components/ui/textarea";
 
-export function ProjectDetailsPage({ onEdit, onDelete, onProjectRevived, sidebarOpen }) {
+export function ProjectDetailsPage({ onDelete, onProjectRevived, sidebarOpen }) {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
@@ -136,7 +136,8 @@ export function ProjectDetailsPage({ onEdit, onDelete, onProjectRevived, sidebar
   }
 
   return (
-    <div className={`fixed inset-0 bg-[#141d38] flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
+    <div className={`fixed inset-0 bg-[#141d38] flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-28' : 'md:ml-0'}`}>
+      <div className="w-full max-w-[98%] mx-auto h-full flex flex-col">
       {/* Header with back button */}
       <div className="flex-shrink-0 bg-[#141d38]/95 backdrop-blur-sm border-b border-slate-700/50">
         <div className="flex items-center justify-between p-4">
@@ -442,6 +443,7 @@ export function ProjectDetailsPage({ onEdit, onDelete, onProjectRevived, sidebar
           }}
         />
       )}
+      </div>
     </div>
   );
 }

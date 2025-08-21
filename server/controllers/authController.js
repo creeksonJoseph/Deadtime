@@ -160,8 +160,6 @@ exports.githubLogin = async (req, res) => {
       { expiresIn: "2h" }
     );
 
-    //redirect to frontend with token
-    // res.redirect(`http://localhost:5173/oauth-success?token=${token}&username=${user.username}`);
     res.json({
       message: "🟢 GitHub login successful",
       token,
