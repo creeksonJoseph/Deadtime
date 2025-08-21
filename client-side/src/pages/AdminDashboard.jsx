@@ -34,12 +34,6 @@ export function AdminDashboard({ sidebarOpen }) {
 
   // Admin check - match frontend logic
   const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
-  
-  // Debug logging
-  console.log('User object:', user);
-  console.log('User role:', user?.role);
-  console.log('Is admin:', isAdmin);
-  console.log('Token (first 50 chars):', token?.substring(0, 50));
 
   useEffect(() => {
     if (!isAdmin || !token) {
@@ -51,13 +45,10 @@ export function AdminDashboard({ sidebarOpen }) {
       try {
         // Admin: fetch all users with their projects
         try {
-          console.log('Attempting to fetch users with token:', token?.substring(0, 50));
           const usersData = await getAllUsers(token);
-          console.log('Users data received:', usersData);
           setUsers(usersData || []);
           setUserApiForbidden(false);
         } catch (e) {
-          console.log('Admin API error:', e);
           // Likely 403 from backend (not admin on server side)
           setUserApiForbidden(true);
           // Fallback: derive users from projects and fetch their profiles individually
