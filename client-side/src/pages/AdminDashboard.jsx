@@ -32,8 +32,8 @@ export function AdminDashboard({ sidebarOpen }) {
   const [projectSearch, setProjectSearch] = useState("");
   const [userApiForbidden, setUserApiForbidden] = useState(false);
 
-  // Admin check
-  const isAdmin = user?.role === "admin";
+  // Admin check - match frontend logic
+  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
   
   // Debug logging
   console.log('User object:', user);
