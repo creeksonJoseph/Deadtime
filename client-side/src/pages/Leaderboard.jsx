@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Trophy, Medal, Award, TrendingUp, Users, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export function Leaderboard() {
+export function Leaderboard({ sidebarOpen }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token, user } = useAuth();
@@ -47,15 +47,15 @@ export function Leaderboard() {
   }
 
   return (
-    <div className="min-h-screen pb-20 px-6 pt-8">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-6 px-4 py-2 bg-slate-800/60 hover:bg-slate-700/60 rounded-lg border border-slate-600/40 hover:border-[#34e0a1]/50 transition-all duration-200"
-        >
-          <ArrowLeft className="w-4 h-4 text-slate-300" />
-          <span className="text-slate-300">Back</span>
-        </button>
+    <div className={`min-h-screen pb-20 px-6 pt-8 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="fixed top-20 left-4 z-50 w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+      >
+        <ArrowLeft className="w-4 h-4 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+      </button>
+
         
         {/* Header */}
         <div className="text-center mb-8">

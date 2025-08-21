@@ -20,7 +20,7 @@ import {
 import { createGhostCard } from "../api/ghostcards";
 import { useAuth } from "../contexts/AuthContext";
 
-export function AddProjectPage({ onProjectCreated }) {
+export function AddProjectPage({ onProjectCreated, sidebarOpen }) {
   const navigate = useNavigate();
   const { token, refreshUser } = useAuth();
 
@@ -192,7 +192,7 @@ export function AddProjectPage({ onProjectCreated }) {
   };
 
   return (
-    <div className="min-h-screen mt-0 pt-0">
+    <div className={`min-h-screen mt-0 pt-0 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
       {/* Exit Button */}
       <button
         onClick={() => navigate(-1)}

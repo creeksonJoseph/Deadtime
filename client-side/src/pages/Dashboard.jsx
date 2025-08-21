@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { ProjectCard } from "../components/ProjectCard";
 import { Card } from "../components/ui/card";
@@ -13,9 +12,11 @@ import {
   Users,
   Target,
   Zap,
+  ArrowLeft,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export function Dashboard({ projects, onOpenProject, onDelete }) {
+export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
   const [revivedProjects, setRevivedProjects] = useState([]);
   const [userStats, setUserStats] = useState({
     buried: 0,
@@ -29,16 +30,10 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
   });
   const { user, token, loading } = useAuth();
   const navigate = useNavigate();
-  const buriedSectionRef = useRef(null);
-  const revivedSectionRef = useRef(null);
-
-  const scrollToSection = (ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   useEffect(() => {
     if (!user || !token) return;
-    async function fetchData() {
+    function fetchData() {
       // Get projects this user has revived (from user.revivedProjects)
       const revived = user.revivedProjects || [];
       setRevivedProjects(revived);
@@ -108,7 +103,14 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
   }
 
   return (
-    <div className="min-h-screen sm:py-2 md:py-4 lg:py-6 px-3 pb-24">
+    <div className={`min-h-screen sm:py-2 md:py-4 lg:py-6 px-3 pb-24 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="fixed top-20 left-4 z-50 w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+      >
+        <ArrowLeft className="w-4 h-4 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+      </button>
       <div className="container mx-auto">
         {/* Welcome Header */}
         <div className="text-left mb-6 px-2">
@@ -282,7 +284,7 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
         </div>
 
         {/* User Projects */}
-        <div ref={buriedSectionRef} className="mb-12">
+        <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="w-1 h-8 bg-[#34e0a1] rounded-full"></div>
@@ -318,7 +320,7 @@ export function Dashboard({ projects, onOpenProject, onDelete }) {
         </div>
 
         {/* Revived Projects */}
-        <div ref={revivedSectionRef} className="mb-12">
+        <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="w-1 h-8 bg-[#fcdb32] rounded-full"></div>

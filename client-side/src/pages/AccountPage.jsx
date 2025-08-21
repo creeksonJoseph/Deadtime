@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { LogOut, Edit, Save, X, Upload, Camera } from "lucide-react";
+import { LogOut, Edit, Save, X, Upload, Camera, ArrowLeft } from "lucide-react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { updateUserProfile } from "../api/users";
 
-export function AccountPage() {
+export function AccountPage({ sidebarOpen }) {
   const navigate = useNavigate();
   const { user, logout, refreshUser, token } = useAuth();
 
@@ -224,7 +224,14 @@ export function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen sm:py-3 md:py-5 lg:py-7 px-4 pb-24">
+    <div className={`min-h-screen sm:py-3 md:py-5 lg:py-7 px-4 pb-24 transition-all duration-300 ${sidebarOpen ? 'md:ml-20' : 'md:ml-0'}`}>
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="fixed top-20 left-4 z-50 w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+      >
+        <ArrowLeft className="w-4 h-4 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+      </button>
       <div className="container mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 px-4">

@@ -163,7 +163,7 @@ function AppContent() {
           path="/add-project"
           element={
             <ProtectedRoute>
-              <AddProjectPage onProjectCreated={refetchProjects} />
+              <AddProjectPage onProjectCreated={refetchProjects} sidebarOpen={sidebarOpen} />
             </ProtectedRoute>
           }
         />
@@ -175,6 +175,7 @@ function AppContent() {
                 projects={myProjects}
                 onOpenProject={openProjectModal}
                 onDelete={handleDeleteProject}
+                sidebarOpen={sidebarOpen}
               />
             </ProtectedRoute>
           }
@@ -191,6 +192,7 @@ function AppContent() {
                 currentUserId={user?.id}
                 onProjectRevived={refetchProjects}
                 searchVisible={browseSearchVisible}
+                sidebarOpen={sidebarOpen}
               />
             </ProtectedRoute>
           }
@@ -214,7 +216,7 @@ function AppContent() {
           path="/account"
           element={
             <ProtectedRoute>
-              <AccountPage />
+              <AccountPage sidebarOpen={sidebarOpen} />
             </ProtectedRoute>
           }
         />
@@ -222,7 +224,7 @@ function AppContent() {
           path="/leaderboard"
           element={
             <ProtectedRoute>
-              <Leaderboard />
+              <Leaderboard sidebarOpen={sidebarOpen} />
             </ProtectedRoute>
           }
         />
@@ -230,7 +232,7 @@ function AppContent() {
           path="/notifications"
           element={
             <ProtectedRoute>
-              <NotificationsPage />
+              <NotificationsPage sidebarOpen={sidebarOpen} />
             </ProtectedRoute>
           }
         />
@@ -238,7 +240,7 @@ function AppContent() {
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <AdminDashboard sidebarOpen={sidebarOpen} />
             </ProtectedRoute>
           }
         />
