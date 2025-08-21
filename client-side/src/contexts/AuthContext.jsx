@@ -36,9 +36,13 @@ export function AuthProvider({ children }) {
           throw new Error("Profile API returned invalid data");
         }
 
+        const savedUser = storedUser ? JSON.parse(storedUser) : null;
         const finalUser = {
+          ...(savedUser || {}),
           ...data.user,
           id: data.user._id || data.user.id,
+          // Preserve profilepic if backend omits it
+          profilepic: data.user.profilepic ?? savedUser?.profilepic ?? "",
         };
 
         setUser(finalUser);
@@ -65,7 +69,20 @@ export function AuthProvider({ children }) {
 
     // Fetch full profile here
     const profileData = await getUserProfile(userObj.id, newToken);
-    setUser(profileData.user); // or setUser(profileData) if you want everything
+    const savedUser = localStorage.getItem("user");
+    const savedUserObj = savedUser ? JSON.parse(savedUser) : null;
+    const mergedUser = {
+      ...(savedUserObj || {}),
+      ...(profileData?.user || {}),
+      id: profileData?.user?._id || profileData?.user?.id || userObj.id,
+      profilepic:
+        profileData?.user?.profilepic ??
+        savedUserObj?.profilepic ??
+        userObj.profilepic ??
+        "",
+    };
+    setUser(mergedUser);
+    localStorage.setItem("user", JSON.stringify(mergedUser));
 
     setLoading(false);
     navigate("/dashboard");
@@ -75,14 +92,23 @@ export function AuthProvider({ children }) {
     if (!token || !user?.id) return;
     try {
       const data = await getUserProfile(user.id, token);
+      console.log("Refresh user data:", data);
       if (data?.user) {
+        const storedRaw = localStorage.getItem("user");
+        const stored = storedRaw ? JSON.parse(storedRaw) : null;
+        // Prefer the stored user (which may include profilepic) over in-memory user when merging
+        const savedUser = stored || user || null;
         const updatedUser = {
+          ...(savedUser || {}),
           ...data.user,
           id: data.user._id || data.user.id,
+          // Preserve profilepic if backend omits it
+          profilepic: data.user.profilepic ?? savedUser?.profilepic ?? "",
           // Store the project data for AccountPage
           postedProjects: data.postedProjects || [],
           revivedProjects: data.revivedProjects || [],
         };
+        console.log("Updated user object:", updatedUser);
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
@@ -101,7 +127,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

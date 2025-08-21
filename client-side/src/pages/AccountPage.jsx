@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
-import { LogOut } from "lucide-react";
+import { Input } from "../components/ui/input";
+import { LogOut, Edit, Save, X, Upload, Camera } from "lucide-react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { updateUserProfile } from "../api/users";
 
 export function AccountPage() {
   const navigate = useNavigate();
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser, token } = useAuth();
 
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -17,20 +19,156 @@ export function AccountPage() {
   });
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
+  // Profile editing states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(user?.username || "");
+  const [editingProfilePic, setEditingProfilePic] = useState(
+    user?.profilepic || ""
+  );
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
+  const [profilePicProgress, setProfilePicProgress] = useState(0);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Local user state to ensure profile picture persists
+  const [localUser, setLocalUser] = useState(user);
+
+  // Cloudinary upload function
+  const uploadToCloudinary = (file) => {
+    return new Promise((resolve, reject) => {
+      setUploadingProfilePic(true);
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open(
+        "POST",
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_NAME}/image/upload`
+      );
+
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded * 100) / event.total);
+          setProfilePicProgress(percent);
+        }
+      });
+
+      xhr.onload = () => {
+        setUploadingProfilePic(false);
+        if (xhr.status === 200) {
+          const res = JSON.parse(xhr.responseText);
+          setTimeout(() => setProfilePicProgress(0), 1000);
+          resolve(res.secure_url);
+        } else {
+          setTimeout(() => setProfilePicProgress(0), 1000);
+          reject("Upload failed");
+        }
+      };
+
+      xhr.onerror = () => {
+        setUploadingProfilePic(false);
+        setTimeout(() => setProfilePicProgress(0), 1000);
+        reject("Upload failed");
+      };
+      xhr.send(data);
+    });
+  };
+
+  const handleProfilePicUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const url = await uploadToCloudinary(file);
+      setEditingProfilePic(url);
+    } catch (error) {
+      setError("Failed to upload profile picture");
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editingUsername.trim()) {
+      setError("Username cannot be empty");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const updates = {
+        username: editingUsername.trim(),
+        ...(editingProfilePic && { profilepic: editingProfilePic }),
+      };
+
+      const result = await updateUserProfile(user.id, updates, token);
+      console.log("Profile update result:", result);
+
+      // Update local user state immediately with the new data
+      const updatedUser = {
+        ...user,
+        username: editingUsername.trim(),
+        ...(editingProfilePic && { profilepic: editingProfilePic }),
+      };
+
+      // Update the user in localStorage and context
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Update local state immediately to show the profile picture
+      setLocalUser(updatedUser);
+
+      // Update the user context immediately to show the profile picture
+      // This ensures the UI updates before the backend refresh
+      await refreshUser();
+
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Profile update error:", err);
+      setError("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUsername(user?.username || "");
+    setEditingProfilePic(user?.profilepic || "");
+    setError("");
+    setIsEditing(false);
+  };
+
+  const startEditing = () => {
+    setEditingUsername(user?.username || "");
+    setEditingProfilePic(user?.profilepic || "");
+    setIsEditing(true);
+  };
+
+  // Update editing states when user object changes
+  useEffect(() => {
+    if (!isEditing) {
+      setEditingUsername(user?.username || "");
+      setEditingProfilePic(user?.profilepic || "");
+    }
+    // Update local user state when user object changes
+    setLocalUser(user);
+    console.log("User object in AccountPage:", user);
+  }, [user, isEditing]);
 
   useEffect(() => {
     if (!user) return;
-    
+
     // If user data doesn't have project info, refresh it
     if (!user.postedProjects && !user.revivedProjects) {
       refreshUser();
       return;
     }
-    
+
     // Calculate stats from cached user data
     setStats({
       totalProjects: user.postedProjects?.length || 0,
-      revivedProjects: user.postedProjects?.filter(p => p.status === 'revived')?.length || 0,
+      revivedProjects:
+        user.postedProjects?.filter((p) => p.status === "revived")?.length || 0,
       projectsRevived: user.revivedProjects?.length || 0,
       joinDate: user.createdAt,
     });
@@ -89,115 +227,253 @@ export function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen pb-20 px-6 pt-8 animate-fade-up">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-zasline text-3xl text-[#34e0a1] mb-2">
-            My Account
-          </h1>
-          <p className="text-slate-400">Manage your graveyard profile</p>
-        </div>
-        <Button
-          onClick={() => setShowLogoutDialog(true)}
-          variant="outline"
-          className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Logout
-        </Button>
-      </div>
-
-      {/* Profile Section */}
-      <div className="bg-slate-800/30 rounded-xl p-4 md:p-8 mb-6 md:mb-8 border border-slate-700/30">
-        <div className="flex items-center gap-4 md:gap-6">
-          {/* Avatar */}
-          <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-slate-700/50 flex items-center justify-center overflow-hidden">
-            <div className="text-2xl md:text-3xl">👤</div>
+    <div className="min-h-screen sm:py-3 md:py-5 lg:py-7 px-4 pb-24">
+      <div className="container mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 px-4">
+          <div>
+            <h1 className="font-zasline text-3xl text-[#34e0a1] mb-2">
+              My Account
+            </h1>
+            <p className="text-slate-400">Manage your graveyard profile</p>
           </div>
-
-          {/* User Info */}
-          <div className="flex-1">
-            <h2 className="font-zasline text-2xl md:text-4xl text-slate-200 mb-1 md:mb-2">
-              {user.username}
-            </h2>
-            <p className="text-slate-400 mb-2 md:mb-4 text-sm md:text-base">{user.email}</p>
-            <p className="text-slate-500 text-xs md:text-sm">
-              Joined{" "}
-              {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              }) : new Date().toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
-        <div className="bg-slate-800/30 rounded-lg p-3 md:p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
-          <div className="text-xl md:text-2xl mb-1 md:mb-2">⚰️</div>
-          <div className="text-lg md:text-2xl font-bold text-[#34e0a1] mb-1">
-            {stats.totalProjects}
-          </div>
-          <div className="text-slate-400 text-xs md:text-sm">Projects I Buried</div>
-        </div>
-        <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
-          <div className="text-2xl mb-2">🪄</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
-            {stats.projectsRevived}
-          </div>
-          <div className="text-slate-400 text-sm">Projects I Revived</div>
-        </div>
-        <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
-          <div className="text-2xl mb-2">❤️</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
-            {stats.revivedProjects}
-          </div>
-          <div className="text-slate-400 text-sm">My Projects Revived</div>
-        </div>
-        <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
-          <div className="text-2xl mb-2">🏆</div>
-          <div className="text-2xl font-bold text-[#34e0a1] mb-1">
-            {badges.filter((a) => a.unlocked).length}
-          </div>
-          <div className="text-slate-400 text-sm">Achievements</div>
-        </div>
-      </div>
-
-      {/* Achievements */}
-      <div className="bg-slate-800/30 rounded-xl p-4 md:p-8 border border-slate-700/30">
-        <h3 className="font-zasline text-xl md:text-2xl text-[#34e0a1] mb-4 md:mb-6 text-center">
-          🏆 Achievements
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
-        {badges.map((b) => (
-          <div
-            key={b.name}
-            className={`flex flex-col items-center p-2 md:p-4 rounded-lg bg-slate-700/30 border border-slate-600/30 ${
-              b.unlocked ? "border-[#34e0a1]/30" : "opacity-50"
-            }`}
+          <Button
+            onClick={() => setShowLogoutDialog(true)}
+            variant="outline"
+            className="border-red-500/30 text-red-400 hover:bg-red-500/10"
           >
-            <span className="text-2xl md:text-3xl mb-1 md:mb-2">{b.icon}</span>
-            <span className="font-bold text-slate-200 text-sm md:text-base">{b.name}</span>
-            <span className="text-xs text-slate-400">{b.desc}</span>
-            {!b.unlocked && (
-              <span className="text-xs text-yellow-400 mt-1">
-                {b.name === "Gravekeeper"
-                  ? `${5 - stats.totalProjects} to go`
-                  : b.name === "Necromancer"
-                    ? `${3 - stats.projectsRevived} to go`
-                    : ""}
-              </span>
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+
+        {/* Profile Section */}
+        <div className="px-4 mb-6 md:mb-8">
+          <div className="bg-slate-800/30 rounded-xl p-4 md:p-8 border border-slate-700/30">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-zasline text-xl text-[#34e0a1]">
+                Profile Information
+              </h3>
+              {!isEditing && (
+                <Button
+                  onClick={startEditing}
+                  variant="outline"
+                  size="sm"
+                  className="border-[#34e0a1]/30 text-[#34e0a1] hover:bg-[#34e0a1]/10"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
             )}
+
+            <div className="flex items-center gap-4 md:gap-6">
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-slate-700/50 flex items-center justify-center overflow-hidden">
+                  {isEditing && editingProfilePic ? (
+                    <img
+                      src={editingProfilePic}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                  ) : localUser?.profilepic ? (
+                    <img
+                      src={localUser.profilepic}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="text-2xl md:text-3xl"
+                    style={{
+                      display:
+                        (!isEditing || !editingProfilePic) &&
+                        !localUser?.profilepic
+                          ? "flex"
+                          : "none",
+                    }}
+                  >
+                    👤
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="absolute -bottom-1 -right-1">
+                    <label className="cursor-pointer">
+                      <div className="w-6 h-6 md:w-8 md:h-8 bg-[#34e0a1] rounded-full flex items-center justify-center hover:bg-[#34e0a1]/80 transition-colors">
+                        {uploadingProfilePic ? (
+                          <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Camera className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePicUpload}
+                        className="hidden"
+                        disabled={uploadingProfilePic}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* User Info */}
+              <div className="flex-1">
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-1">
+                        Username
+                      </label>
+                      <Input
+                        value={editingUsername}
+                        onChange={(e) => setEditingUsername(e.target.value)}
+                        className="bg-slate-700/50 border-slate-600/30 text-white"
+                        placeholder="Enter username"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleSaveProfile}
+                        disabled={saving}
+                        className="bg-[#34e0a1] hover:bg-[#34e0a1]/80 text-black"
+                      >
+                        {saving ? (
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Save
+                      </Button>
+                      <Button
+                        onClick={handleCancelEdit}
+                        variant="outline"
+                        className="border-slate-600/30 text-slate-400 hover:bg-slate-700/50"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="font-zasline text-2xl md:text-4xl text-slate-200 mb-1 md:mb-2">
+                      {localUser?.username || user?.username}
+                    </h2>
+                    <p className="text-slate-400 mb-2 md:mb-4 text-sm md:text-base">
+                      {localUser?.email || user?.email}
+                    </p>
+                    <p className="text-slate-500 text-xs md:text-sm">
+                      Joined{" "}
+                      {localUser?.createdAt || user?.createdAt
+                        ? new Date(
+                            localUser?.createdAt || user?.createdAt
+                          ).toLocaleDateString("en-US", {
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : new Date().toLocaleDateString("en-US", {
+                            month: "long",
+                            year: "numeric",
+                          })}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        ))}
+        </div>
+
+        {/* Stats Grid */}
+        <div className="px-4 mb-6 md:mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="bg-slate-800/30 rounded-lg p-3 md:p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
+              <div className="text-xl md:text-2xl mb-1 md:mb-2">⚰️</div>
+              <div className="text-lg md:text-2xl font-bold text-[#34e0a1] mb-1">
+                {stats.totalProjects}
+              </div>
+              <div className="text-slate-400 text-xs md:text-sm">
+                Projects I Buried
+              </div>
+            </div>
+            <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
+              <div className="text-2xl mb-2">🪄</div>
+              <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+                {stats.projectsRevived}
+              </div>
+              <div className="text-slate-400 text-sm">Projects I Revived</div>
+            </div>
+            <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
+              <div className="text-2xl mb-2">❤️</div>
+              <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+                {stats.revivedProjects}
+              </div>
+              <div className="text-slate-400 text-sm">My Projects Revived</div>
+            </div>
+            <div className="bg-slate-800/30 rounded-lg p-6 text-center hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/30">
+              <div className="text-2xl mb-2">🏆</div>
+              <div className="text-2xl font-bold text-[#34e0a1] mb-1">
+                {badges.filter((a) => a.unlocked).length}
+              </div>
+              <div className="text-slate-400 text-sm">Achievements</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Achievements */}
+        <div className="px-4">
+          <div className="bg-slate-800/30 rounded-xl p-4 md:p-8 border border-slate-700/30">
+            <h3 className="font-zasline text-xl md:text-2xl text-[#34e0a1] mb-4 md:mb-6 text-center">
+              🏆 Achievements
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+              {badges.map((b) => (
+                <div
+                  key={b.name}
+                  className={`flex flex-col items-center p-2 md:p-4 rounded-lg bg-slate-700/30 border border-slate-600/30 ${
+                    b.unlocked ? "border-[#34e0a1]/30" : "opacity-50"
+                  }`}
+                >
+                  <span className="text-2xl md:text-3xl mb-1 md:mb-2">
+                    {b.icon}
+                  </span>
+                  <span className="font-bold text-slate-200 text-sm md:text-base">
+                    {b.name}
+                  </span>
+                  <span className="text-xs text-slate-400">{b.desc}</span>
+                  {!b.unlocked && (
+                    <span className="text-xs text-yellow-400 mt-1">
+                      {b.name === "Gravekeeper"
+                        ? `${5 - stats.totalProjects} to go`
+                        : b.name === "Necromancer"
+                          ? `${3 - stats.projectsRevived} to go`
+                          : ""}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-      
+
       <ConfirmDialog
         isOpen={showLogoutDialog}
         onConfirm={handleLogout}
