@@ -11,6 +11,7 @@ import {
   X,
   Search,
 } from "lucide-react";
+import { UserCard } from "../components/UserCard";
 
 export function AdminDashboard() {
   const { token, user } = useAuth();
@@ -334,63 +335,14 @@ export function AdminDashboard() {
                 <p className="text-sm text-slate-500">Try a different search</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-600">
-                      <th className="text-left py-3 px-4 text-slate-300">
-                        Username
-                      </th>
-                      <th className="text-left py-3 px-4 text-slate-300">
-                        Email
-                      </th>
-                      <th className="text-left py-3 px-4 text-slate-300">
-                        Revivals
-                      </th>
-                      <th className="text-left py-3 px-4 text-slate-300">
-                        Posted
-                      </th>
-                      <th className="text-left py-3 px-4 text-slate-300">
-                        Joined
-                      </th>
-                      <th className="text-left py-3 px-4 text-slate-300">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((entry) => (
-                      <tr
-                        key={entry.user._id}
-                        className="border-b border-slate-700/50"
-                      >
-                        <td className="py-3 px-4 text-white">
-                          {entry.user.username}
-                        </td>
-                        <td className="py-3 px-4 text-slate-300">
-                          {entry.user.email}
-                        </td>
-                        <td className="py-3 px-4 text-slate-300">
-                          {entry.user.revivalCount || 0}
-                        </td>
-                        <td className="py-3 px-4 text-slate-300">
-                          {entry.postedProjects?.length || 0}
-                        </td>
-                        <td className="py-3 px-4 text-slate-300">
-                          {new Date(entry.user.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4">
-                          <button
-                            onClick={() => handleDeleteUser(entry.user._id)}
-                            className="text-red-400 hover:text-red-300 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredUsers.map((userObj) => (
+                  <UserCard
+                    key={userObj.user._id}
+                    userObj={userObj}
+                    onDelete={() => handleDeleteUser(userObj.user._id)}
+                  />
+                ))}
               </div>
             )}
           </div>
