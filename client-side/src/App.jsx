@@ -103,6 +103,8 @@ function AppContent() {
     "/account",
     "/admin",
     "/add-project",
+    "/leaderboard",
+    "/notifications",
   ].includes(location.pathname) || location.pathname.startsWith("/project/");
   const showHeader = [
     "/dashboard",

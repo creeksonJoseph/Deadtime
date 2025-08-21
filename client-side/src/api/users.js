@@ -22,7 +22,7 @@ export async function updateUserProfile(userId, updates, token) {
 }
 
 export async function getLeaderboard(token) {
-  const res = await fetch(`${API_URL}/leaderboard`, {
+  const res = await fetch(`https://deadtime.onrender.com/api/leaderboard`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Failed to fetch leaderboard");

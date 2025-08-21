@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Skull, User, Search, Bell, Shield, Menu } from "lucide-react";
+import { Skull, User, Search, Bell, Shield, Menu, Trophy } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = false }) {
@@ -60,12 +60,20 @@ export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = fal
               <Bell className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
             </Link>
 
-            {/* Profile Icon */}
+            {/* Profile Icon (Desktop) / Leaderboard (Mobile) */}
             <Link
               to="/account"
-              className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+              className="hidden md:flex w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
             >
               <User className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+            </Link>
+            
+            {/* Leaderboard Icon (Mobile only) */}
+            <Link
+              to="/leaderboard"
+              className="md:hidden w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+            >
+              <Trophy className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
             </Link>
         </div>
       </div>

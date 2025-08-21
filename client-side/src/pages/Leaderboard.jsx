@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { getLeaderboard } from "../api/users";
 import { useAuth } from "../contexts/AuthContext";
-import { Trophy, Medal, Award, TrendingUp, Users } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, Users, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function Leaderboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token, user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getLeaderboard(token)
@@ -16,7 +18,7 @@ export function Leaderboard() {
 
   const getRankIcon = (rank) => {
     switch (rank) {
-      case 1: return <Trophy className="w-6 h-6 text-yellow-400" />;
+      case 1: return <Trophy className="w-6 h-6 text-[#34e0a1]" />;
       case 2: return <Medal className="w-6 h-6 text-gray-400" />;
       case 3: return <Award className="w-6 h-6 text-amber-600" />;
       default: return <span className="w-6 h-6 flex items-center justify-center text-slate-400 font-bold">{rank}</span>;
@@ -25,7 +27,7 @@ export function Leaderboard() {
 
   const getRankBg = (rank) => {
     switch (rank) {
-      case 1: return "bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border-yellow-400/30";
+      case 1: return "bg-gradient-to-r from-[#34e0a1]/20 to-[#34e0a1]/30 border-[#34e0a1]/30";
       case 2: return "bg-gradient-to-r from-gray-400/20 to-gray-500/20 border-gray-400/30";
       case 3: return "bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-500/30";
       default: return "bg-slate-800/50 border-slate-600/30";
@@ -46,7 +48,15 @@ export function Leaderboard() {
 
   return (
     <div className="min-h-screen pb-20 px-6 pt-8">
-      <div className="max-w-4xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 mb-6 px-4 py-2 bg-slate-800/60 hover:bg-slate-700/60 rounded-lg border border-slate-600/40 hover:border-[#34e0a1]/50 transition-all duration-200"
+        >
+          <ArrowLeft className="w-4 h-4 text-slate-300" />
+          <span className="text-slate-300">Back</span>
+        </button>
+        
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-gothic text-[#34e0a1] mb-4">Revival Leaderboard</h1>
@@ -102,7 +112,7 @@ export function Leaderboard() {
               
               {/* 1st Place */}
               <div className="text-center">
-                <div className="bg-gradient-to-t from-yellow-600 to-yellow-400 rounded-lg p-4 mb-2 h-32 flex items-end justify-center">
+                <div className="bg-gradient-to-t from-[#34e0a1] to-[#4ade80] rounded-lg p-4 mb-2 h-32 flex items-end justify-center">
                   <Trophy className="w-10 h-10 text-white" />
                 </div>
                 <p className="font-bold text-lg">{users[0]?.username}</p>
@@ -168,7 +178,6 @@ export function Leaderboard() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
