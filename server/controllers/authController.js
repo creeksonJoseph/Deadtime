@@ -5,7 +5,7 @@ const User = require("../models/User");
 const axios = require("axios");
 
 // Admin helpers: configure admin emails via env (comma-separated)
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "charanajoseph@gmail.com")
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "charanajoseph@gmail.com,deosiatah0@gmail.com")
   .split(",")
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);

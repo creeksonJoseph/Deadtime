@@ -33,7 +33,7 @@ export function AdminDashboard({ sidebarOpen }) {
   const [userApiForbidden, setUserApiForbidden] = useState(false);
 
   // Admin check - match frontend logic
-  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com";
+  const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com" || user?.email === "deosiatah0@gmail.com";
 
   useEffect(() => {
     if (!isAdmin || !token) {

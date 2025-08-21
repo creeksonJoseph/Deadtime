@@ -54,7 +54,7 @@ export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = fal
               )}
               
               {/* Admin Dashboard (only for admins) */}
-              {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
+              {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com' || user?.email === 'deosiatah0@gmail.com') && (
                 <button
                   onClick={() => handleNavigation('/admin')}
                   className="w-10 h-10 bg-red-900/60 hover:bg-red-800/60 rounded-full flex items-center justify-center transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
@@ -142,7 +142,7 @@ export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = fal
             </button>
             
             {/* Admin Dashboard (only for admins) */}
-            {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com') && (
+            {(user?.role === 'admin' || user?.email === 'charanajoseph@gmail.com' || user?.email === 'deosiatah0@gmail.com') && (
               <button
                 onClick={() => handleNavigation('/admin')}
                 className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-red-900/60 hover:bg-red-800/60 transition-all duration-200 border border-red-600/40 hover:border-red-500/50"
