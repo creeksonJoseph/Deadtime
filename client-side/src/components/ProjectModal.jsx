@@ -158,18 +158,18 @@ export function ProjectModal({
     );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300 ${
           visible ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
       />
 
-      {/* Modal Container */}
+      {/* Modal Container - Fullscreen */}
       <div
-        className={`relative w-full max-w-2xl max-h-[90vh] mb-4 md:mb-0 flex flex-col bg-[#141d38] rounded-2xl overflow-hidden shadow-2xl border border-slate-600/20 transition-all duration-300 transform ${
+        className={`relative w-full h-full flex flex-col bg-[#141d38] overflow-hidden shadow-2xl transition-all duration-300 transform ${
           visible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
         onClick={(e) => e.stopPropagation()}

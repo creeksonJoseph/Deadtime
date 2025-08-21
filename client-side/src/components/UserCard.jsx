@@ -1,5 +1,5 @@
 import { Card } from "./ui/card";
-import { User, Calendar, FolderOpen, Heart } from "lucide-react";
+import { User, Calendar, FolderOpen, Heart, Trash2 } from "lucide-react";
 
 export function UserCard({ userObj, onDelete }) {
   const user = userObj.user;
@@ -16,6 +16,12 @@ export function UserCard({ userObj, onDelete }) {
           <h3 className="font-bold text-white">{user.username}</h3>
           <p className="text-xs text-slate-400">{user.email}</p>
         </div>
+        <button
+          onClick={onDelete}
+          className="text-red-400 hover:text-red-300 transition-colors p-1"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
       
       <div className="grid grid-cols-3 gap-2 mb-3">

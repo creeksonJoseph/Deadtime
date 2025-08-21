@@ -24,6 +24,10 @@ export function AdminDashboard() {
     show: false,
     project: null,
   });
+  const [deleteUserModal, setDeleteUserModal] = useState({
+    show: false,
+    user: null,
+  });
   const [userSearch, setUserSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [userApiForbidden, setUserApiForbidden] = useState(false);
@@ -123,10 +127,10 @@ export function AdminDashboard() {
   }, [token, user, isAdmin]);
 
   const handleDeleteUser = async (userId) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
     try {
       await deleteUser(userId, token);
-      setUsers(users.filter((u) => u._id !== userId));
+      setUsers(users.filter((u) => u.user._id !== userId));
+      setDeleteUserModal({ show: false, user: null });
     } catch (error) {
       // ignore
     }
@@ -340,7 +344,7 @@ export function AdminDashboard() {
                   <UserCard
                     key={userObj.user._id}
                     userObj={userObj}
-                    onDelete={() => handleDeleteUser(userObj.user._id)}
+                    onDelete={() => setDeleteUserModal({ show: true, user: userObj })}
                   />
                 ))}
               </div>
@@ -456,6 +460,46 @@ export function AdminDashboard() {
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deleteUserModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="glass rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-red-400">Delete User</h3>
+              <button
+                onClick={() => setDeleteUserModal({ show: false, user: null })}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-slate-300 mb-2">
+              Are you sure you want to delete this user?
+            </p>
+            <p className="text-[#34e0a1] font-medium mb-2">
+              "{deleteUserModal.user?.user?.username}"
+            </p>
+            <p className="text-slate-400 text-sm mb-6">
+              This will permanently delete their account and all their projects. Revival logs on other projects will be preserved.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteUserModal({ show: false, user: null })}
+                className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteUser(deleteUserModal.user.user._id)}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete User
               </button>
             </div>
           </div>

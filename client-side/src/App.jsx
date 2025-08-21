@@ -28,6 +28,7 @@ import GithubCallback from "./components/GithubCallback";
 import { Leaderboard } from "./pages/Leaderboard";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { Header } from "./components/Header";
 import { GuestHeader } from "./components/GuestHeader";
 import { GuestBrowse } from "./pages/GuestBrowse";
@@ -102,7 +103,7 @@ function AppContent() {
     "/account",
     "/admin",
     "/add-project",
-  ].includes(location.pathname);
+  ].includes(location.pathname) || location.pathname.startsWith("/project/");
   const showHeader = [
     "/dashboard",
     "/browse",
@@ -112,11 +113,12 @@ function AppContent() {
     "/notifications",
     "/admin",
     "/add-project",
-  ].includes(location.pathname);
+  ].includes(location.pathname) || location.pathname.startsWith("/project/");
   const showGuestHeader = location.pathname === "/guest-browse";
 
   const openProjectModal = (project) => {
-    setSelectedProject(project);
+    // Navigate to project details page instead of modal
+    window.location.href = `/project/${project._id}`;
   };
 
   const closeProjectModal = () => {
@@ -235,6 +237,18 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/:projectId"
+          element={
+            <ProtectedRoute>
+              <ProjectDetailsPage
+                onEdit={openEditModal}
+                onDelete={handleDeleteProject}
+                onProjectRevived={refetchProjects}
+              />
             </ProtectedRoute>
           }
         />
