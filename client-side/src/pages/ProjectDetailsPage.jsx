@@ -166,7 +166,7 @@ export function ProjectDetailsPage({
     } finally {
       setLoadingNote(false);
     }
-  }, [newNote, project._id, isAnonymous, token, isOnline]);
+  }, [newNote, project?._id, isAnonymous, token, isOnline]);
 
   const handleDeleteNote = async (noteId) => {
     if (!navigator.onLine) {
@@ -187,7 +187,7 @@ export function ProjectDetailsPage({
 
   const canDeleteNote = (note) => {
     if (user?.role === "admin") return true;
-    if (project.creatorId === user?.id) return true;
+    if (project?.creatorId === user?.id) return true;
     if (!note.userId && !note.isAnonymous) return true;
     if (!note.isAnonymous && note.userId?._id === user?.id) return true;
     return false;
@@ -613,7 +613,7 @@ export function ProjectDetailsPage({
         </div>
 
         {/* Revive Modal */}
-        {showRevive && (
+        {showRevive && project && (
           <ReviveProjectModal
             projectId={project._id}
             onClose={() => setShowRevive(false)}
