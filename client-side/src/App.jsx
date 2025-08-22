@@ -34,7 +34,7 @@ import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { Header } from "./components/Header";
 import { GuestHeader } from "./components/GuestHeader";
 import { GuestBrowse } from "./pages/GuestBrowse";
-import { FavouritesPage } from "./pages/FavouritesPage";
+
 
 function AppContent() {
   const { user, token } = useAuth();
@@ -101,7 +101,6 @@ function AppContent() {
     "/add-project",
     "/leaderboard",
     "/notifications",
-    "/favourites",
   ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
   const showHeader = [
     "/dashboard",
@@ -112,7 +111,6 @@ function AppContent() {
     "/notifications",
     "/admin",
     "/add-project",
-    "/favourites",
   ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
   const showGuestHeader = location.pathname === "/guest-browse";
 
@@ -252,21 +250,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/favourites"
-          element={
-            <ProtectedRoute>
-              <FavouritesPage
-                projects={[]} // Empty for now, will be populated with favourites logic
-                token={token}
-                onOpenProject={openProjectModal}
-                onDelete={handleDeleteProject}
-                currentUserId={user?.id}
-                sidebarOpen={sidebarOpen}
-              />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/project/:projectId"
           element={

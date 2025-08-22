@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus, Search, User, Home } from "lucide-react";
+import { Plus, Compass, User, Home } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 export function BottomNav({ onOpenForm }) {
@@ -12,7 +12,7 @@ export function BottomNav({ onOpenForm }) {
 
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, label: "Home" },
-    { id: "browse", path: "/browse", icon: Search, label: "Browse" },
+    { id: "browse", path: "/browse", icon: Compass, label: "Browse" },
     { id: "account", path: "/account", icon: User, label: "Account" },
   ];
 
