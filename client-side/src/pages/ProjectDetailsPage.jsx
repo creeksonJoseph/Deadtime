@@ -162,15 +162,18 @@ export function ProjectDetailsPage({
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-[#34e0a1] border-b-[#141d38]" />
+      <div className="min-h-screen flex items-center justify-center bg-[#141d38]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-[#34e0a1] border-b-[#141d38] mx-auto mb-4" />
+          <p className="text-slate-300">Loading project...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className={`${isMobile ? "min-h-screen overflow-y-auto" : "h-screen overflow-hidden"} bg-[#141d38] transition-all duration-300 ${sidebarOpen ? "md:ml-28" : "md:ml-0"}`}
+      className={`${isMobile ? "min-h-screen overflow-y-auto" : "h-screen overflow-hidden"} bg-[#141d38] ${sidebarOpen ? "md:ml-28" : "md:ml-0"}`}
     >
       {/* Sticky Back Button */}
       <button
@@ -221,11 +224,16 @@ export function ProjectDetailsPage({
             {project.images && project.images.length > 0 ? (
               <div className="w-full">
                 {project.images.length === 1 ? (
-                  <div className="w-full h-64 overflow-hidden">
+                  <div className="w-full h-64 overflow-hidden bg-slate-800">
                     <img
                       src={project.images[0] || "/placeholder.svg"}
                       alt="Project showcase"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<div class="w-full h-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm">Image unavailable</div>';
+                      }}
                     />
                   </div>
                 ) : (
