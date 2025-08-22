@@ -1,9 +1,9 @@
 import { ProjectCard } from "../components/ProjectCard";
 import { Skull } from "lucide-react";
 
-export function FavouritesPage({ projects, token, onOpenProject, onDelete, currentUserId }) {
+export function FavouritesPage({ projects, token, onOpenProject, onDelete, currentUserId, sidebarOpen }) {
   return (
-    <div className="min-h-screen py-8 px-4 pb-24">
+    <div className={`min-h-screen py-8 px-4 pb-24 transition-all duration-300 ${sidebarOpen ? 'md:ml-28' : 'md:ml-0'}`}>
       <div className="container mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">

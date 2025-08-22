@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, User, Home, Trophy } from "lucide-react";
+import { Plus, Search, User, Home, Trophy, Star } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export function PortalNav({ isOpen, onToggle }) {
@@ -9,6 +9,7 @@ export function PortalNav({ isOpen, onToggle }) {
   const navItems = [
     { id: "dashboard", path: "/dashboard", icon: Home, title: "Dashboard" },
     { id: "browse", path: "/browse", icon: Search, title: "Graveyard" },
+    { id: "favourites", path: "/favourites", icon: Star, title: "Favourites" },
     { id: "account", path: "/account", icon: User, title: "Account" },
     { id: "leaderboard", path: "/leaderboard", icon: Trophy, title: "Leaderboard" },
   ];

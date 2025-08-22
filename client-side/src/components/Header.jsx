@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Skull, User, Search, Bell, Shield, Menu, Trophy, X } from "lucide-react";
+import { Skull, User, Search, Bell, Shield, Menu, Trophy, X, Star } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useState } from "react";
 
@@ -130,6 +130,15 @@ export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = fal
             >
               <User className="w-5 h-5 text-slate-300" />
               <span className="text-slate-300">My Account</span>
+            </button>
+            
+            {/* Favourites */}
+            <button
+              onClick={() => handleNavigation('/favourites')}
+              className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+            >
+              <Star className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-300">Favourites</span>
             </button>
             
             {/* Leaderboard */}

@@ -33,6 +33,7 @@ import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { Header } from "./components/Header";
 import { GuestHeader } from "./components/GuestHeader";
 import { GuestBrowse } from "./pages/GuestBrowse";
+import { FavouritesPage } from "./pages/FavouritesPage";
 
 function AppContent() {
   const { user, token } = useAuth();
@@ -98,6 +99,7 @@ function AppContent() {
     "/add-project",
     "/leaderboard",
     "/notifications",
+    "/favourites",
   ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
   const showHeader = [
     "/dashboard",
@@ -108,6 +110,7 @@ function AppContent() {
     "/notifications",
     "/admin",
     "/add-project",
+    "/favourites",
   ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
   const showGuestHeader = location.pathname === "/guest-browse";
 
@@ -122,8 +125,10 @@ function AppContent() {
 
 
 
+  const isProjectDetailsPage = location.pathname.startsWith("/project/");
+  
   return (
-    <div className="min-h-screen bg-[#141d38] text-slate-200 dark overflow-x-hidden pb-24 pt-16">
+    <div className={`${isProjectDetailsPage ? 'md:h-screen md:overflow-hidden min-h-screen' : 'min-h-screen pb-24'} bg-[#141d38] text-slate-200 dark overflow-x-hidden ${isProjectDetailsPage ? '' : 'pt-16'}`}>
       {showHeader && (
         <Header
           onSearchToggle={() => setBrowseSearchVisible(!browseSearchVisible)}
@@ -236,6 +241,21 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <AdminDashboard sidebarOpen={sidebarOpen} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/favourites"
+          element={
+            <ProtectedRoute>
+              <FavouritesPage
+                projects={[]} // Empty for now, will be populated with favourites logic
+                token={token}
+                onOpenProject={openProjectModal}
+                onDelete={handleDeleteProject}
+                currentUserId={user?.id}
+                sidebarOpen={sidebarOpen}
+              />
             </ProtectedRoute>
           }
         />

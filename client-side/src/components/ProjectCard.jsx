@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
-import { ExternalLink, User, MoreVertical, Trash2 } from "lucide-react";
+import { ExternalLink, User, MoreVertical, Trash2, Star } from "lucide-react";
 
 function PostedBy({ username, profilePic }) {
   return (
@@ -148,6 +148,16 @@ export function ProjectCard({
           </button>
           {menuOpen && (
             <div className="absolute top-12 right-4 z-20 bg-[#141d38] border border-slate-700/40 rounded-xl shadow-lg py-2 w-40">
+              <button
+                className="w-full flex items-center gap-2 px-4 py-2 text-yellow-400 hover:bg-yellow-500/10 transition-all"
+                onClick={() => {
+                  setMenuOpen(false);
+                  // Add to favourites functionality here
+                }}
+              >
+                <Star className="w-4 h-4" />
+                Add to Favourites
+              </button>
               <button
                 className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 transition-all"
                 onClick={() => {
