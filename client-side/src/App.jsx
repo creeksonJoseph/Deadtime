@@ -13,6 +13,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { OfflineProvider, useOffline } from "./contexts/OfflineContext.jsx";
+import { CacheProvider } from "./contexts/CacheContext.jsx";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -297,7 +298,9 @@ export default function App() {
     <Router>
       <AuthProvider>
         <OfflineProvider>
-          <AppContent />
+          <CacheProvider>
+            <AppContent />
+          </CacheProvider>
         </OfflineProvider>
       </AuthProvider>
     </Router>

@@ -14,6 +14,7 @@ import {
 import { NetworkError, InlineNetworkError } from "../components/NetworkError";
 import { useAuth } from "../contexts/AuthContext";
 import { useOffline } from "../contexts/OfflineContext";
+import { useCache } from "../contexts/CacheContext";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { getGhostCardById } from "../api/ghostcards";
@@ -24,6 +25,7 @@ import {
 } from "../api/ghostnotes";
 import { ReviveProjectModal } from "../components/ReviveProjectModal";
 import { Textarea } from "../components/ui/textarea";
+import { Toast } from "../components/Toast";
 
 export function ProjectDetailsPage({
   onDelete,
@@ -34,6 +36,7 @@ export function ProjectDetailsPage({
   const navigate = useNavigate();
   const { user, token } = useAuth();
   const { isOnline } = useOffline();
+  const { getCachedData, setCachedData } = useCache();
   const [project, setProject] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
@@ -46,39 +49,57 @@ export function ProjectDetailsPage({
   const [isCommentSectionVisible, setIsCommentSectionVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLowEndDevice, setIsLowEndDevice] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const commentSectionRef = useRef(null);
 
   const isOwner = project?.creatorId === user?.id;
 
   useEffect(() => {
     if (projectId && token) {
-      getGhostCardById(projectId, token)
-        .then(setProject)
-        .catch((err) => {
-          if (!navigator.onLine) {
-            setError("You're offline. Please check your internet connection.");
-          } else {
-            setError("Failed to load project. Please try again.");
-          }
-        });
+      const cachedProject = getCachedData('projects', projectId);
+      if (cachedProject) {
+        setProject(cachedProject);
+      } else {
+        getGhostCardById(projectId, token)
+          .then((data) => {
+            setProject(data);
+            setCachedData('projects', data, projectId);
+          })
+          .catch((err) => {
+            if (!navigator.onLine) {
+              setError("You're offline. Please check your internet connection.");
+            } else {
+              setError("Failed to load project. Please try again.");
+            }
+          });
+      }
     }
-  }, [projectId, token]);
+  }, [projectId, token, getCachedData, setCachedData]);
 
   useEffect(() => {
     if (project?._id) {
-      getNotesForProject(project._id, token)
-        .then(setNotes)
-        .catch((err) => {
-          if (!navigator.onLine) {
-            setError("You're offline. Comments will load when you're back online.");
-          } else if (err.message === "Failed to fetch notes") {
-            setError("You do not have permission to view comments for this project.");
-          } else {
-            setError("Failed to load comments. Please try again.");
-          }
-        });
+      const cachedNotes = getCachedData('projectNotes', project._id);
+      if (cachedNotes) {
+        setNotes(cachedNotes);
+      } else {
+        getNotesForProject(project._id, token)
+          .then((data) => {
+            setNotes(data);
+            setCachedData('projectNotes', data, project._id);
+          })
+          .catch((err) => {
+            if (!navigator.onLine) {
+              setError("You're offline. Comments will load when you're back online.");
+            } else if (err.message === "Failed to fetch notes") {
+              setError("You do not have permission to view comments for this project.");
+            } else {
+              setError("Failed to load comments. Please try again.");
+            }
+          });
+      }
     }
-  }, [project, token]);
+  }, [project, token, getCachedData, setCachedData]);
 
   useEffect(() => {
     const checkDevice = () => {
@@ -156,7 +177,11 @@ export function ProjectDetailsPage({
       );
       const updatedNotes = await getNotesForProject(project._id, token);
       setNotes(updatedNotes);
+      setCachedData('projectNotes', updatedNotes, project._id);
       setNewNote("");
+      setToastMessage("Comment posted successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
       if (!navigator.onLine) {
         setError("You're offline. Your comment will be posted when you're back online.");
@@ -175,7 +200,12 @@ export function ProjectDetailsPage({
     }
     try {
       await deleteGhostNote(noteId, token);
-      setNotes((prev) => prev.filter((note) => note._id !== noteId));
+      const updatedNotes = notes.filter((note) => note._id !== noteId);
+      setNotes(updatedNotes);
+      setCachedData('projectNotes', updatedNotes, project._id);
+      setToastMessage("Comment deleted successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     } catch (err) {
       if (!navigator.onLine) {
         setError("You're offline. Please try again when you're back online.");
@@ -622,7 +652,18 @@ export function ProjectDetailsPage({
                 setProject(updatedCard);
               }
               if (onProjectRevived) onProjectRevived();
+              setToastMessage("Project revived successfully!");
+              setShowToast(true);
+              setTimeout(() => setShowToast(false), 3000);
             }}
+          />
+        )}
+        
+        {/* Success Toast */}
+        {showToast && (
+          <Toast 
+            message={toastMessage} 
+            onClose={() => setShowToast(false)} 
           />
         )}
       </div>

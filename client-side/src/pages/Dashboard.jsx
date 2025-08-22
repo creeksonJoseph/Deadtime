@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCache } from "../contexts/CacheContext";
 import { ProjectCard } from "../components/ProjectCard";
 import { Card } from "../components/ui/card";
 import { InlineNetworkError } from "../components/NetworkError";
@@ -30,6 +31,7 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
   });
   const [error, setError] = useState("");
   const { user, token, loading } = useAuth();
+  const { getCachedData, setCachedData } = useCache();
 
   useEffect(() => {
     if (!user || !token) return;
@@ -48,13 +50,13 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
 
       // Create recent activity timeline
       const recentActivity = [
-        ...projects.slice(0, 3).map((p) => ({
+        ...projects.map((p) => ({
           type: "buried",
           title: p.title,
           date: p.createdAt,
           icon: Skull,
         })),
-        ...revived.slice(0, 3).map((p) => ({
+        ...revived.map((p) => ({
           type: "revived",
           title: p.title,
           date: p.revivedAt || p.createdAt,
@@ -62,42 +64,60 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
         })),
       ]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
+        .slice(0, 4);
 
       // Get leaderboard position
-      getLeaderboard(token)
-        .then(leaderboard => {
-          const position = leaderboard.findIndex(u => u._id === user.id) + 1;
-          setUserStats({
-            buried: projects.length,
-            revived: revived.length,
-            badges: [],
-            totalRevivals,
-            avgRevivalsPerProject,
-            recentActivity,
-            joinDate: user.createdAt,
-            leaderboardPosition: position || 0,
-          });
-          setError("");
-        })
-        .catch(() => {
-          if (!navigator.onLine) {
-            setError("You're offline. Leaderboard rank will update when you're back online.");
-          }
-          setUserStats({
-            buried: projects.length,
-            revived: revived.length,
-            badges: [],
-            totalRevivals,
-            avgRevivalsPerProject,
-            recentActivity,
-            joinDate: user.createdAt,
-            leaderboardPosition: 0,
-          });
+      const cachedLeaderboard = getCachedData('leaderboard');
+      if (cachedLeaderboard) {
+        const position = cachedLeaderboard.findIndex(u => u._id === user.id) + 1;
+        setUserStats({
+          buried: projects.length,
+          revived: revived.length,
+          badges: [],
+          totalRevivals,
+          avgRevivalsPerProject,
+          recentActivity,
+          joinDate: user.createdAt,
+          leaderboardPosition: position || 0,
         });
+        setError("");
+      } else {
+        getLeaderboard(token)
+          .then(leaderboard => {
+            setCachedData('leaderboard', leaderboard);
+            const position = leaderboard.findIndex(u => u._id === user.id) + 1;
+            setUserStats({
+              buried: projects.length,
+              revived: revived.length,
+              badges: [],
+              totalRevivals,
+              avgRevivalsPerProject,
+              recentActivity,
+              joinDate: user.createdAt,
+              leaderboardPosition: position || 0,
+            });
+            setError("");
+          })
+          .catch(() => {
+            if (!navigator.onLine) {
+              setError("You're offline. Leaderboard rank will update when you're back online.");
+            }
+            setUserStats({
+              buried: projects.length,
+              revived: revived.length,
+              badges: [],
+              totalRevivals,
+              avgRevivalsPerProject,
+              recentActivity,
+              joinDate: user.createdAt,
+              leaderboardPosition: 0,
+            });
+          });
+      }
+
     }
     fetchData();
-  }, [token, user, projects]);
+  }, [token, user, projects, getCachedData, setCachedData]);
 
   if (loading) {
     return (

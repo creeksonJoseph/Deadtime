@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLeaderboard } from "../api/users";
 import { useAuth } from "../contexts/AuthContext";
+import { useCache } from "../contexts/CacheContext";
 import { NetworkError } from "../components/NetworkError";
 import { Trophy, Medal, Award, TrendingUp, Users, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -10,12 +11,20 @@ export function Leaderboard({ sidebarOpen }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { token, user } = useAuth();
+  const { getCachedData, setCachedData } = useCache();
   const navigate = useNavigate();
 
   useEffect(() => {
+    const cachedLeaderboard = getCachedData('leaderboard');
+    if (cachedLeaderboard) {
+      setUsers(cachedLeaderboard);
+      setLoading(false);
+      return;
+    }
     getLeaderboard(token)
       .then(users => {
         setUsers(users);
+        setCachedData('leaderboard', users);
         setError("");
       })
       .catch(err => {
@@ -26,7 +35,7 @@ export function Leaderboard({ sidebarOpen }) {
         }
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, getCachedData, setCachedData]);
 
   const getRankIcon = (rank) => {
     switch (rank) {
@@ -62,6 +71,7 @@ export function Leaderboard({ sidebarOpen }) {
               getLeaderboard(token)
                 .then(users => {
                   setUsers(users);
+                  setCachedData('leaderboard', users);
                   setError("");
                 })
                 .catch(err => {

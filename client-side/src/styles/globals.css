@@ -324,3 +324,34 @@ html {
   border-color: rgba(52, 224, 161, 0.3);
   transform: translateY(-2px);
 }
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(20, 29, 56, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(52, 224, 161, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 224, 161, 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(20, 29, 56, 0.5);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 224, 161, 0.3) rgba(20, 29, 56, 0.5);
+}

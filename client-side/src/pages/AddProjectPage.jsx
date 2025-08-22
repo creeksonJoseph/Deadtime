@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { createGhostCard } from "../api/ghostcards";
 import { useAuth } from "../contexts/AuthContext";
+import { Toast } from "../components/Toast";
 
 export function AddProjectPage({ onProjectCreated, sidebarOpen }) {
   const navigate = useNavigate();
@@ -43,6 +44,8 @@ export function AddProjectPage({ onProjectCreated, sidebarOpen }) {
   const [pdfProgress, setPdfProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const logoInputRef = useRef(null);
   const pdfInputRef = useRef(null);
@@ -183,8 +186,13 @@ export function AddProjectPage({ onProjectCreated, sidebarOpen }) {
       await createGhostCard(formData, token);
       await refreshUser(); // Update user stats immediately
       if (onProjectCreated) await onProjectCreated(); // Refetch projects for dashboard
+      setToastMessage("Project buried successfully!");
+      setShowToast(true);
       setLoading(false);
-      navigate(-1);
+      setTimeout(() => {
+        setShowToast(false);
+        navigate(-1);
+      }, 2000);
     } catch (err) {
       setLoading(false);
       setError("Failed to add project");
@@ -551,6 +559,14 @@ export function AddProjectPage({ onProjectCreated, sidebarOpen }) {
           </Card>
         </div>
       </div>
+      
+      {/* Success Toast */}
+      {showToast && (
+        <Toast 
+          message={toastMessage} 
+          onClose={() => setShowToast(false)} 
+        />
+      )}
     </div>
   );
 }
