@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllUsers, deleteUser } from "../api/admin";
 import { getGhostCards, deleteGhostCard } from "../api/ghostcards";
+import { NetworkError, InlineNetworkError } from "../components/NetworkError";
 import {
   Trash2,
   Users,
@@ -31,6 +32,7 @@ export function AdminDashboard({ sidebarOpen }) {
   const [userSearch, setUserSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [userApiForbidden, setUserApiForbidden] = useState(false);
+  const [error, setError] = useState("");
 
   // Admin check - match frontend logic
   const isAdmin = user?.role === "admin" || user?.email === "charanajoseph@gmail.com" || user?.email === "deosiatah0@gmail.com";
@@ -43,12 +45,17 @@ export function AdminDashboard({ sidebarOpen }) {
 
     const fetchData = async () => {
       try {
+        setError("");
         // Admin: fetch all users with their projects
         try {
           const usersData = await getAllUsers(token);
           setUsers(usersData || []);
           setUserApiForbidden(false);
         } catch (e) {
+          if (!navigator.onLine) {
+            setError("You're offline. Admin data will load when you're back online.");
+            return;
+          }
           // Likely 403 from backend (not admin on server side)
           setUserApiForbidden(true);
           // Fallback: derive users from projects and fetch their profiles individually
@@ -83,6 +90,9 @@ export function AdminDashboard({ sidebarOpen }) {
             );
             setUsers(userEntries.filter(Boolean));
           } catch {
+            if (!navigator.onLine) {
+              setError("You're offline. Please check your internet connection.");
+            }
             setUsers([]);
           }
         }
@@ -116,7 +126,11 @@ export function AdminDashboard({ sidebarOpen }) {
         );
         setProjectsWithUsernames(projectsWithNames);
       } catch (error) {
-        // ignore
+        if (!navigator.onLine) {
+          setError("You're offline. Please check your internet connection.");
+        } else {
+          setError("Failed to load admin data. Please try again.");
+        }
       } finally {
         setLoading(false);
       }
@@ -126,16 +140,29 @@ export function AdminDashboard({ sidebarOpen }) {
   }, [token, user, isAdmin]);
 
   const handleDeleteUser = async (userId) => {
+    if (!navigator.onLine) {
+      setError("You're offline. Please check your internet connection.");
+      return;
+    }
     try {
       await deleteUser(userId, token);
       setUsers(users.filter((u) => u.user._id !== userId));
       setDeleteUserModal({ show: false, user: null });
+      setError("");
     } catch (error) {
-      // ignore
+      if (!navigator.onLine) {
+        setError("You're offline. Please try again when you're back online.");
+      } else {
+        setError("Failed to delete user. Please try again.");
+      }
     }
   };
 
   const handleDeleteProject = async (projectId) => {
+    if (!navigator.onLine) {
+      setError("You're offline. Please check your internet connection.");
+      return;
+    }
     try {
       await deleteGhostCard(projectId, token);
       setProjects(projects.filter((p) => p._id !== projectId));
@@ -143,8 +170,13 @@ export function AdminDashboard({ sidebarOpen }) {
         projectsWithUsernames.filter((p) => p._id !== projectId)
       );
       setDeleteModal({ show: false, project: null });
+      setError("");
     } catch (error) {
-      // ignore
+      if (!navigator.onLine) {
+        setError("You're offline. Please try again when you're back online.");
+      } else {
+        setError("Failed to delete project. Please try again.");
+      }
     }
   };
 
@@ -165,7 +197,19 @@ export function AdminDashboard({ sidebarOpen }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#34e0a1]"></div>
+        {error ? (
+          <NetworkError 
+            error={error} 
+            onRetry={() => {
+              setError("");
+              setLoading(true);
+              // Trigger refetch
+              window.location.reload();
+            }}
+          />
+        ) : (
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#34e0a1]"></div>
+        )}
       </div>
     );
   }
@@ -203,6 +247,11 @@ export function AdminDashboard({ sidebarOpen }) {
         <h1 className="text-4xl font-gothic text-[#34e0a1] mb-8">
           Admin Dashboard
         </h1>
+
+        {/* Network Error */}
+        {error && (
+          <InlineNetworkError error={error} className="mb-6" />
+        )}
 
         {/* Tabs */}
         <div className="flex space-x-1 mb-8">

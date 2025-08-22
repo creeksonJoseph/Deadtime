@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ProjectCard } from "../components/ProjectCard";
+import { InlineNetworkError } from "../components/NetworkError";
 import { Search, Filter, Skull, ChevronDown } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -21,6 +22,7 @@ export function BrowseProjects({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(searchVisible);
   const [isSticky, setIsSticky] = useState(false);
+  const [error, setError] = useState("");
   const filtersRef = useRef(null);
 
   // Project types for filter buttons
@@ -118,29 +120,37 @@ export function BrowseProjects({
         return;
       }
 
-      const projectsWithUsers = await Promise.all(
-        projects.map(async (project) => {
-          try {
-            const userRes = await fetch(
-              `https://deadtime.onrender.com/api/users/${project.creatorId}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
+      try {
+        setError("");
+        const projectsWithUsers = await Promise.all(
+          projects.map(async (project) => {
+            try {
+              const userRes = await fetch(
+                `https://deadtime.onrender.com/api/users/${project.creatorId}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              if (userRes.ok) {
+                const userData = await userRes.json();
+                return {
+                  ...project,
+                  authorUsername: userData.user?.username || "Unknown",
+                };
               }
-            );
-            if (userRes.ok) {
-              const userData = await userRes.json();
-              return {
-                ...project,
-                authorUsername: userData.user?.username || "Unknown",
-              };
+            } catch (error) {
+              // ignore individual failures
             }
-          } catch (error) {
-            // ignore
-          }
-          return { ...project, authorUsername: "Unknown" };
-        })
-      );
-      setProjectsWithUsernames(projectsWithUsers);
+            return { ...project, authorUsername: "Unknown" };
+          })
+        );
+        setProjectsWithUsernames(projectsWithUsers);
+      } catch (error) {
+        if (!navigator.onLine) {
+          setError("You're offline. Author names will load when you're back online.");
+        }
+        setProjectsWithUsernames(projects);
+      }
     };
 
     fetchUsernames();
@@ -287,6 +297,11 @@ export function BrowseProjects({
 
         {/* Spacer when sticky */}
         {isSticky && showSearchBar && <div className="h-32 md:h-40"></div>}
+
+        {/* Network Error */}
+        {error && (
+          <InlineNetworkError error={error} className="mb-6" />
+        )}
 
         {/* Header */}
         <div className="text-center mb-8">

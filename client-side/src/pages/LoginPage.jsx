@@ -54,7 +54,13 @@ export function LoginPage() {
         setError("Login failed. Please try again.");
       }
     } catch (err) {
-      setError(err.message || "Invalid email or password. Please try again.");
+      if (!navigator.onLine) {
+        setError("You're offline. Please check your internet connection.");
+      } else if (err.message === "Failed to fetch" || err.message.includes("fetch")) {
+        setError("Failed to log in. Please check your connection and try again.");
+      } else {
+        setError(err.message || "Invalid email or password. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

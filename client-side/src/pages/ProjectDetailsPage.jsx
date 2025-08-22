@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -11,7 +11,9 @@ import {
   MoreVertical,
   Trash2,
 } from "lucide-react";
+import { NetworkError, InlineNetworkError } from "../components/NetworkError";
 import { useAuth } from "../contexts/AuthContext";
+import { useOffline } from "../contexts/OfflineContext";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { getGhostCardById } from "../api/ghostcards";
@@ -31,6 +33,7 @@ export function ProjectDetailsPage({
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
+  const { isOnline } = useOffline();
   const [project, setProject] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
@@ -42,13 +45,22 @@ export function ProjectDetailsPage({
   const [commentMenuOpen, setCommentMenuOpen] = useState(null);
   const [isCommentSectionVisible, setIsCommentSectionVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLowEndDevice, setIsLowEndDevice] = useState(false);
   const commentSectionRef = useRef(null);
 
   const isOwner = project?.creatorId === user?.id;
 
   useEffect(() => {
     if (projectId && token) {
-      getGhostCardById(projectId, token).then(setProject);
+      getGhostCardById(projectId, token)
+        .then(setProject)
+        .catch((err) => {
+          if (!navigator.onLine) {
+            setError("You're offline. Please check your internet connection.");
+          } else {
+            setError("Failed to load project. Please try again.");
+          }
+        });
     }
   }, [projectId, token]);
 
@@ -57,22 +69,26 @@ export function ProjectDetailsPage({
       getNotesForProject(project._id, token)
         .then(setNotes)
         .catch((err) => {
-          if (err.message === "Failed to fetch notes") {
-            setError(
-              "You do not have permission to view comments for this project."
-            );
+          if (!navigator.onLine) {
+            setError("You're offline. Comments will load when you're back online.");
+          } else if (err.message === "Failed to fetch notes") {
+            setError("You do not have permission to view comments for this project.");
           } else {
-            setError("Failed to fetch comments.");
+            setError("Failed to load comments. Please try again.");
           }
         });
     }
   }, [project, token]);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth < 768);
+      const isLowEnd = navigator.hardwareConcurrency <= 2 || navigator.deviceMemory <= 2;
+      setIsLowEndDevice(isLowEnd);
+    };
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
+    return () => window.removeEventListener("resize", checkDevice);
   }, []);
 
   useEffect(() => {
@@ -125,9 +141,14 @@ export function ProjectDetailsPage({
     }
   };
 
-  const handlePostNote = async () => {
+  const handlePostNote = useCallback(async () => {
     if (!newNote.trim()) return;
+    if (!isOnline) {
+      setError("You're offline. Please check your internet connection.");
+      return;
+    }
     setLoadingNote(true);
+    setError(""); // Clear previous errors
     try {
       await createGhostNote(
         { projectId: project._id, note: newNote, isAnonymous },
@@ -136,19 +157,31 @@ export function ProjectDetailsPage({
       const updatedNotes = await getNotesForProject(project._id, token);
       setNotes(updatedNotes);
       setNewNote("");
-    } catch {
-      setError("Failed to post comment.");
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You're offline. Your comment will be posted when you're back online.");
+      } else {
+        setError("Failed to post comment. Please try again.");
+      }
     } finally {
       setLoadingNote(false);
     }
-  };
+  }, [newNote, project._id, isAnonymous, token, isOnline]);
 
   const handleDeleteNote = async (noteId) => {
+    if (!navigator.onLine) {
+      setError("You're offline. Please check your internet connection.");
+      return;
+    }
     try {
       await deleteGhostNote(noteId, token);
       setNotes((prev) => prev.filter((note) => note._id !== noteId));
-    } catch {
-      setError("Failed to delete comment.");
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You're offline. Please try again when you're back online.");
+      } else {
+        setError("Failed to delete comment. Please try again.");
+      }
     }
   };
 
@@ -163,9 +196,42 @@ export function ProjectDetailsPage({
   if (!project) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#141d38]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-[#34e0a1] border-b-[#141d38] mx-auto mb-4" />
-          <p className="text-slate-300">Loading project...</p>
+        <div className="text-center max-w-md mx-auto px-4">
+          {error ? (
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
+                <ExternalLink className="w-8 h-8 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-2">Connection Issue</h3>
+                <p className="text-slate-300 mb-4">{error}</p>
+                <Button
+                  onClick={() => {
+                    setError("");
+                    if (projectId && token) {
+                      getGhostCardById(projectId, token)
+                        .then(setProject)
+                        .catch((err) => {
+                          if (!navigator.onLine) {
+                            setError("You're offline. Please check your internet connection.");
+                          } else {
+                            setError("Failed to load project. Please try again.");
+                          }
+                        });
+                    }
+                  }}
+                  className="bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] px-6 py-2 rounded-lg font-semibold"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-[#34e0a1] border-b-[#141d38] mx-auto mb-4" />
+              <p className="text-slate-300">Loading project...</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -173,7 +239,7 @@ export function ProjectDetailsPage({
 
   return (
     <div
-      className={`${isMobile ? "min-h-screen overflow-y-auto" : "h-screen overflow-hidden"} bg-[#141d38] ${sidebarOpen ? "md:ml-28" : "md:ml-0"}`}
+      className={`${isMobile ? "min-h-screen overflow-y-auto" : "h-screen overflow-hidden"} bg-[#141d38] ${sidebarOpen ? "md:ml-28" : "md:ml-0"} ${isLowEndDevice ? 'will-change-auto' : ''}`}
     >
       {/* Sticky Back Button */}
       <button
@@ -433,10 +499,10 @@ export function ProjectDetailsPage({
                   </label>
                   <Button
                     onClick={handlePostNote}
-                    disabled={!newNote.trim() || loadingNote}
-                    className="bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] px-4 py-2 text-sm"
+                    disabled={!newNote.trim() || loadingNote || !isOnline}
+                    className="bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] px-4 py-2 text-sm disabled:opacity-50"
                   >
-                    {loadingNote ? "Posting..." : "Post"}
+                    {loadingNote ? "Posting..." : !isOnline ? "Offline" : "Post"}
                   </Button>
                 </div>
               </div>
@@ -447,16 +513,14 @@ export function ProjectDetailsPage({
               className={`${isMobile ? "flex-1 overflow-y-auto" : "flex-1 overflow-y-auto"} p-4 space-y-3`}
             >
               {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                  {error}
-                </div>
+                <InlineNetworkError error={error} />
               )}
 
               {notes.length > 0 ? (
-                notes.map((note) => (
+                notes.slice(0, isLowEndDevice ? 10 : notes.length).map((note) => (
                   <div
                     key={note._id}
-                    className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"
+                    className={`${isLowEndDevice ? 'bg-slate-800 border-slate-700' : 'bg-slate-800/30 border-slate-700/30'} rounded-lg p-3 border`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -477,7 +541,7 @@ export function ProjectDetailsPage({
                                 commentMenuOpen === note._id ? null : note._id
                               )
                             }
-                            className="text-slate-400 hover:text-white transition-colors"
+                            className={`text-slate-400 hover:text-white ${isLowEndDevice ? '' : 'transition-colors'}`}
                           >
                             <MoreVertical className="w-4 h-4" />
                           </button>
@@ -508,6 +572,11 @@ export function ProjectDetailsPage({
                   No comments yet. Be the first to share your thoughts!
                 </p>
               )}
+              {isLowEndDevice && notes.length > 10 && (
+                <p className="text-slate-500 text-center text-xs mt-4">
+                  Showing 10 of {notes.length} comments
+                </p>
+              )}
             </div>
 
             {/* Comment Input - Desktop Bottom Only */}
@@ -532,10 +601,10 @@ export function ProjectDetailsPage({
                   </label>
                   <Button
                     onClick={handlePostNote}
-                    disabled={!newNote.trim() || loadingNote}
-                    className="bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] px-4 py-2 text-sm"
+                    disabled={!newNote.trim() || loadingNote || !isOnline}
+                    className="bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-[#141d38] px-4 py-2 text-sm disabled:opacity-50"
                   >
-                    {loadingNote ? "Posting..." : "Post"}
+                    {loadingNote ? "Posting..." : !isOnline ? "Offline" : "Post"}
                   </Button>
                 </div>
               </div>

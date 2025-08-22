@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react";
 import { getLeaderboard } from "../api/users";
 import { useAuth } from "../contexts/AuthContext";
+import { NetworkError } from "../components/NetworkError";
 import { Trophy, Medal, Award, TrendingUp, Users, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function Leaderboard({ sidebarOpen }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     getLeaderboard(token)
-      .then(setUsers)
+      .then(users => {
+        setUsers(users);
+        setError("");
+      })
+      .catch(err => {
+        if (!navigator.onLine) {
+          setError("You're offline. Leaderboard will load when you're back online.");
+        } else {
+          setError("Failed to load leaderboard. Please try again.");
+        }
+      })
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -41,7 +53,30 @@ export function Leaderboard({ sidebarOpen }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#34e0a1]"></div>
+        {error ? (
+          <NetworkError 
+            error={error} 
+            onRetry={() => {
+              setError("");
+              setLoading(true);
+              getLeaderboard(token)
+                .then(users => {
+                  setUsers(users);
+                  setError("");
+                })
+                .catch(err => {
+                  if (!navigator.onLine) {
+                    setError("You're offline. Leaderboard will load when you're back online.");
+                  } else {
+                    setError("Failed to load leaderboard. Please try again.");
+                  }
+                })
+                .finally(() => setLoading(false));
+            }}
+          />
+        ) : (
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#34e0a1]"></div>
+        )}
       </div>
     );
   }

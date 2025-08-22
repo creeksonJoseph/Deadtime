@@ -76,12 +76,17 @@ export function SignupPage() {
         // no token received
       }
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || "Signup failed. Try again.";
+      let errorMessage;
+      if (!navigator.onLine) {
+        errorMessage = "You're offline. Please check your internet connection.";
+      } else if (err.message === "Failed to fetch" || err.message.includes("fetch")) {
+        errorMessage = "Failed to create account. Please check your connection and try again.";
+      } else {
+        errorMessage = err.response?.data?.message || "Signup failed. Try again.";
+      }
       setToastMessage(errorMessage);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-      // ignore
     } finally {
       setLoading(false);
     }

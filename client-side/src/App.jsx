@@ -12,6 +12,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { OfflineProvider, useOffline } from "./contexts/OfflineContext.jsx";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -37,6 +38,7 @@ import { FavouritesPage } from "./pages/FavouritesPage";
 
 function AppContent() {
   const { user, token } = useAuth();
+  const { isOnline } = useOffline();
   const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [guestSearchVisible, setGuestSearchVisible] = useState(false);
@@ -129,6 +131,12 @@ function AppContent() {
   
   return (
     <div className={`${isProjectDetailsPage ? 'md:h-screen md:overflow-hidden min-h-screen' : 'min-h-screen pb-24'} bg-[#141d38] text-slate-200 dark overflow-x-hidden ${isProjectDetailsPage ? '' : 'pt-16'}`}>
+      {/* Global Offline Notification */}
+      {!isOnline && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white p-3 text-center text-sm font-medium">
+          You're offline. Some features may not work properly.
+        </div>
+      )}
       {showHeader && (
         <Header
           onSearchToggle={() => setBrowseSearchVisible(!browseSearchVisible)}
@@ -304,7 +312,9 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <OfflineProvider>
+          <AppContent />
+        </OfflineProvider>
       </AuthProvider>
     </Router>
   );

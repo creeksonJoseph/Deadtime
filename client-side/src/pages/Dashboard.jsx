@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { ProjectCard } from "../components/ProjectCard";
 import { Card } from "../components/ui/card";
+import { InlineNetworkError } from "../components/NetworkError";
 import {
   Skull,
   Heart,
@@ -27,6 +28,7 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
     joinDate: null,
     leaderboardPosition: 0,
   });
+  const [error, setError] = useState("");
   const { user, token, loading } = useAuth();
 
   useEffect(() => {
@@ -76,8 +78,12 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
             joinDate: user.createdAt,
             leaderboardPosition: position || 0,
           });
+          setError("");
         })
         .catch(() => {
+          if (!navigator.onLine) {
+            setError("You're offline. Leaderboard rank will update when you're back online.");
+          }
           setUserStats({
             buried: projects.length,
             revived: revived.length,
@@ -122,6 +128,11 @@ export function Dashboard({ projects, onOpenProject, onDelete, sidebarOpen }) {
             Your digital necromancy dashboard
           </p>
         </div>
+
+        {/* Network Error */}
+        {error && (
+          <InlineNetworkError error={error} className="mb-6" />
+        )}
 
         {/* Enhanced Stats Grid */}
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1 md:gap-4 mb-6 md:mb-8 w-full">
