@@ -36,7 +36,8 @@ export function LoginPage() {
   }, []);
 
   const handleGithubLogin = () => {
-    window.location.href = "https://deadtime.onrender.com/api/auth/github";
+    const serverURL = "https://deadtime.onrender.com";
+    window.location.href = `${serverURL}/api/auth/github`;
   };
 
   const handleSubmit = async (e) => {
@@ -222,7 +223,11 @@ export function LoginPage() {
                 <Github className="w-5 h-5 text-[#34e0a1] mr-2" />
                 <span className="text-slate-300">GitHub</span>
               </button>
-              <button className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300">
+              <button 
+                type="button"
+                onClick={() => navigate("/google-unavailable")}
+                className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 488 512"

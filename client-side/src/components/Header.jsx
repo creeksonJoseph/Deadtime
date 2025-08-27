@@ -74,9 +74,17 @@ export function Header({ onSearchToggle, onSidebarToggle, showSearchButton = fal
               {/* Profile Icon */}
               <button
                 onClick={() => handleNavigation('/account')}
-                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50"
+                className="w-10 h-10 bg-slate-800/60 hover:bg-slate-700/60 rounded-full flex items-center justify-center transition-all duration-200 border border-slate-600/40 hover:border-[#34e0a1]/50 overflow-hidden"
               >
-                <User className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+                {user?.profilepic ? (
+                  <img
+                    src={user.profilepic}
+                    alt={user.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="w-5 h-5 text-slate-300 hover:text-[#34e0a1] transition-colors" />
+                )}
               </button>
             </div>
 

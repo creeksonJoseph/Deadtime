@@ -220,6 +220,10 @@ export function LandingPage() {
             variants={fadeSlide("right", 1)}
             initial="hidden"
             animate="show"
+            onClick={() => {
+              const serverURL = "https://deadtime.onrender.com";
+              window.location.href = `${serverURL}/api/auth/github`;
+            }}
             className="w-12 h-12 rounded-full glass flex items-center justify-center hover:glass-strong transition-all duration-300 hover:scale-110 neon-glow"
           >
             <Github className="w-6 h-6 text-[#34e0a1]" />
@@ -228,6 +232,7 @@ export function LandingPage() {
             variants={fadeSlide("right", 1.2)}
             initial="hidden"
             animate="show"
+            onClick={() => navigate("/google-unavailable")}
             className="w-12 h-12 rounded-full glass flex items-center justify-center hover:glass-strong transition-all duration-300 hover:scale-110 neon-glow"
           >
             <svg

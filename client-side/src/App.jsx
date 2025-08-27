@@ -35,6 +35,7 @@ import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { Header } from "./components/Header";
 import { GuestHeader } from "./components/GuestHeader";
 import { GuestBrowse } from "./pages/GuestBrowse";
+import { GoogleUnavailablePage } from "./pages/GoogleUnavailablePage";
 
 
 function AppContent() {
@@ -153,6 +154,7 @@ function AppContent() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/google-unavailable" element={<GoogleUnavailablePage />} />
         <Route
           path="/guest-browse"
           element={<GuestBrowse searchVisible={guestSearchVisible} />}

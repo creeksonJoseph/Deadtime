@@ -386,11 +386,22 @@ export function SignupPage() {
 
             {/* OAuth Buttons */}
             <div className="flex gap-3">
-              <button className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300">
+              <button 
+                type="button"
+                onClick={() => {
+                  const serverURL = "https://deadtime.onrender.com";
+                  window.location.href = `${serverURL}/api/auth/github`;
+                }}
+                className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300"
+              >
                 <Github className="w-5 h-5 text-[#34e0a1] mr-2" />
                 <span className="text-slate-300">GitHub</span>
               </button>
-              <button className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300">
+              <button 
+                type="button"
+                onClick={() => navigate("/google-unavailable")}
+                className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 488 512"
