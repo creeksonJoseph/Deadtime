@@ -73,7 +73,11 @@
 
     <!-- Theme colors -->
     <meta name="theme-color" content="#34e0a1" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#34e0a1" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#34e0a1"
+    />
     <meta name="msapplication-TileColor" content="#141d38" />
 
     <!-- Performance & Security -->
@@ -85,29 +89,32 @@
     <meta name="application-name" content="DEADTIME" />
     <meta name="apple-mobile-web-app-title" content="DEADTIME" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="mobile-web-app-capable" content="yes" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "DEADTIME",
-      "description": "A digital graveyard where developers can bury their abandoned projects and others can discover and revive them.",
-      "url": "https://deadtime.dev",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "author": {
-        "@type": "Organization",
-        "name": "DEADTIME"
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "DEADTIME",
+        "description": "A digital graveyard where developers can bury their abandoned projects and others can discover and revive them.",
+        "url": "https://deadtime.dev",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "DEADTIME"
+        }
       }
-    }
     </script>
 
     <!-- Preconnect to external domains -->
@@ -123,5 +130,45 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      window.addEventListener(
+        "error",
+        function (e) {
+          if (e.target.tagName === "SCRIPT") {
+            console.warn(
+              "⚠️ Script failed to load, clearing cache + reloading..."
+            );
+
+            // Clear storage
+            try {
+              localStorage.clear();
+              sessionStorage.clear();
+            } catch (err) {
+              console.warn("Storage clear failed:", err);
+            }
+
+            // Clear service worker caches if available
+            if ("caches" in window) {
+              caches
+                .keys()
+                .then((keys) => keys.forEach((k) => caches.delete(k)));
+            }
+
+            // Unregister service workers if they exist
+            if ("serviceWorker" in navigator) {
+              navigator.serviceWorker.getRegistrations().then((regs) => {
+                regs.forEach((reg) => reg.unregister());
+              });
+            }
+
+            // Force hard reload after short delay
+            setTimeout(() => {
+              location.reload(true);
+            }, 500);
+          }
+        },
+        true
+      );
+    </script>
   </body>
 </html>
