@@ -131,6 +131,13 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
+      // Clear cache on load for low-end devices
+      if (navigator.userAgent.includes('Chrome') && !window.chrome?.runtime) {
+        if ('caches' in window) {
+          caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+        }
+      }
+      
       window.addEventListener(
         "error",
         function (e) {
