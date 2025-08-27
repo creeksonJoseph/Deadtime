@@ -427,42 +427,38 @@ export function ProjectDetailsPage({
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-white mb-3">Resources</h3>
                 <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {project.externalLink && (
-                      <a
-                        href={project.externalLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg border border-slate-600/30 hover:border-[#34e0a1]/50 transition-all text-sm"
-                      >
-                        <ExternalLink className="w-4 h-4 text-[#34e0a1]" />
-                        <span className="text-slate-300">View Project</span>
-                      </a>
-                    )}
-                    {project.pitchDeckUrl && (
-                      <a
-                        href={project.pitchDeckUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg border border-slate-600/30 hover:border-[#34e0a1]/50 transition-all text-sm"
-                      >
-                        <FileText className="w-4 h-4 text-[#34e0a1]" />
-                        <span className="text-slate-300">Pitch Deck</span>
-                      </a>
-                    )}
-                  </div>
-                  {project.elevatorPitch && (
-                    <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileText className="w-4 h-4 text-[#fcdb32]" />
-                        <span className="text-slate-300 font-medium text-sm">
-                          Elevator Pitch
-                        </span>
+                  {project.externalLink || project.elevatorPitch ? (
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        {project.externalLink && (
+                          <a
+                            href={project.externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg border border-slate-600/30 hover:border-[#34e0a1]/50 transition-all text-sm"
+                          >
+                            <ExternalLink className="w-4 h-4 text-[#34e0a1]" />
+                            <span className="text-slate-300">View Project</span>
+                          </a>
+                        )}
+
                       </div>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        {project.elevatorPitch}
-                      </p>
-                    </div>
+                      {project.elevatorPitch && (
+                        <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="w-4 h-4 text-[#fcdb32]" />
+                            <span className="text-slate-300 font-medium text-sm">
+                              Elevator Pitch
+                            </span>
+                          </div>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            {project.elevatorPitch}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-slate-400 text-sm">No resources available</p>
                   )}
                 </div>
               </div>

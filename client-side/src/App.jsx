@@ -112,7 +112,7 @@ function AppContent() {
     "/notifications",
     "/admin",
     "/add-project",
-  ].includes(location.pathname) || location.pathname.startsWith("/project/") || location.pathname.startsWith("/edit-project/");
+  ].includes(location.pathname) || (location.pathname.startsWith("/project/") && !location.pathname.includes("/pitch-deck")) || location.pathname.startsWith("/edit-project/");
   const showGuestHeader = location.pathname === "/guest-browse";
 
   const openProjectModal = (project) => {
@@ -264,6 +264,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

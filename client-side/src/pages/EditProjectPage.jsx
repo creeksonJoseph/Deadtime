@@ -13,7 +13,6 @@ import {
   Plus,
   X,
   Calendar,
-  FileText,
   ImageIcon,
   ArrowLeft,
 } from "lucide-react";
@@ -35,19 +34,15 @@ export function EditProjectPage({ onProjectUpdated, sidebarOpen }) {
     abandonmentReason: "",
     dateStarted: "",
     dateAbandoned: "",
-    pitchDeckUrl: "",
   });
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
   const [logoProgress, setLogoProgress] = useState(0);
-  const [pdfProgress, setPdfProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [initialLoading, setInitialLoading] = useState(true);
 
   const logoInputRef = useRef(null);
-  const pdfInputRef = useRef(null);
 
   const projectTypes = [
     {
@@ -91,7 +86,7 @@ export function EditProjectPage({ onProjectUpdated, sidebarOpen }) {
           abandonmentReason: project.abandonmentReason || "",
           dateStarted: project.dateStarted ? project.dateStarted.split('T')[0] : "",
           dateAbandoned: project.dateAbandoned ? project.dateAbandoned.split('T')[0] : "",
-          pitchDeckUrl: project.pitchDeckUrl || "",
+
         });
       } catch (err) {
         setError("Failed to load project data");
@@ -135,7 +130,8 @@ export function EditProjectPage({ onProjectUpdated, sidebarOpen }) {
         if (xhr.status === 200) {
           const res = JSON.parse(xhr.responseText);
           setTimeout(() => setProgress(0), 1000);
-          resolve(res.secure_url);
+          const url = res.secure_url;
+          resolve(url);
         } else {
           setTimeout(() => setProgress(0), 1000);
           reject("Upload failed");
@@ -166,27 +162,8 @@ export function EditProjectPage({ onProjectUpdated, sidebarOpen }) {
     }
   };
 
-  const handlePdfUpload = async (file) => {
-    if (!file) return;
-    try {
-      const url = await uploadToCloudinary(
-        file,
-        "raw",
-        setPdfProgress,
-        setUploadingPdf
-      );
-      setFormData((prev) => ({ ...prev, pitchDeckUrl: url }));
-    } catch (error) {
-      setError("Failed to upload PDF");
-    }
-  };
-
   const handleDeleteLogo = () => {
     setFormData((prev) => ({ ...prev, logoUrl: "" }));
-  };
-
-  const handleDeletePdf = () => {
-    setFormData((prev) => ({ ...prev, pitchDeckUrl: "" }));
   };
 
   const handleInputChange = (field, value) => {
@@ -495,74 +472,7 @@ export function EditProjectPage({ onProjectUpdated, sidebarOpen }) {
                   )}
                 </div>
 
-                {/* PDF Upload */}
-                <div>
-                  <Label className="text-foreground font-medium mb-2 block">
-                    Pitch Deck (Optional)
-                  </Label>
-                  {!formData.pitchDeckUrl ? (
-                    <div className="relative">
-                      <input
-                        ref={pdfInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={(e) => handlePdfUpload(e.target.files[0])}
-                        disabled={uploadingPdf}
-                      />
-                      <div className="glass border-[#34e0a1]/30 border-2 border-dashed rounded-lg p-6 text-center hover:glass-strong transition-all duration-300">
-                        <FileText className="w-8 h-8 text-[#34e0a1] mx-auto mb-2" />
-                        <p className="text-slate-300 mb-1">
-                          {uploadingPdf ? "Uploading..." : "Upload PDF"}
-                        </p>
-                        <p className="text-slate-500 text-sm">
-                          {uploadingPdf
-                            ? "Please wait"
-                            : "Click or drag & drop"}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="glass rounded-lg p-4 border border-[#34e0a1]/30">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-8 h-8 text-[#34e0a1]" />
-                          <span className="text-slate-300">PDF uploaded</span>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              window.open(formData.pitchDeckUrl, "_blank")
-                            }
-                            className="border-[#34e0a1]/30 text-[#34e0a1] hover:bg-[#34e0a1]/10"
-                          >
-                            Preview
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={handleDeletePdf}
-                            className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {pdfProgress > 0 && (
-                    <div className="glass rounded-lg overflow-hidden mt-2">
-                      <div
-                        className="h-1 bg-[#34e0a1]"
-                        style={{ width: `${pdfProgress}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
+
               </div>
 
               {/* Error Message */}
@@ -577,11 +487,11 @@ export function EditProjectPage({ onProjectUpdated, sidebarOpen }) {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={uploadingLogo || uploadingPdf || loading}
+                  disabled={uploadingLogo || loading}
                   className="w-full bg-[#34e0a1] hover:bg-[#34e0a1]/90 text-background neon-glow"
                 >
                   <Skull className="w-5 h-5 mr-2" />
-                  {uploadingLogo || uploadingPdf
+                  {uploadingLogo
                     ? "Uploading..."
                     : loading
                       ? "Updating Project..."
