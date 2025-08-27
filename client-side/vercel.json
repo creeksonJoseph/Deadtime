@@ -1,7 +1,9 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!assets|favicon\\.ico).*)",
+      "source": "/((?!assets|favicon\\.ico|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)).*)",
       "destination": "/index.html"
     }
   ],
@@ -16,7 +18,7 @@
       ]
     },
     {
-      "source": "/assets/(.*)\\.(js|css)",
+      "source": "/assets/(.*)\\.(?:js|css)",
       "headers": [
         {
           "key": "Cache-Control",
