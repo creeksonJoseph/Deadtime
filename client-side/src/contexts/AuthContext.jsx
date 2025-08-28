@@ -28,7 +28,6 @@ export function AuthProvider({ children }) {
       
       // Skip profile fetch for GitHub users to prevent 500 errors
       if (parsedUser?.isGitHubUser) {
-        console.log('AuthContext: Skipping profile fetch for GitHub user');
         setUser(parsedUser);
         setLoading(false);
         return;
@@ -63,7 +62,6 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login(newToken, userObj) {
-    console.log('AuthContext: Login started');
     setToken(newToken);
     localStorage.setItem("token", newToken);
     
@@ -77,7 +75,6 @@ export function AuthProvider({ children }) {
     localStorage.setItem("userId", basicUser.id);
     
     setLoading(false);
-    console.log('AuthContext: Navigating to dashboard');
     navigate("/dashboard");
   }
 

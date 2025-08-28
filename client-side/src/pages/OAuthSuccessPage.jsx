@@ -17,7 +17,6 @@ export function OAuthSuccessPage() {
     const username = urlParams.get('username');
 
     if (token && username) {
-      console.log('OAuth: Processing login');
       setStatus('Logging you in...');
       
       // Clear URL parameters to prevent re-processing
@@ -31,10 +30,8 @@ export function OAuthSuccessPage() {
       };
       
       login(token, userData);
-      console.log('OAuth: Login called');
       setStatus('Success! Redirecting...');
     } else {
-      console.log('OAuth: Missing credentials');
       setStatus('Authentication failed. Redirecting...');
       setTimeout(() => {
         navigate('/login');
