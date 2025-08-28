@@ -5,20 +5,28 @@ exports.getuserProfile = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    //fetch basic user info
-    const user = await User.findById(userId).select(
-      "username email revivalCount profilepic"
-    );
+    //fetch basic user info - handle both ObjectId and username
+    let user;
+    if (userId.match(/^[0-9a-fA-F]{24}$/)) {
+      // Valid ObjectId
+      user = await User.findById(userId).select(
+        "username email revivalCount profilepic"
+      );
+    } else {
+      // Username
+      user = await User.findOne({ username: userId }).select(
+        "username email revivalCount profilepic"
+      );
+    }
     if (!user) return res.status(404).json({ message: "🔴 User Not Found" });
 
     //get ghost cards the user has submitted
-    const postedProjects = await GhostCard.find({ creatorId: userId }).sort({
+    const postedProjects = await GhostCard.find({ creatorId: user._id }).sort({
       createdAt: -1,
     });
 
     //get ghostscards the user has revived
-
-    const revivedProjects = await GhostCard.find({ revivedBy: userId }).sort({
+    const revivedProjects = await GhostCard.find({ revivedBy: user._id }).sort({
       updatedAt: -1,
     });
 
