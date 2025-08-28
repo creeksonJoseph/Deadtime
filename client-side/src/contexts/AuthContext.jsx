@@ -22,27 +22,32 @@ export function AuthProvider({ children }) {
         setLoading(false);
         return;
       }
+      
+      const storedUser = localStorage.getItem("user");
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      
+      // Skip profile fetch for GitHub users to prevent 500 errors
+      if (parsedUser?.isGitHubUser) {
+        console.log('AuthContext: Skipping profile fetch for GitHub user');
+        setUser(parsedUser);
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       try {
-        const storedUser = localStorage.getItem("user");
-        let userId = storedUser
-          ? JSON.parse(storedUser).id
-          : localStorage.getItem("userId");
-
-        // Always use userId from storage, never "me"
+        let userId = parsedUser?.id || localStorage.getItem("userId");
         const data = await getUserProfile(userId, token);
 
         if (!data || typeof data !== "object" || !data.user) {
           throw new Error("Profile API returned invalid data");
         }
 
-        const savedUser = storedUser ? JSON.parse(storedUser) : null;
         const finalUser = {
-          ...(savedUser || {}),
+          ...(parsedUser || {}),
           ...data.user,
           id: data.user._id || data.user.id,
-          // Preserve profilepic if backend omits it
-          profilepic: data.user.profilepic ?? savedUser?.profilepic ?? "",
+          profilepic: data.user.profilepic ?? parsedUser?.profilepic ?? "",
         };
 
         setUser(finalUser);
@@ -58,8 +63,7 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login(newToken, userObj) {
-    console.log('AuthContext login called with token:', newToken ? 'present' : 'missing');
-    
+    console.log('AuthContext: Login started');
     setToken(newToken);
     localStorage.setItem("token", newToken);
     
@@ -73,11 +77,8 @@ export function AuthProvider({ children }) {
     localStorage.setItem("userId", basicUser.id);
     
     setLoading(false);
-    
-    // Add a small delay to ensure state is updated
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 100);
+    console.log('AuthContext: Navigating to dashboard');
+    navigate("/dashboard");
   }
 
   async function refreshUser() {

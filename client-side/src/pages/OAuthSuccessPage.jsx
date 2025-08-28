@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -6,38 +6,35 @@ export function OAuthSuccessPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [status, setStatus] = useState('Processing...');
+  const processed = useRef(false);
 
   useEffect(() => {
+    if (processed.current) return;
+    processed.current = true;
+
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const username = urlParams.get('username');
 
-    console.log('OAuth callback - token:', token ? 'present' : 'missing');
-    console.log('OAuth callback - username:', username);
-
     if (token && username) {
+      console.log('OAuth: Processing login');
       setStatus('Logging you in...');
       
-      // Manually save token to localStorage first
-      localStorage.setItem('token', token);
+      // Clear URL parameters to prevent re-processing
+      window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Create user object with available data
       const userData = { 
         username,
         id: username,
-        role: 'user'
+        role: 'user',
+        isGitHubUser: true
       };
       
-      // Save user data to localStorage
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('userId', username);
-      
-      // Login user with GitHub token
       login(token, userData);
-      
+      console.log('OAuth: Login called');
       setStatus('Success! Redirecting...');
     } else {
-      console.error('Missing token or username in OAuth callback');
+      console.log('OAuth: Missing credentials');
       setStatus('Authentication failed. Redirecting...');
       setTimeout(() => {
         navigate('/login');
