@@ -126,16 +126,29 @@ exports.githubLogin = async (req,res) => {
             return res.status(401).json({message: "No access token from GitHUb "});
         }
         console.log("GitHub token response:",tokenResponse.data);
-        //use acess token to get user user profile
+        //use access token to get user profile
         const userResponse = await axios.get("https://api.github.com/user",{
             headers:{
                 Authorization: `token ${accessToken}`,
             },
         });
 
-        const {login:username,email,id:githubId} = userResponse.data;
-        //if email is null use a fallback 
-        const userEmail = email || `${githubId}@github.user`;
+        let {login:username,email,id:githubId,avatar_url} = userResponse.data;
+        
+        // If email is private, fetch from emails endpoint
+        if (!email) {
+            try {
+                const emailResponse = await axios.get("https://api.github.com/user/emails", {
+                    headers: { Authorization: `token ${accessToken}` }
+                });
+                const primaryEmail = emailResponse.data.find(e => e.primary);
+                email = primaryEmail ? primaryEmail.email : `${githubId}@github.user`;
+            } catch (err) {
+                email = `${githubId}@github.user`;
+            }
+        }
+        
+        const userEmail = email;
         //check if user already exists or creaate new
         let user = await User.findOne({email: userEmail});
 
@@ -144,8 +157,18 @@ exports.githubLogin = async (req,res) => {
                 username,
                 email:userEmail,
                 password: "github-oauth", //dummy placeholder
+                profilepic: avatar_url || "",
             });
+        } else {
+            // Update existing user's profile picture if available
+            if (avatar_url && user.profilepic !== avatar_url) {
+                user.profilepic = avatar_url;
+                await user.save();
+            }
         }
+        
+        // Promote to admin if email is in whitelist
+        user = await ensureAdminRole(user);
 
         //generate JWT
         const token = jwt.sign(
