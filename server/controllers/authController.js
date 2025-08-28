@@ -155,14 +155,8 @@ exports.githubLogin = async (req,res) => {
         );
 
         //redirect to frontend with token
-
-        res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}&username=${user.username}`);
-
-        res.json({
-            message: "🟢 GitHub login successful",
-            token,
-            username: user.username,
-        });
+        const frontendURL = "https://deadtime2.vercel.app";
+        res.redirect(`${frontendURL}/oauth-success?token=${token}&username=${user.username}`);
     } catch (error){
         console.error("GitHub OAuth Error:", error);
         res.status(500).json({message: "🔴 GitHub OAuth failed", error: error.message});

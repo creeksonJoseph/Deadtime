@@ -36,6 +36,7 @@ import { Header } from "./components/Header";
 import { GuestHeader } from "./components/GuestHeader";
 import { GuestBrowse } from "./pages/GuestBrowse";
 import { GoogleUnavailablePage } from "./pages/GoogleUnavailablePage";
+import { OAuthSuccessPage } from "./pages/OAuthSuccessPage";
 
 
 function AppContent() {
@@ -155,6 +156,8 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/google-unavailable" element={<GoogleUnavailablePage />} />
+        <Route path="/oauth-success" element={<OAuthSuccessPage />} />
+        <Route path="/api/auth/github/*/oauth-success" element={<OAuthSuccessPage />} />
         <Route
           path="/guest-browse"
           element={<GuestBrowse searchVisible={guestSearchVisible} />}
