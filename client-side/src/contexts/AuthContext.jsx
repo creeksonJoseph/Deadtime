@@ -58,31 +58,20 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login(newToken, userObj) {
-    const finalUser = {
-      ...userObj,
-      id: userObj.id, // always use id from backend
-    };
     setToken(newToken);
     localStorage.setItem("token", newToken);
-    localStorage.setItem("userId", userObj.id);
-
-    // Fetch full profile here
-    const profileData = await getUserProfile(userObj.id, newToken);
-    const savedUser = localStorage.getItem("user");
-    const savedUserObj = savedUser ? JSON.parse(savedUser) : null;
-    const mergedUser = {
-      ...(savedUserObj || {}),
-      ...(profileData?.user || {}),
-      id: profileData?.user?._id || profileData?.user?.id || userObj.id,
-      profilepic:
-        profileData?.user?.profilepic ??
-        savedUserObj?.profilepic ??
-        userObj.profilepic ??
-        "",
+    
+    // For GitHub OAuth, we'll get the real user data from the token validation
+    // Just set the basic user data for now
+    const basicUser = {
+      ...userObj,
+      id: userObj.id || 'temp-id'
     };
-    setUser(mergedUser);
-    localStorage.setItem("user", JSON.stringify(mergedUser));
-
+    
+    setUser(basicUser);
+    localStorage.setItem("user", JSON.stringify(basicUser));
+    localStorage.setItem("userId", basicUser.id);
+    
     setLoading(false);
     navigate("/dashboard");
   }

@@ -221,8 +221,7 @@ export function LandingPage() {
             initial="hidden"
             animate="show"
             onClick={() => {
-              const serverURL = "https://deadtime.onrender.com";
-              window.location.href = `${serverURL}/api/auth/github`;
+              window.location.href = "https://deadtime.onrender.com/api/auth/github";
             }}
             className="w-12 h-12 rounded-full glass flex items-center justify-center hover:glass-strong transition-all duration-300 hover:scale-110 neon-glow"
           >
