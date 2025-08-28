@@ -159,19 +159,16 @@ exports.githubLogin = async (req,res) => {
                 password: "github-oauth", //dummy placeholder
                 profilepic: avatar_url || "",
             });
-            console.log('GitHub OAuth: Created new user:', { username, email: userEmail, profilepic: avatar_url });
         } else {
             // Update existing user's profile picture if available
             if (avatar_url && user.profilepic !== avatar_url) {
                 user.profilepic = avatar_url;
                 await user.save();
             }
-            console.log('GitHub OAuth: Found existing user:', { username: user.username, email: user.email });
         }
         
         // Promote to admin if email is in whitelist
         user = await ensureAdminRole(user);
-        console.log('GitHub OAuth: Final user data:', { id: user._id, username: user.username, email: user.email, role: user.role });
 
         //generate JWT
         const token = jwt.sign(
