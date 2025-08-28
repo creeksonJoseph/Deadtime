@@ -26,9 +26,25 @@ export function AuthProvider({ children }) {
       const storedUser = localStorage.getItem("user");
       const parsedUser = storedUser ? JSON.parse(storedUser) : null;
       
-      // Skip profile fetch for GitHub users to prevent 500 errors
+      // For GitHub users, try to fetch complete profile from backend
       if (parsedUser?.isGitHubUser) {
-        setUser(parsedUser);
+        try {
+          const data = await getUserProfile(parsedUser.id, token);
+          if (data?.user) {
+            const completeUser = {
+              ...parsedUser,
+              ...data.user,
+              id: data.user._id || data.user.id,
+              profilepic: data.user.profilepic || parsedUser.profilepic || "",
+            };
+            setUser(completeUser);
+            localStorage.setItem("user", JSON.stringify(completeUser));
+          } else {
+            setUser(parsedUser);
+          }
+        } catch (err) {
+          setUser(parsedUser);
+        }
         setLoading(false);
         return;
       }
