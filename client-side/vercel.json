@@ -1,11 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/api/auth/github/(.*)/oauth-success",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/((?!assets|favicon\\.ico|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)).*)",
+      "source": "/((?!assets|favicon\\.ico|.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)).*)",
       "destination": "/index.html"
     }
   ]
