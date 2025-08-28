@@ -12,25 +12,32 @@ export function OAuthSuccessPage() {
     const token = urlParams.get('token');
     const username = urlParams.get('username');
 
+    console.log('OAuth callback - token:', token ? 'present' : 'missing');
+    console.log('OAuth callback - username:', username);
+
     if (token && username) {
       setStatus('Logging you in...');
+      
+      // Manually save token to localStorage first
+      localStorage.setItem('token', token);
       
       // Create user object with available data
       const userData = { 
         username,
-        id: username, // Use username as temporary ID
+        id: username,
         role: 'user'
       };
+      
+      // Save user data to localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userId', username);
       
       // Login user with GitHub token
       login(token, userData);
       
       setStatus('Success! Redirecting...');
-      // Remove the timeout, let login function handle navigation
-      // setTimeout(() => {
-      //   navigate('/dashboard');
-      // }, 1000);
     } else {
+      console.error('Missing token or username in OAuth callback');
       setStatus('Authentication failed. Redirecting...');
       setTimeout(() => {
         navigate('/login');

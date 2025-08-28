@@ -58,14 +58,14 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login(newToken, userObj) {
+    console.log('AuthContext login called with token:', newToken ? 'present' : 'missing');
+    
     setToken(newToken);
     localStorage.setItem("token", newToken);
     
-    // For GitHub OAuth, we'll get the real user data from the token validation
-    // Just set the basic user data for now
     const basicUser = {
       ...userObj,
-      id: userObj.id || 'temp-id'
+      id: userObj.id || userObj.username || 'temp-id'
     };
     
     setUser(basicUser);
@@ -73,7 +73,11 @@ export function AuthProvider({ children }) {
     localStorage.setItem("userId", basicUser.id);
     
     setLoading(false);
-    navigate("/dashboard");
+    
+    // Add a small delay to ensure state is updated
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 100);
   }
 
   async function refreshUser() {
