@@ -104,77 +104,75 @@ exports.login = async (req, res) => {
 };
 
 //login with GitHub logic
-exports.githubLogin = async (req, res) => {
-  const { code } = req.query;
+exports.githubLogin = async (req,res) => {
+    const {code} = req.query;
 
-  if (!code)
-    return res.status(400).json({ message: "🔴No Github code provided" });
-  try {
-    //exchange code for access token
-    const tokenResponse = await axios.post(
-      "https://github.com/login/oauth/access_token",
-      {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code,
-      },
-      {
-        headers: { accept: "application/json" },
-      }
-    );
-    const accessToken = tokenResponse.data.access_token;
-    if (!accessToken) {
-      return res.status(401).json({ message: "No access token from GitHUb " });
+    if (!code) return res.status(400).json({message:"🔴No Github code provided"});
+    try{
+        //exchange code for access token 
+        const tokenResponse = await axios.post(
+            "https://github.com/login/oauth/access_token",
+            {
+                client_id: process.env.GITHUB_CLIENT_ID,
+                client_secret: process.env.GITHUB_CLIENT_SECRET,
+                code,
+            },
+            {
+                headers: {accept: "application/json"},
+            }
+        );
+        const accessToken = tokenResponse.data.access_token;
+        if (!accessToken){
+            return res.status(401).json({message: "No access token from GitHUb "});
+        }
+        console.log("GitHub token response:",tokenResponse.data);
+        //use acess token to get user user profile
+        const userResponse = await axios.get("https://api.github.com/user",{
+            headers:{
+                Authorization: `token ${accessToken}`,
+            },
+        });
+
+        const {login:username,email,id:githubId} = userResponse.data;
+        //if email is null use a fallback 
+        const userEmail = email || `${githubId}@github.user`;
+        //check if user already exists or creaate new
+        let user = await User.findOne({email: userEmail});
+
+        if (!user) {
+            user = await User.create({
+                username,
+                email:userEmail,
+                password: "github-oauth", //dummy placeholder
+            });
+        }
+
+        //generate JWT
+        const token = jwt.sign(
+            {id: user._id, role:user.role || "user",username:user.username},
+            process.env.JWT_SECRET,
+            {expiresIn: "2h"}
+        );
+
+        //redirect to frontend with token
+
+        res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}&username=${user.username}`);
+
+        res.json({
+            message: "🟢 GitHub login successful",
+            token,
+            username: user.username,
+        });
+    } catch (error){
+        console.error("GitHub OAuth Error:", error);
+        res.status(500).json({message: "🔴 GitHub OAuth failed", error: error.message});
     }
-    console.log("GitHub token response:", tokenResponse.data);
-    //use acess token to get user user profile
-    const userResponse = await axios.get("https://api.github.com/user", {
-      headers: {
-        Authorization: `token ${accessToken}`,
-      },
-    });
-
-    const { login: username, email, id: githubId } = userResponse.data;
-    //if email is null use a fallback
-    const userEmail = email || `${githubId}@github.user`;
-    //check if user already exists or creaate new
-    let user = await User.findOne({
-      email: { $regex: new RegExp(`^${userEmail}$`, "i") },
-    });
-
-    if (!user) {
-      user = await User.create({
-        username,
-        email: userEmail,
-        password: "github-oauth", //dummy placeholder
-      });
-    }
-
-    // Promote to admin if email matches whitelist
-    user = await ensureAdminRole(user);
-
-    //generate JWT
-    const token = jwt.sign(
-      { id: user._id, role: user.role || "user", username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: "2h" }
-    );
-
-    res.json({
-      message: "🟢 GitHub login successful",
-      token,
-      username: user.username,
-    });
-  } catch (error) {
-    console.error("GitHub OAuth Error:", error);
-    res
-      .status(500)
-      .json({ message: "🔴 GitHub OAuth failed", error: error.message });
-  }
-};
+}
 
 exports.githubRedirect = (req, res) => {
   const clientID = process.env.GITHUB_CLIENT_ID;
   const redirect = `https://github.com/login/oauth/authorize?client_id=${clientID}&scope=user:email`;
   res.redirect(redirect);
 };
+
+
