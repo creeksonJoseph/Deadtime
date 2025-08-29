@@ -31,6 +31,7 @@ app.use("/api/ghostnotes",require("./routes/Ghostnotesroutes"));
 app.use("/api/revive",require("./routes/revivalcardroutes"));
 app.use("/api/users",require("./routes/userroutes"));
 app.use("/api/leaderboard",require("./routes/leaderboardroute"));
+app.use("/api/seed",require("./routes/seedroutes"));
 app.get("/",(req,res) => {
   res.send("💀 Welcome to DeadTime API");
 })
