@@ -358,8 +358,8 @@ GET    /api/leaderboard            # Get top users by revivals
 
 ### 👥 Development Team
 
-- **Backend Developer**: [deo](mailto:your.email@example.com)
-- **UI/UX Designer**: [Joseph Charana](mailto:charanajoseph@gmail.com)
+- **Backend Developer**: [deogracious Siatah](mailto:deosiatah0@gmail.com)
+- **UI/UX Designer and frontend developer**: [Joseph Charana](mailto:charanajoseph@gmail.com)
 
 ### 🔗 Links
 
