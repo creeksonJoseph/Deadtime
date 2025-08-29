@@ -365,7 +365,7 @@ GET    /api/leaderboard            # Get top users by revivals
 
 - **🌐 Live Application**: [https://deadtime2.vercel.app](https://deadtime2.vercel.app)
 - **📡 API Server**: [https://deadtime.onrender.com](https://deadtime.onrender.com)
-- **📂 GitHub Repository**: [https://github.com/yourusername/deadtime](https://github.com/yourusername/deadtime)
+- **📂 GitHub Repository**: [https://github.com/creeksonJoseph/Deadtime/](https://github.com/creeksonJoseph/Deadtime/)
 
 ### 🤝 Contributing
 
