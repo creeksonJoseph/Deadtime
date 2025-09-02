@@ -127,23 +127,15 @@ Deadtime provides a platform where developers can:
 
 ### 🏠 Landing Page
 
+![Landing Page](client-side/public/ui-preview/landingPage.png)
+
 - Animated graveyard theme with floating elements
 - Clear call-to-action buttons
 - Feature highlights with visual icons
 
-### 🔐 Authentication
-
-- Sleek login/signup forms with validation
-- GitHub OAuth integration
-- Password strength indicators
-
-### 📊 Dashboard
-
-- Personal project statistics
-- Quick access to buried/revived projects
-- Activity timeline and achievements
-
 ### 🏛️ Project Browser
+
+![Project Browser](client-side/public/ui-preview/ProjectBrowser.png)
 
 - Grid layout with project cards
 - Advanced search and filtering
@@ -151,9 +143,37 @@ Deadtime provides a platform where developers can:
 
 ### 👤 User Profiles
 
+![User Profile](client-side/public/ui-preview/userProfile.png)
+
 - Comprehensive user statistics
 - Project history and contributions
 - Achievement badges and rankings
+
+### 🏆 Leaderboard
+
+![Leaderboard](client-side/public/ui-preview/LeaderBoard.png)
+
+- Merit-based ranking system
+- Top revivers showcase
+- Community engagement metrics
+
+### 🛡️ Admin Dashboard
+
+#### Overview
+
+![Admin Dashboard Overview](client-side/public/ui-preview/admin-dashboard%20overview.png)
+
+#### User Management
+
+![Admin Dashboard Users](client-side/public/ui-preview/admin-dashboard-users.png)
+
+#### Project Management
+
+![Admin Dashboard Projects](client-side/public/ui-preview/admin-dashboard-projects.png)
+
+- Comprehensive admin controls
+- User and project management
+- System analytics and monitoring
 
 ---
 
@@ -227,24 +247,6 @@ Deadtime provides a platform where developers can:
 6. **Access the Application**
    - Frontend: `http://localhost:5173`
    - Backend API: `http://localhost:5000`
-
-### 🚀 Deployment
-
-**Frontend (Vercel)**
-
-1. Connect your GitHub repository to Vercel
-2. Set build command: `npm run build`
-3. Set output directory: `dist`
-4. Add environment variables
-
-**Backend (Render)**
-
-1. Connect your GitHub repository to Render
-2. Set build command: `npm install`
-3. Set start command: `npm start`
-4. Add environment variables
-
----
 
 ## 🔐 Authentication Flow
 
