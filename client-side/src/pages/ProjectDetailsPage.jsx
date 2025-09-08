@@ -269,7 +269,7 @@ export function ProjectDetailsPage({
 
   return (
     <div
-      className={`${isMobile ? "min-h-screen overflow-y-auto" : "h-screen overflow-hidden"} bg-[#141d38] ${sidebarOpen ? "md:ml-28" : "md:ml-0"} ${isLowEndDevice ? 'will-change-auto' : ''}`}
+      className={`${isMobile ? "min-h-screen overflow-y-auto pb-20" : "h-screen overflow-hidden"} bg-[#141d38] ${sidebarOpen ? "md:ml-28" : "md:ml-0"} ${isLowEndDevice ? 'will-change-auto' : ''}`}
     >
       {/* Sticky Back Button */}
       <button
@@ -536,7 +536,7 @@ export function ProjectDetailsPage({
 
             {/* Comments List - Scrollable */}
             <div
-              className={`${isMobile ? "flex-1 overflow-y-auto" : "flex-1 overflow-y-auto"} p-4 space-y-3`}
+              className={`${isMobile ? "flex-1 overflow-y-auto pb-20" : "flex-1 overflow-y-auto"} p-4 space-y-3`}
             >
               {error && (
                 <InlineNetworkError error={error} />
