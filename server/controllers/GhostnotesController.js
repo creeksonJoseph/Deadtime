@@ -23,23 +23,24 @@ exports.createGhostnotes = async (req,res) => {
         
         // Emit real-time events
         const io = req.app.get('io');
-        
-        // Notify project creator about new comment
-        if (project.creatorId._id.toString() !== req.user.id) {
-            io.to(`user_${project.creatorId._id}`).emit('newComment', {
+        if (io) {
+            // Notify project creator about new comment
+            if (project.creatorId._id.toString() !== req.user.id) {
+                io.to(`user_${project.creatorId._id}`).emit('newComment', {
+                    projectId,
+                    projectTitle: project.title,
+                    commenterName: isAnonymous ? 'Anonymous' : populatedNote.userId.username,
+                    comment: note,
+                    message: `New comment on your project "${project.title}"`
+                });
+            }
+            
+            // Broadcast new comment to all users viewing this project
+            io.emit('commentAdded', {
                 projectId,
-                projectTitle: project.title,
-                commenterName: isAnonymous ? 'Anonymous' : populatedNote.userId.username,
-                comment: note,
-                message: `New comment on your project "${project.title}"`
+                comment: populatedNote
             });
         }
-        
-        // Broadcast new comment to all users viewing this project
-        io.emit('commentAdded', {
-            projectId,
-            comment: populatedNote
-        });
         
         res.status(201).json({message: "🟢 Note posted",ghostnote: populatedNote});
     } catch (error){

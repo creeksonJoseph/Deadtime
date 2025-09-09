@@ -19,9 +19,12 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && token) {
-      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
-        auth: { token }
-      });
+      try {
+        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+          auth: { token },
+          timeout: 5000,
+          forceNew: true
+        });
 
       newSocket.on('connect', () => {
         console.log('🔌 Connected to server');
@@ -65,11 +68,14 @@ export const SocketProvider = ({ children }) => {
         });
       }
 
-      setSocket(newSocket);
+        setSocket(newSocket);
 
-      return () => {
-        newSocket.close();
-      };
+        return () => {
+          newSocket.close();
+        };
+      } catch (error) {
+        console.log('Socket connection failed:', error);
+      }
     }
   }, [user, token]);
 

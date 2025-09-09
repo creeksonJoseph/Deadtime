@@ -12,8 +12,9 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST"]
+    origin: ["http://localhost:5173", "https://deadtime2.vercel.app"],
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -58,33 +59,37 @@ app.use((err, req, res, next) => {
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) {
-    return next(new Error('Authentication error'));
+    console.log('No token provided for socket connection');
+    return next();
   }
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
     socket.userId = decoded.id;
     socket.userRole = decoded.role;
     next();
   } catch (err) {
-    next(new Error('Authentication error'));
+    console.log('Socket auth error:', err.message);
+    next();
   }
 });
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log(`🔌 User ${socket.userId} connected`);
+  console.log(`🔌 Socket connected: ${socket.id}`);
   
-  // Join user to their personal room
-  socket.join(`user_${socket.userId}`);
-  
-  // Join admin users to admin room
-  if (socket.userRole === 'admin') {
-    socket.join('admin_room');
+  if (socket.userId) {
+    // Join user to their personal room
+    socket.join(`user_${socket.userId}`);
+    
+    // Join admin users to admin room
+    if (socket.userRole === 'admin') {
+      socket.join('admin_room');
+    }
   }
   
   socket.on('disconnect', () => {
-    console.log(`🔌 User ${socket.userId} disconnected`);
+    console.log(`🔌 Socket disconnected: ${socket.id}`);
   });
 });
 
