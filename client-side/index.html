@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
+    <meta
+      name="google-site-verification"
+      content="aw6Vn0TnzhIZM7o_dV9wdgLYZPjSdAEv52i07b5C0KM"
+    />
     <title>DEADTIME</title>
     <meta
       name="title"
       content="DEADTIME - Digital Project Graveyard | Bury & Revive Abandoned Code"
     />
+
     <meta
       name="description"
       content="A digital graveyard where developers can bury their abandoned projects and others can discover and revive them. Share your dead code, find new projects to resurrect."
@@ -132,12 +137,12 @@
     <script type="module" src="/src/main.jsx"></script>
     <script>
       // Clear cache on load for low-end devices
-      if (navigator.userAgent.includes('Chrome') && !window.chrome?.runtime) {
-        if ('caches' in window) {
-          caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      if (navigator.userAgent.includes("Chrome") && !window.chrome?.runtime) {
+        if ("caches" in window) {
+          caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
         }
       }
-      
+
       window.addEventListener(
         "error",
         function (e) {
