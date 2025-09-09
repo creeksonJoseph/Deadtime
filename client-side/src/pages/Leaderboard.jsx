@@ -37,6 +37,25 @@ export function Leaderboard({ sidebarOpen }) {
       .finally(() => setLoading(false));
   }, [token, getCachedData, setCachedData]);
 
+  // Listen for real-time leaderboard updates
+  useEffect(() => {
+    const handleLeaderboardUpdate = (event) => {
+      const { userId, username, newRevivalCount } = event.detail;
+      setUsers(prevUsers => {
+        const updatedUsers = prevUsers.map(user => 
+          user._id === userId 
+            ? { ...user, revivalCount: newRevivalCount }
+            : user
+        );
+        // Re-sort by revival count
+        return updatedUsers.sort((a, b) => b.revivalCount - a.revivalCount);
+      });
+    };
+
+    window.addEventListener('leaderboardUpdate', handleLeaderboardUpdate);
+    return () => window.removeEventListener('leaderboardUpdate', handleLeaderboardUpdate);
+  }, []);
+
   const getRankIcon = (rank) => {
     switch (rank) {
       case 1: return <Trophy className="w-6 h-6 text-[#34e0a1]" />;

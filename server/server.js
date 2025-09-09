@@ -2,10 +2,20 @@ require("dotenv").config();
 const express = require("express")
 const mongoose = require("mongoose");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 const PORT = 5000;
 
 //starting express app
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
+});
 
 //connecting to virtual mongodb atlas using mongoose 
 const connectDB = async () => {
@@ -44,7 +54,44 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Socket.IO authentication middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error('Authentication error'));
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    socket.userRole = decoded.role;
+    next();
+  } catch (err) {
+    next(new Error('Authentication error'));
+  }
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log(`🔌 User ${socket.userId} connected`);
+  
+  // Join user to their personal room
+  socket.join(`user_${socket.userId}`);
+  
+  // Join admin users to admin room
+  if (socket.userRole === 'admin') {
+    socket.join('admin_room');
+  }
+  
+  socket.on('disconnect', () => {
+    console.log(`🔌 User ${socket.userId} disconnected`);
+  });
+});
+
+// Make io available to routes
+app.set('io', io);
+
 //starting server 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
 });

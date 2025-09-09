@@ -7,7 +7,7 @@ exports.createGhostnotes = async (req,res) => {
         const {projectId,note,isAnonymous} =req.body;
 
         //verify if project exists
-        const project = await GhostCard.findById(projectId);
+        const project = await GhostCard.findById(projectId).populate('creatorId', 'username');
         if (!project){
             return res.status(404).json({message: "🔴 Project Not Found"})
         }
@@ -18,7 +18,30 @@ exports.createGhostnotes = async (req,res) => {
             note,
             isAnonymous
         });
-        res.status(201).json({message: "🟢 Note posted",ghostnote});
+        
+        const populatedNote = await Ghostnotes.findById(ghostnote._id).populate('userId', 'username');
+        
+        // Emit real-time events
+        const io = req.app.get('io');
+        
+        // Notify project creator about new comment
+        if (project.creatorId._id.toString() !== req.user.id) {
+            io.to(`user_${project.creatorId._id}`).emit('newComment', {
+                projectId,
+                projectTitle: project.title,
+                commenterName: isAnonymous ? 'Anonymous' : populatedNote.userId.username,
+                comment: note,
+                message: `New comment on your project "${project.title}"`
+            });
+        }
+        
+        // Broadcast new comment to all users viewing this project
+        io.emit('commentAdded', {
+            projectId,
+            comment: populatedNote
+        });
+        
+        res.status(201).json({message: "🟢 Note posted",ghostnote: populatedNote});
     } catch (error){
         res.status(500).json({message: "🔴 Note failed to post",error:error.message});
     }

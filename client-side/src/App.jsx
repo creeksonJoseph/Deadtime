@@ -14,6 +14,8 @@ import {
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { OfflineProvider, useOffline } from "./contexts/OfflineContext.jsx";
 import { CacheProvider } from "./contexts/CacheContext.jsx";
+import { SocketProvider } from "./contexts/SocketContext.jsx";
+import NotificationToast from "./components/NotificationToast.jsx";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -293,8 +295,8 @@ function AppContent() {
           onProjectRevived={refetchProjects}
         />
       )}
-
-
+      
+      <NotificationToast />
     </div>
   );
 }
@@ -305,7 +307,9 @@ export default function App() {
       <AuthProvider>
         <OfflineProvider>
           <CacheProvider>
-            <AppContent />
+            <SocketProvider>
+              <AppContent />
+            </SocketProvider>
           </CacheProvider>
         </OfflineProvider>
       </AuthProvider>
