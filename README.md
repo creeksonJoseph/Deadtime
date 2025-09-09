@@ -76,8 +76,6 @@ Deadtime provides a platform where developers can:
 - **📊 Dashboard** - Personal statistics and project management
 - **👤 User Profiles** - Detailed account pages with project history and achievements
 - **🎖️ Achievement System** - Badges and recognition for community contributions
-- **🔔 Real-time Notifications** - Live updates for project revivals and comments
-- **⚡ Live Updates** - Real-time leaderboard and activity feeds
 
 ### 🎨 User Experience
 
@@ -108,7 +106,6 @@ Deadtime provides a platform where developers can:
 - **🔐 JWT** - JSON Web Token authentication
 - **🔒 bcrypt** - Password hashing
 - **🐙 GitHub OAuth** - Third-party authentication
-- **⚡ Socket.IO** - Real-time WebSocket communication
 
 ### DevOps & Deployment
 
@@ -339,6 +336,7 @@ GET    /api/leaderboard            # Get top users by revivals
 
 ### 🚀 Planned Features
 
+- **🔔 Real-time Notifications** - WebSocket integration for live updates
 - **🤝 Collaboration Tools** - Team-based project revival
 - **📊 Advanced Analytics** - Detailed project and user insights
 - **🏷️ Tagging System** - Better project categorization

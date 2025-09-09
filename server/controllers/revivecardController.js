@@ -34,7 +34,7 @@ exports.reviveGhostCard = async (req, res) => {
         const { notes, newProjectLink } = req.body;
         const userId = req.user.id; // get user ID from token via middleware
 
-        const card = await GhostCard.findById(req.params.id).populate('creatorId', 'username');
+        const card = await GhostCard.findById(req.params.id);
         if (!card) return res.status(404).json({ message: "🔴 Card not found" });
 
         // Only update if not already revived by this user
@@ -52,32 +52,7 @@ exports.reviveGhostCard = async (req, res) => {
             });
 
             // Increment user's revival count
-            const reviver = await User.findByIdAndUpdate(userId, { $inc: { revivalCount: 1 } }, { new: true });
-            
-            // Emit real-time events
-            const io = req.app.get('io');
-            if (io) {
-                // Notify project creator
-                io.to(`user_${card.creatorId._id}`).emit('projectRevived', {
-                    projectId: card._id,
-                    projectTitle: card.title,
-                    reviverName: reviver.username,
-                    message: `Your project "${card.title}" has been revived by ${reviver.username}!`
-                });
-                
-                // Broadcast leaderboard update
-                io.emit('leaderboardUpdate', {
-                    userId,
-                    username: reviver.username,
-                    newRevivalCount: reviver.revivalCount
-                });
-                
-                // Notify admins
-                io.to('admin_room').emit('adminNotification', {
-                    type: 'revival',
-                    message: `${reviver.username} revived "${card.title}"`
-                });
-            }
+            await User.findByIdAndUpdate(userId, { $inc: { revivalCount: 1 } });
         }
 
         res.status(200).json({

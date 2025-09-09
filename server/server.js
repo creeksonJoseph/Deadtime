@@ -2,21 +2,10 @@ require("dotenv").config();
 const express = require("express")
 const mongoose = require("mongoose");
 const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
 const PORT = 5000;
 
 //starting express app
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173", "https://deadtime2.vercel.app"],
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
 
 //connecting to virtual mongodb atlas using mongoose 
 const connectDB = async () => {
@@ -32,15 +21,7 @@ connectDB();
 
 //middleware to parse json data and cors
 app.use(express.json());
-app.use(cors({
-  origin: ["http://localhost:5173", "https://deadtime2.vercel.app"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-// Handle preflight requests
-app.options('*', cors());
+app.use(cors());
 
 
 //root routes 
@@ -63,48 +44,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Socket.IO authentication middleware
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) {
-    console.log('No token provided for socket connection');
-    return next();
-  }
-  
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-    socket.userId = decoded.id;
-    socket.userRole = decoded.role;
-    next();
-  } catch (err) {
-    console.log('Socket auth error:', err.message);
-    next();
-  }
-});
-
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log(`🔌 Socket connected: ${socket.id}`);
-  
-  if (socket.userId) {
-    // Join user to their personal room
-    socket.join(`user_${socket.userId}`);
-    
-    // Join admin users to admin room
-    if (socket.userRole === 'admin') {
-      socket.join('admin_room');
-    }
-  }
-  
-  socket.on('disconnect', () => {
-    console.log(`🔌 Socket disconnected: ${socket.id}`);
-  });
-});
-
-// Make io available to routes
-app.set('io', io);
-
 //starting server 
-server.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
 });
