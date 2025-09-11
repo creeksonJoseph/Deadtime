@@ -2,8 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Github } from "lucide-react";
+import { useEffect } from "react";
 
 export function LandingPage() {
+  useEffect(() => {
+    fetch("https://deadtime.onrender.com", { method: "GET" }).catch((err) =>
+      console.error("Warm-up failed ❌", err)
+    );
+  }, []);
+
   const navigate = useNavigate();
 
   const fadeSlide = (direction = "up", delay = 0) => {
@@ -221,7 +228,8 @@ export function LandingPage() {
             initial="hidden"
             animate="show"
             onClick={() => {
-              window.location.href = "https://deadtime.onrender.com/api/auth/github";
+              window.location.href =
+                "https://deadtime.onrender.com/api/auth/github";
             }}
             className="w-12 h-12 rounded-full glass flex items-center justify-center hover:glass-strong transition-all duration-300 hover:scale-110 neon-glow"
           >
