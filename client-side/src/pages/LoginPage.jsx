@@ -40,6 +40,11 @@ export function LoginPage() {
     window.location.href = `${serverURL}/api/auth/github`;
   };
 
+  const handleGoogleLogin = () => {
+    const serverURL = "https://deadtime.onrender.com";
+    window.location.href = `${serverURL}/api/auth/google`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -225,7 +230,7 @@ export function LoginPage() {
               </button>
               <button 
                 type="button"
-                onClick={() => navigate("/google-unavailable")}
+                onClick={handleGoogleLogin}
                 className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300"
               >
                 <svg

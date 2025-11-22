@@ -192,4 +192,83 @@ exports.githubRedirect = (req, res) => {
   res.redirect(redirect);
 };
 
+// Google OAuth login
+exports.googleLogin = async (req, res) => {
+  const { code } = req.query;
+  
+  if (!code) return res.status(400).json({ message: "🔴 No Google code provided" });
+  
+  try {
+    // Exchange code for access token
+    const tokenResponse = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      {
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        code,
+        grant_type: "authorization_code",
+        redirect_uri: `${process.env.SERVER_URL || 'https://deadtime.onrender.com'}/api/auth/google/callback`
+      },
+      {
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+    
+    const accessToken = tokenResponse.data.access_token;
+    if (!accessToken) {
+      return res.status(401).json({ message: "🔴 No access token from Google" });
+    }
+    
+    // Get user profile
+    const userResponse = await axios.get(
+      `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`
+    );
+    
+    const { email, name, picture, id: googleId } = userResponse.data;
+    
+    // Check if user exists or create new
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      user = await User.create({
+        username: name || `user_${googleId}`,
+        email,
+        password: "google-oauth", // placeholder
+        profilepic: picture || ""
+      });
+    } else {
+      // Update profile picture if available
+      if (picture && user.profilepic !== picture) {
+        user.profilepic = picture;
+        await user.save();
+      }
+    }
+    
+    // Promote to admin if email is in whitelist
+    user = await ensureAdminRole(user);
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user._id, role: user.role || "user", username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+    
+    // Redirect to frontend with token
+    const frontendURL = "https://deadtime2.vercel.app";
+    res.redirect(`${frontendURL}/oauth-success?token=${token}&username=${user.username}`);
+  } catch (error) {
+    console.error("Google OAuth Error:", error);
+    res.status(500).json({ message: "🔴 Google OAuth failed", error: error.message });
+  }
+};
+
+exports.googleRedirect = (req, res) => {
+  const clientID = process.env.GOOGLE_CLIENT_ID;
+  const redirectUri = `${process.env.SERVER_URL || 'https://deadtime.onrender.com'}/api/auth/google/callback`;
+  const scope = "openid email profile";
+  const redirect = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+  res.redirect(redirect);
+};
+
 

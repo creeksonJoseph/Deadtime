@@ -399,7 +399,10 @@ export function SignupPage() {
               </button>
               <button 
                 type="button"
-                onClick={() => navigate("/google-unavailable")}
+                onClick={() => {
+                  const serverURL = "https://deadtime.onrender.com";
+                  window.location.href = `${serverURL}/api/auth/google`;
+                }}
                 className="flex-1 glass rounded-lg p-3 flex items-center justify-center hover:glass-strong transition-all duration-300"
               >
                 <svg
