@@ -1,0 +1,6 @@
+node_modules
+client-side/node_modules
+server/node_modules
+client-side/dist
+npm-debug.log
+.env
