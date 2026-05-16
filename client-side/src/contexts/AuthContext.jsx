@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { getUserProfile } from "../api/users";
 import { useNavigate } from "react-router-dom";
 
-const AuthContext = createContext(undefined);
+export const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("token") || "");
