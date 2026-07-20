@@ -177,9 +177,17 @@ exports.githubLogin = async (req,res) => {
             {expiresIn: "2h"}
         );
 
-        //redirect to frontend with token
+        //redirect to frontend with token + full user info so the client can hydrate correctly
         const frontendURL = "https://deadtime2.vercel.app";
-        res.redirect(`${frontendURL}/oauth-success?token=${token}&username=${user.username}`);
+        const params = new URLSearchParams({
+            token,
+            username: user.username,
+            id: user._id.toString(),
+            role: user.role || "user",
+            provider: "github",
+            profilepic: user.profilepic || "",
+        });
+        res.redirect(`${frontendURL}/oauth-success?${params.toString()}`);
     } catch (error){
         console.error("GitHub OAuth Error:", error);
         res.status(500).json({message: "🔴 GitHub OAuth failed", error: error.message});
@@ -254,9 +262,17 @@ exports.googleLogin = async (req, res) => {
       { expiresIn: "2h" }
     );
     
-    // Redirect to frontend with token
+    // Redirect to frontend with token + full user info so the client can hydrate correctly
     const frontendURL = "https://deadtime2.vercel.app";
-    res.redirect(`${frontendURL}/oauth-success?token=${token}&username=${user.username}`);
+    const params = new URLSearchParams({
+      token,
+      username: user.username,
+      id: user._id.toString(),
+      role: user.role || "user",
+      provider: "google",
+      profilepic: user.profilepic || "",
+    });
+    res.redirect(`${frontendURL}/oauth-success?${params.toString()}`);
   } catch (error) {
     console.error("Google OAuth Error:", error);
     res.status(500).json({ message: "🔴 Google OAuth failed", error: error.message });
@@ -267,8 +283,15 @@ exports.googleRedirect = (req, res) => {
   const clientID = process.env.GOOGLE_CLIENT_ID;
   const redirectUri = `${process.env.SERVER_URL || 'https://deadtime.onrender.com'}/api/auth/google/callback`;
   const scope = "openid email profile";
-  const redirect = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
-  res.redirect(redirect);
+  const params = new URLSearchParams({
+    client_id: clientID,
+    redirect_uri: redirectUri,
+    scope,
+    response_type: "code",
+    access_type: "offline",
+    prompt: "select_account consent",
+  });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
 };
 
 

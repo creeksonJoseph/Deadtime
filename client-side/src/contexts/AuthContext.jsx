@@ -26,8 +26,8 @@ export function AuthProvider({ children }) {
       const storedUser = localStorage.getItem("user");
       const parsedUser = storedUser ? JSON.parse(storedUser) : null;
       
-      // For GitHub users, try to fetch complete profile from backend
-      if (parsedUser?.isGitHubUser) {
+      // For OAuth users (GitHub or Google), try to fetch complete profile from backend
+      if (parsedUser?.isGitHubUser || parsedUser?.isGoogleUser) {
         try {
           const data = await getUserProfile(parsedUser.id, token);
           if (data?.user) {

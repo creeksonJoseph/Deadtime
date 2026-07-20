@@ -15,6 +15,10 @@ export function OAuthSuccessPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const username = urlParams.get('username');
+    const id = urlParams.get('id');
+    const profilepic = urlParams.get('profilepic');
+    const role = urlParams.get('role') || 'user';
+    const provider = urlParams.get('provider') || 'github';
 
     if (token && username) {
       setStatus('Logging you in...');
@@ -24,9 +28,11 @@ export function OAuthSuccessPage() {
       
       const userData = { 
         username,
-        id: username,
-        role: 'user',
-        isGitHubUser: true
+        id: id || username,
+        role,
+        profilepic: profilepic || '',
+        isGitHubUser: provider === 'github',
+        isGoogleUser: provider === 'google',
       };
       
       login(token, userData);
